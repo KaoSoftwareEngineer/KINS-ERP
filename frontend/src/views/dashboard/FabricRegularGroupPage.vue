@@ -135,14 +135,14 @@ export default {
   font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
 }
 .frg-modal { background: #fff; border-radius: 12px; width: 440px; max-width: 100%; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
-.frg-modal-head { background: #1e40ff; color: #fff; padding: 13px 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.frg-modal-head { background: #1e3a8a; color: #fff; padding: 13px 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
 .frg-x { background: none; border: none; color: #fff; font-size: 17px; cursor: pointer; }
 .frg-modal-body { padding: 18px 20px; }
 .frg-lbl { display: block; font-size: 13px; font-weight: 600; color: #334155; margin: 10px 0 4px; }
 .frg-lbl:first-child { margin-top: 0; }
 .frg-req { color: #a82a3a; }
 .frg-input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 7px; font-size: 14px; font-family: inherit; outline: none; }
-.frg-input:focus { border-color: #1e40ff; box-shadow: 0 0 0 3px rgba(30,64,255,0.12); }
+.frg-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,0.14); }
 .frg-modal-foot { display: flex; justify-content: center; gap: 10px; padding: 12px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc; }
 .frg-btn-save { padding: 8px 26px; border: none; border-radius: 8px; background: #1a9c54; color: #fff; font-weight: 700; cursor: pointer; font-family: inherit; }
 .frg-btn-save:hover { background: #158045; }

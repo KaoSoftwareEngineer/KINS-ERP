@@ -85,6 +85,31 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- ใบสั่งย้อม (dye_orders) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS dye_orders (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      dye_no       VARCHAR(32) NOT NULL,
+      dye_date     VARCHAR(20) DEFAULT '',
+      factory      VARCHAR(255) DEFAULT '',
+      ref_no       VARCHAR(64) DEFAULT '',
+      ship_date    VARCHAR(20) DEFAULT '',
+      approved     TINYINT DEFAULT 0,
+      raw_json     MEDIUMTEXT,
+      product_json MEDIUMTEXT,
+      items_json   MEDIUMTEXT,
+      sample_json  MEDIUMTEXT,
+      packing_json MEDIUMTEXT,
+      stamping_json MEDIUMTEXT,
+      remark       TEXT,
+      subtotal     DOUBLE DEFAULT 0,
+      discount     DOUBLE DEFAULT 0,
+      vat          DOUBLE DEFAULT 0,
+      net_total    DOUBLE DEFAULT 0,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS fabric_regular_group (

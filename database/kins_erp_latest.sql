@@ -93,6 +93,46 @@ INSERT INTO `customers` VALUES (1,'2180','Country Road Fashions','Davis','096-74
 UNLOCK TABLES;
 
 --
+-- Table structure for table `dye_orders`
+--
+
+DROP TABLE IF EXISTS `dye_orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dye_orders` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `dye_no` varchar(32) NOT NULL,
+  `dye_date` varchar(20) DEFAULT '',
+  `factory` varchar(255) DEFAULT '',
+  `ref_no` varchar(64) DEFAULT '',
+  `ship_date` varchar(20) DEFAULT '',
+  `approved` tinyint(4) DEFAULT 0,
+  `raw_json` mediumtext DEFAULT NULL,
+  `product_json` mediumtext DEFAULT NULL,
+  `items_json` mediumtext DEFAULT NULL,
+  `sample_json` mediumtext DEFAULT NULL,
+  `packing_json` mediumtext DEFAULT NULL,
+  `stamping_json` mediumtext DEFAULT NULL,
+  `remark` text DEFAULT NULL,
+  `subtotal` double DEFAULT 0,
+  `discount` double DEFAULT 0,
+  `vat` double DEFAULT 0,
+  `net_total` double DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dye_orders`
+--
+
+LOCK TABLES `dye_orders` WRITE;
+/*!40000 ALTER TABLE `dye_orders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `dye_orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `fabric_irregular`
 --
 
@@ -820,7 +860,7 @@ CREATE TABLE `sessions` (
 
 LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
-INSERT INTO `sessions` VALUES ('1636cc5aec51e7de3c0155aa5db1b2e14be58100174a9ed3',16,'2026-08-14 16:02:17'),('24947d90e4d4f1bb0d1b1213520649dba7e29a52c2784415',1,'2026-08-15 16:03:38'),('5c9acfb994620749381e18fd796c44c31d81b4e7695e36a1',1,'2026-08-15 15:56:17'),('9334d56196f3e55210c346dc73fadff2f0218405a24c8da7',1,'2026-08-14 15:35:31'),('be984ccef1b04deb7fad55c178c93c17e08d0f07fb6550c5',16,'2026-08-18 16:54:05'),('c27cb0b2d39e8dfa6c62d532d44e6fd135d7c56ae5808417',16,'2026-08-15 09:11:19'),('d10942ecbd11366f1a2b9b6560c56992eb6e2bb9484fa14f',16,'2026-08-15 11:16:44'),('e6d277e59f1f20be924bdb3c7d201bd63f04959b3f21760b',16,'2026-08-14 17:52:47');
+INSERT INTO `sessions` VALUES ('1636cc5aec51e7de3c0155aa5db1b2e14be58100174a9ed3',16,'2026-08-14 16:02:17'),('24947d90e4d4f1bb0d1b1213520649dba7e29a52c2784415',1,'2026-08-15 16:03:38'),('5c9acfb994620749381e18fd796c44c31d81b4e7695e36a1',1,'2026-08-15 15:56:17'),('9334d56196f3e55210c346dc73fadff2f0218405a24c8da7',1,'2026-08-14 15:35:31'),('c27cb0b2d39e8dfa6c62d532d44e6fd135d7c56ae5808417',16,'2026-08-15 09:11:19'),('d10942ecbd11366f1a2b9b6560c56992eb6e2bb9484fa14f',16,'2026-08-15 11:16:44'),('e6d277e59f1f20be924bdb3c7d201bd63f04959b3f21760b',16,'2026-08-14 17:52:47');
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -947,4 +987,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-18 16:54:56
+-- Dump completed on 2026-08-18 17:04:27

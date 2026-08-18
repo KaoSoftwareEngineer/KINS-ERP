@@ -365,6 +365,51 @@ app.post('/api/purchase-orders', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  ใบสั่งย้อม (dye_orders)
+// ============================================================
+async function makeTmNo() {
+  const d = new Date();
+  const prefix = 'TM' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM dye_orders WHERE dye_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/dye-orders/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, dye_no: await makeTmNo() });
+}));
+app.get('/api/dye-orders', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM dye_orders ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, orders: rows });
+}));
+app.post('/api/dye-orders', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const dye_no = await makeTmNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO dye_orders (dye_no, dye_date, factory, ref_no, ship_date, approved, raw_json, product_json, items_json, sample_json, packing_json, stamping_json, remark, subtotal, discount, vat, net_total)
+     VALUES (:dye_no, :dye_date, :factory, :ref_no, :ship_date, :approved, :raw_json, :product_json, :items_json, :sample_json, :packing_json, :stamping_json, :remark, :subtotal, :discount, :vat, :net_total)`,
+    {
+      dye_no,
+      dye_date: b.dye_date || '',
+      factory: b.factory || '',
+      ref_no: b.ref_no || '',
+      ship_date: b.ship_date || '',
+      approved: b.approved ? 1 : 0,
+      raw_json: JSON.stringify(b.raw || {}),
+      product_json: JSON.stringify(b.product || {}),
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+      sample_json: JSON.stringify(b.sample || {}),
+      packing_json: JSON.stringify(b.packing || {}),
+      stamping_json: JSON.stringify(b.stamping || {}),
+      remark: b.remark || '',
+      subtotal: Number(b.subtotal) || 0,
+      discount: Number(b.discount) || 0,
+      vat: Number(b.vat) || 0,
+      net_total: Number(b.net_total) || 0,
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกใบสั่งย้อมแล้ว', id: info.insertId, dye_no });
+}));
+
+// ============================================================
 //  กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม
 // ============================================================
 app.get('/api/fabric-regular-group', auth, wrap(async (req, res) => {

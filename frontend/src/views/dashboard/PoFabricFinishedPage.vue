@@ -229,7 +229,7 @@ export default {
 
 <style scoped>
 .po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; }
-.po-titlebar { background: #1e40ff; color: #fff; font-weight: 700; padding: 8px 16px; border-radius: 6px 6px 0 0; }
+.po-titlebar { background: #1e3a8a; color: #fff; font-weight: 700; padding: 8px 16px; border-radius: 6px 6px 0 0; }
 .po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 16px; background: var(--field); border: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
 .po-head-col-wide { flex: 1; min-width: 220px; }
