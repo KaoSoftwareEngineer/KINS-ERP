@@ -1,0 +1,28 @@
+# dependencies (ลงใหม่ได้ด้วย npm install)
+node_modules/
+**/node_modules/
+
+# logs
+*.log
+files/*.log
+
+# SQLite เก่า (เลิกใช้แล้ว ย้ายเข้า MySQL หมดแล้ว)
+*.db
+*.db-shm
+*.db-wal
+
+# env ที่มีรหัสผ่าน — ห้ามขึ้น GitHub
+files/.env
+.env
+
+# ไฟล์ชั่วคราว/สำรอง
+*.bak
+*.tmp
+server.*.bak
+
+# build output
+frontend/dist/
+
+# OS
+Thumbs.db
+.DS_Store

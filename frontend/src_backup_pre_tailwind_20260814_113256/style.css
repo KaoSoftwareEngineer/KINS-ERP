@@ -1,0 +1,66 @@
+:root {
+  --brand:        #3b5bfe;
+  --brand-2:      #2537c9;
+  --brand-soft:   #eaefff;
+  --primary:      #3b5bfe;
+  --primary-2:    #2537c9;
+  --pink:         #e85d75;
+  --purple:       #7c5cdb;
+  --blue:         #3b82f6;
+  --orange:       #f59e0b;
+  --cyan:         #06b6d4;
+  --page:         #eef1f8;
+  --surface:      #ffffff;
+  --panel-grad:   linear-gradient(150deg, #4c6bff 0%, #2537c9 100%);
+  --text:         #1c2333;
+  --muted:        #8a93a6;
+  --field:        #f4f6fb;
+  --field-border: #e2e7f1;
+  --shadow:       0 24px 60px rgba(37, 55, 201, .12);
+  --danger:       #e5484d;
+  --ok:           #17a06a;
+  --warn:         #e8a01d;
+  --chart-1:      #3b5bfe;
+  --chart-2:      #e85d75;
+  --chart-3:      #7c5cdb;
+  --chart-4:      #f59e0b;
+  --chart-5:      #06b6d4;
+}
+html[data-theme="dark"] {
+  --brand:        #6b83ff;
+  --brand-2:      #3b5bfe;
+  --brand-soft:   #1c2748;
+  --primary:      #6b83ff;
+  --primary-2:    #3b5bfe;
+  --page:         #0d1220;
+  --surface:      #161d31;
+  --panel-grad:   linear-gradient(150deg, #2a3fd6 0%, #14205e 100%);
+  --text:         #e8ecf6;
+  --muted:        #8b95ac;
+  --field:        #1f2740;
+  --field-border: #2c3654;
+  --shadow:       0 24px 60px rgba(0, 0, 0, .4);
+  --danger:       #ff6b6f;
+  --ok:           #35c98a;
+  --warn:         #f5b249;
+  --chart-1:      #6b83ff;
+  --chart-2:      #e85d75;
+  --chart-3:      #7c5cdb;
+  --chart-4:      #d97706;
+  --chart-5:      #0891b2;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Prompt", "Segoe UI", Tahoma, system-ui, -apple-system, sans-serif;
+  background: var(--page);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background .35s ease, color .35s ease;
+}
+
+button, input, select {
+  font-family: inherit;
+}

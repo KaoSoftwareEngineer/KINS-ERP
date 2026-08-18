@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd C:\\xampp\\htdocs\\KINS\\frontend; npx vite build*)",
+      "PowerShell(Get-ChildItem*)",
+      "PowerShell(Get-NetTCPConnection*)",
+      "PowerShell(Get-Content*)",
+      "PowerShell(node --check*)",
+      "PowerShell(cd C:\\xampp\\htdocs\\KINS\\frontend; npm run build)"
+    ]
+  }
+}
