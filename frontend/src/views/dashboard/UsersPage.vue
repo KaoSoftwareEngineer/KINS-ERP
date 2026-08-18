@@ -20,6 +20,8 @@
           <th>{{ dash.t[dash.lang].completeName }}</th>
           <th>{{ dash.t[dash.lang].email }}</th>
           <th>เบอร์มือถือ</th>
+          <th>เพศ</th>
+          <th>อายุ</th>
           <th>ตำแหน่ง / บทบาท</th>
           <th>{{ dash.t[dash.lang].status }}</th>
           <th>{{ dash.t[dash.lang].registeredDate }}</th>
@@ -32,6 +34,8 @@
           <td><strong>{{ user.name || '-' }}</strong></td>
           <td>{{ user.email }}</td>
           <td>{{ user.phone || '-' }}</td>
+          <td>{{ user.gender === 'male' ? 'ชาย' : user.gender === 'female' ? 'หญิง' : '-' }}</td>
+          <td>{{ user.age || '-' }}</td>
           <td>
             <select class="pm-role-select" :value="user.role || ''" @change="dash.setUserRole(user, $event.target.value)">
               <option value="">— ยังไม่กำหนด —</option>
@@ -65,6 +69,20 @@
           <input class="us-input" type="email" v-model="dash.usEditItem.email" placeholder="email@example.com" />
           <label class="us-lbl">เบอร์มือถือ</label>
           <input class="us-input" v-model="dash.usEditItem.phone" placeholder="0812345678" />
+          <div class="us-row2">
+            <div>
+              <label class="us-lbl">เพศ</label>
+              <select class="us-input" v-model="dash.usEditItem.gender">
+                <option value="">— เลือก —</option>
+                <option value="male">ชาย</option>
+                <option value="female">หญิง</option>
+              </select>
+            </div>
+            <div>
+              <label class="us-lbl">อายุ</label>
+              <input class="us-input" type="number" min="1" max="120" v-model="dash.usEditItem.age" placeholder="อายุ" />
+            </div>
+          </div>
           <label class="us-lbl">ตำแหน่ง / บทบาท</label>
           <select class="us-input" v-model="dash.usEditItem.role">
             <option value="">— ยังไม่กำหนด —</option>
@@ -127,6 +145,7 @@ export default {
 .us-lbl { display: block; font-size: 13px; font-weight: 600; color: #334155; margin: 10px 0 4px; }
 .us-lbl:first-child { margin-top: 0; }
 .us-hint { font-weight: 400; color: #94a3b8; font-size: 12px; }
+.us-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .us-input {
   width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 7px;
   font-size: 14px; font-family: inherit; outline: none;

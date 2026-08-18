@@ -99,7 +99,7 @@ data() {
         nestedFlyoutPos: { top: 0, left: 0 },
         // ===== แก้ไขบัญชีผู้ใช้ =====
         usModalShow: false,
-        usEditItem: { id: null, name: '', email: '', phone: '', role: '', password: '' },
+        usEditItem: { id: null, name: '', email: '', phone: '', role: '', gender: '', age: '', password: '' },
         // ===== กลุ่มผ้าประจำ (fabric-regular-group) =====
         frgItems: [],
         frgLoading: false,
@@ -3824,7 +3824,7 @@ data() {
       },
       // ---- แก้ไข/ลบบัญชีผู้ใช้ ----
       usOpenEdit(user) {
-        this.usEditItem = { id: user.id, name: user.name || '', email: user.email || '', phone: user.phone || '', role: user.role || '', password: '' };
+        this.usEditItem = { id: user.id, name: user.name || '', email: user.email || '', phone: user.phone || '', role: user.role || '', gender: user.gender || '', age: user.age || '', password: '' };
         this.usModalShow = true;
       },
       usCloseModal() { this.usModalShow = false; },
@@ -3836,7 +3836,7 @@ data() {
           const res = await fetch(API + `/api/users/${u.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
-            body: JSON.stringify({ name: u.name.trim(), email: u.email.trim(), phone: u.phone.trim(), role: u.role, password: u.password || '' }),
+            body: JSON.stringify({ name: u.name.trim(), email: u.email.trim(), phone: u.phone.trim(), role: u.role, gender: u.gender, age: u.age || null, password: u.password || '' }),
           });
           if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();

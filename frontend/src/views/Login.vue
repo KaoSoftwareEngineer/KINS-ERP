@@ -13,7 +13,7 @@ data() {
         token: null,
         currentUser: {},
         loginData: { email: '', password: '', remember: false },
-        regData: { name: '', email: '', phone: '', password: '', confirmPassword: '' },
+        regData: { name: '', email: '', phone: '', gender: '', age: '', password: '', confirmPassword: '' },
         loginMsg: { type: '', text: '' },
         regMsg: { type: '', text: '' },
         showLoginPwd: false,
@@ -33,6 +33,10 @@ data() {
             name: 'ชื่อ - นามสกุล',
             email: 'Email',
             phone: 'เบอร์โทรศัพท์',
+            gender: 'เพศ',
+            male: 'ชาย',
+            female: 'หญิง',
+            age: 'อายุ',
             confirmPassword: 'ยืนยันรหัสผ่าน',
             password: 'รหัสผ่าน',
             passwordRequirement: '(อย่างน้อย 8 ตัว)',
@@ -71,6 +75,10 @@ data() {
             name: 'Full Name',
             email: 'Email',
             phone: 'Mobile Phone',
+            gender: 'Gender',
+            male: 'Male',
+            female: 'Female',
+            age: 'Age',
             confirmPassword: 'Confirm Password',
             password: 'Password',
             passwordRequirement: '(At least 8 characters)',
@@ -198,6 +206,8 @@ data() {
               name: this.regData.name.trim(),
               email: this.regData.email.trim(),
               phone: this.regData.phone.trim(),
+              gender: this.regData.gender,
+              age: this.regData.age || null,
               password: this.regData.password,
             }),
           });
@@ -206,7 +216,7 @@ data() {
             this.regMsg = { type: 'success', text: '✅ ' + data.message };
             this.loginData.email = this.regData.email;
             setTimeout(() => {
-              this.regData = { name: '', email: '', phone: '', password: '', confirmPassword: '' };
+              this.regData = { name: '', email: '', phone: '', gender: '', age: '', password: '', confirmPassword: '' };
               this.agreeTerms = false;
               this.view = 'login';
               this.loginMsg = { type: 'success', text: '✅ ' + this.t[this.lang].registerSuccess };
@@ -310,6 +320,14 @@ data() {
         <input class="field" type="text" v-model="regData.name" :placeholder="t[lang].name" />
         <input class="field" type="email" v-model="regData.email" :placeholder="t[lang].email" required />
         <input class="field" type="tel" v-model="regData.phone" :placeholder="t[lang].phone + ' (เช่น 0812345678)'" required />
+        <div class="reg-two-col">
+          <select class="field" v-model="regData.gender">
+            <option value="">{{ t[lang].gender }}</option>
+            <option value="male">{{ t[lang].male }}</option>
+            <option value="female">{{ t[lang].female }}</option>
+          </select>
+          <input class="field" type="number" min="1" max="120" v-model="regData.age" :placeholder="t[lang].age" />
+        </div>
         <div class="pwd-wrap">
           <input class="field" :type="showRegPwd ? 'text' : 'password'" v-model="regData.password" :placeholder="t[lang].password + ' ' + t[lang].passwordRequirement" required />
           <button type="button" class="eye-btn" @click="showRegPwd = !showRegPwd" :aria-label="showRegPwd ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'">
@@ -506,6 +524,7 @@ data() {
   .switch-hint a { color: var(--brand); font-weight: 600; text-decoration: none; cursor: pointer; }
 
   /* ---- ช่องรหัสผ่าน + ปุ่มตา ---- */
+  .reg-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .pwd-wrap { position: relative; }
   .pwd-wrap .field { padding-right: 46px; }
   .eye-btn {

@@ -52,6 +52,8 @@ app.post('/api/register', async (req, res) => {
   const phone = (req.body.phone || '').trim();
   const password = req.body.password || '';
   const avatar = (req.body.avatar || '').trim();
+  const gender = (req.body.gender || '').trim();
+  const age = req.body.age ? Number(req.body.age) : null;
 
   if (!name || !email || !phone || !password) {
     return res.status(400).json({ ok: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
@@ -76,14 +78,14 @@ app.post('/api/register', async (req, res) => {
     }
 
     const [info] = await mysqlPool.query(
-      'INSERT INTO users (name, email, phone, avatar, password) VALUES (?, ?, ?, ?, ?)',
-      [name, email, phone, avatar || null, hashPassword(password)]
+      'INSERT INTO users (name, email, phone, avatar, password, gender, age) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, email, phone, avatar || null, hashPassword(password), gender, age]
     );
 
     return res.json({
       ok: true,
       message: 'สมัครสมาชิกสำเร็จ',
-      user: { id: info.insertId, name, email, phone, avatar: avatar || null },
+      user: { id: info.insertId, name, email, phone, avatar: avatar || null, gender, age },
     });
   } catch (err) {
     console.error(err);
@@ -133,8 +135,7 @@ app.post('/api/auth/google', async (req, res) => {
     const email = (payload.email || '').toLowerCase();
     if (!email) return res.status(400).json({ ok: false, message: 'บัญชี Google ไม่มีอีเมล' });
     const name = payload.name || email.split('@')[0];
-    const avatar = payload.picture || null;
-
+    const avatar = payload.picture || null;   // ดึงรูปจาก Gmail (ถ้าไม่มี → null = ใช้รูป default)
     // หา user เดิม หรือสร้างใหม่ (บัญชี Google ไม่มีรหัสผ่าน — ใส่ marker)
     let [rows] = await mysqlPool.query('SELECT * FROM users WHERE email = ?', [email]);
     let user = rows[0];
@@ -144,6 +145,10 @@ app.post('/api/auth/google', async (req, res) => {
         [name, email, '', avatar, 'google:' + crypto.randomBytes(8).toString('hex')]
       );
       user = { id: info.insertId, name, email, phone: '', avatar, role: '' };
+    } else if (avatar && !user.avatar) {
+      // ผู้ใช้เดิมยังไม่มีรูป → เติมรูปจาก Gmail ให้
+      await mysqlPool.query('UPDATE users SET avatar = ? WHERE id = ?', [avatar, user.id]);
+      user.avatar = avatar;
     }
 
     const token = crypto.randomBytes(24).toString('hex');
@@ -226,7 +231,7 @@ app.put('/api/me', auth, async (req, res) => {
 // ------------------------------------------------------------
 app.get('/api/users', auth, async (req, res) => {
   const [users] = await mysqlPool.query(
-    'SELECT id, name, email, phone, avatar, role, created_at FROM users ORDER BY id DESC'
+    'SELECT id, name, email, phone, avatar, role, gender, age, created_at FROM users ORDER BY id DESC'
   );
   res.json({ ok: true, total: users.length, users });
 });
@@ -256,6 +261,8 @@ app.put('/api/users/:id', auth, async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const phone = (req.body.phone || '').trim();
   const role = (req.body.role || '').trim();
+  const gender = (req.body.gender || '').trim();
+  const age = req.body.age ? Number(req.body.age) : null;
   const password = req.body.password || '';
 
   if (!name || !email) {
@@ -278,8 +285,8 @@ app.put('/api/users/:id', auth, async (req, res) => {
       return res.status(409).json({ ok: false, message: 'อีเมลนี้ถูกใช้กับบัญชีอื่นแล้ว' });
     }
 
-    const fields = ['name = ?', 'email = ?', 'phone = ?', 'role = ?'];
-    const params = [name, email, phone, role];
+    const fields = ['name = ?', 'email = ?', 'phone = ?', 'role = ?', 'gender = ?', 'age = ?'];
+    const params = [name, email, phone, role, gender, age];
     if (password) { fields.push('password = ?'); params.push(hashPassword(password)); }
     params.push(req.params.id);
 
@@ -287,7 +294,7 @@ app.put('/api/users/:id', auth, async (req, res) => {
     if (info.affectedRows === 0) {
       return res.status(404).json({ ok: false, message: 'ไม่พบผู้ใช้งาน' });
     }
-    res.json({ ok: true, message: 'บันทึกข้อมูลผู้ใช้แล้ว', user: { id: Number(req.params.id), name, email, phone, role } });
+    res.json({ ok: true, message: 'บันทึกข้อมูลผู้ใช้แล้ว', user: { id: Number(req.params.id), name, email, phone, role, gender, age } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, message: 'บันทึกข้อมูลไม่สำเร็จ' });

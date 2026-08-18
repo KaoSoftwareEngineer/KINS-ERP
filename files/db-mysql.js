@@ -51,6 +51,10 @@ async function initTables() {
   `);
   // บทบาท/ตำแหน่งของผู้ใช้ (CEO/พนักงานคลัง/ส่งของ/บัญชี/รับออเดอร์/ตัดผ้า ฯลฯ)
   await ensureColumn('users', 'role', "VARCHAR(64) NOT NULL DEFAULT ''");
+  // เพศ (male/female/'')
+  await ensureColumn('users', 'gender', "VARCHAR(10) NOT NULL DEFAULT ''");
+  // อายุ
+  await ensureColumn('users', 'age', "INT NULL");
 
   // ---- บทบาท + สิทธิ์การเข้าถึง (permissions = JSON array ของ key เมนู) ----
   await pool.query(`

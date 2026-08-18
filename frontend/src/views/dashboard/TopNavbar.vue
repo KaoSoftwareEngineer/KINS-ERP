@@ -91,7 +91,7 @@
         class="flex items-center gap-2.5 rounded-xl px-1.5 py-1 transition-colors hover:bg-[var(--field)]"
         @click="dash.topnavProfileOpen = !dash.topnavProfileOpen"
       >
-        <img v-if="dash.currentUser.avatar" :src="dash.currentUser.avatar" alt="" class="h-9 w-9 shrink-0 rounded-full object-cover" />
+        <img v-if="dash.currentUser.avatar && !avatarBroken" :src="dash.currentUser.avatar" alt="" referrerpolicy="no-referrer" @error="avatarBroken = true" class="h-9 w-9 shrink-0 rounded-full object-cover" />
         <div v-else class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-sm font-semibold text-white">
           {{ topnavInitial }}
         </div>
@@ -137,6 +137,12 @@
 export default {
   name: 'TopNavbar',
   inject: ['dash'],
+  data() {
+    return { avatarBroken: false };
+  },
+  watch: {
+    'dash.currentUser.avatar'() { this.avatarBroken = false; },
+  },
   computed: {
     topnavInitial() {
       const name = (this.dash.currentUser.name || '').trim();
