@@ -91,6 +91,11 @@ export default {
 </script>
 
 <style scoped>
+/* เว้นระยะหัวหน้าจากขอบบน + ย่อปุ่มค้นหาให้พอดี */
+.header { margin-top: 14px; align-items: center; }
+.header-actions .fr-btn-search {
+  padding: 6px 16px; font-size: 13px; line-height: 1.2;
+}
 .pm-role-select {
   padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 7px;
   font-size: 13.5px; font-family: inherit; background: #fff; color: #334155;
