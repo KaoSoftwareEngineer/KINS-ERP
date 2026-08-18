@@ -14,6 +14,7 @@ import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
 import PoGenericPage from './dashboard/PoGenericPage.vue';
 import PoFabricFinishedPage from './dashboard/PoFabricFinishedPage.vue';
+import PoFabricRawPage from './dashboard/PoFabricRawPage.vue';
 import StockGenericPage from './dashboard/StockGenericPage.vue';
 import VatGenericPage from './dashboard/VatGenericPage.vue';
 import OrderReceivePage from './dashboard/OrderReceivePage.vue';
@@ -50,6 +51,7 @@ export default {
     BasicDataGenericPage,
     PoGenericPage,
     PoFabricFinishedPage,
+    PoFabricRawPage,
     StockGenericPage,
     VatGenericPage,
     OrderReceivePage,
@@ -4465,6 +4467,9 @@ data() {
 
       <!-- ============ เปิดใบสั่งซื้อ: ผ้าสำเร็จ (ฟอร์มจริง + PDF) ============ -->
       <PoFabricFinishedPage v-else-if="currentPage === 'po-fabric-finished'" />
+
+      <!-- ============ เปิดใบสั่งซื้อ: ผ้าดิบ ============ -->
+      <PoFabricRawPage v-else-if="currentPage === 'po-fabric-raw'" />
 
       <!-- ============ เปิดใบสั่งซื้อ (เมนูย่อยที่เหลือ) ============ -->
       <PoGenericPage v-else-if="poPages[currentPage]" />
