@@ -25,6 +25,8 @@ import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
 import CustomerEditModal from './dashboard/CustomerEditModal.vue';
 import ShadeModal from './dashboard/ShadeModal.vue';
+import FeedbackModal from './dashboard/FeedbackModal.vue';
+import PermissionModal from './dashboard/PermissionModal.vue';
 
 const API = '';
 
@@ -57,12 +59,26 @@ export default {
     OrderSlipModal,
     CustomerEditModal,
     ShadeModal,
+    FeedbackModal,
+    PermissionModal,
   },
   provide() {
     return { dash: this };
   },
 data() {
       return {
+        // ===== กล่องแจ้งผลกลาง (spinner / ติ๊กถูก / กากบาท) =====
+        fb: { show: false, type: 'loading', text: '' },
+        fbTimer: null,
+        // ===== กล่องยืนยัน (แทน confirm) =====
+        fbAskState: { show: false, title: '', message: '', okText: 'ยืนยัน', cancelText: 'ยกเลิก', danger: false, resolve: null },
+        // ===== โมดัลสิทธิ์การเข้าใช้งาน =====
+        pmShow: false,
+        pmEditing: false,
+        pmInitialName: '',
+        pmInitialKeys: [],
+        pmEditingRowIdx: -1,
+        rolePerms: JSON.parse(localStorage.getItem('rolePerms') || '{}'), // ชื่อบทบาท -> [keys]
         theme: localStorage.getItem('theme') || 'light',
         lang: localStorage.getItem('lang') || 'th',
         langDropdownOpen: false,
@@ -1637,6 +1653,86 @@ data() {
       else if (this.currentPage === 'order-receive') this.oeLoadFabrics();
     },
     methods: {
+      // ===================================================================
+      //  กล่องแจ้งผลกลาง — ใช้แทน alert() / confirm() ทุกหน้า
+      //  fbLoading(text)  : เปิดสปินเนอร์ "กำลัง..."
+      //  fbDone(text)     : ติ๊กถูกเขียว + ปิดเองใน 1.3 วิ
+      //  fbFail(text)     : กากบาทแดง + ปิดเองใน 2 วิ
+      //  fbAsk(...)       : กล่องยืนยัน คืนค่า Promise<boolean>
+      // ===================================================================
+      fbLoading(text = 'กำลังบันทึก...') {
+        if (this.fbTimer) { clearTimeout(this.fbTimer); this.fbTimer = null; }
+        this.fb = { show: true, type: 'loading', text };
+      },
+      fbDone(text = 'บันทึกแล้ว') {
+        if (this.fbTimer) clearTimeout(this.fbTimer);
+        this.fb = { show: true, type: 'success', text };
+        this.fbTimer = setTimeout(() => this.fbHide(), 1300);
+      },
+      fbFail(text = 'เกิดข้อผิดพลาด') {
+        if (this.fbTimer) clearTimeout(this.fbTimer);
+        this.fb = { show: true, type: 'error', text };
+        this.fbTimer = setTimeout(() => this.fbHide(), 2200);
+      },
+      fbHide() {
+        if (this.fbTimer) { clearTimeout(this.fbTimer); this.fbTimer = null; }
+        this.fb = { ...this.fb, show: false };
+      },
+      // กล่องยืนยัน — คืน Promise<boolean> ใช้แทน confirm()
+      fbAsk({ title = 'ยืนยันการทำรายการ?', message = '', okText = 'ยืนยัน', cancelText = 'ยกเลิก', danger = false } = {}) {
+        return new Promise((resolve) => {
+          this.fbAskState = { show: true, title, message, okText, cancelText, danger, resolve };
+        });
+      },
+      fbAskDelete(message = 'ต้องการลบรายการนี้ใช่หรือไม่?') {
+        return this.fbAsk({ title: 'ยืนยันการลบ', message, okText: 'ลบข้อมูล', cancelText: 'ยกเลิก', danger: true });
+      },
+      fbAnswer(v) {
+        const r = this.fbAskState.resolve;
+        this.fbAskState = { ...this.fbAskState, show: false, resolve: null };
+        if (r) r(v);
+      },
+      // ===================================================================
+      //  โมดัลสิทธิ์การเข้าใช้งาน (เพิ่ม/แก้ไขบทบาท + ต้นไม้สิทธิ์)
+      // ===================================================================
+      pmOpen() {
+        this.pmEditing = false;
+        this.pmEditingRowIdx = -1;
+        this.pmInitialName = '';
+        this.pmInitialKeys = [];
+        this.pmShow = true;
+      },
+      pmEditRole(row) {
+        // row = แถวในตาราง userRoles; คอลัมน์แรก = ชื่อบทบาท
+        const name = Array.isArray(row) ? row[0] : row;
+        this.pmEditing = true;
+        this.pmEditingRowIdx = this.userRoles.rows.indexOf(row);
+        this.pmInitialName = name;
+        this.pmInitialKeys = this.rolePerms[name] ? [...this.rolePerms[name]] : [];
+        this.pmShow = true;
+      },
+      pmClose() {
+        this.pmShow = false;
+      },
+      pmSave(name, keys) {
+        if (!name) { this.fbFail('กรุณากรอกชื่อบทบาท'); return; }
+        // เก็บสิทธิ์
+        const oldName = this.pmEditing ? this.pmInitialName : null;
+        if (oldName && oldName !== name) delete this.rolePerms[oldName];
+        this.rolePerms[name] = keys;
+        localStorage.setItem('rolePerms', JSON.stringify(this.rolePerms));
+        // อัปเดต/เพิ่มแถวในตารางบทบาท
+        const summary = `${keys.length} สิทธิ์`;
+        if (this.pmEditing && this.pmEditingRowIdx >= 0) {
+          const r = this.userRoles.rows[this.pmEditingRowIdx];
+          r[0] = name;
+          r[2] = summary;
+        } else {
+          this.userRoles.rows.push([name, '', summary, '0', 'ใช้งาน']);
+        }
+        this.pmShow = false;
+        this.fbDone('บันทึกแล้ว');
+      },
       toggleTheme() {
         this.theme = this.theme === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', this.theme);
@@ -1742,23 +1838,26 @@ data() {
       },
       async frBulkDelete() {
         if (this.frSelected.length === 0) return;
-        if (!confirm(`ต้องการลบ ${this.frSelected.length} รายการที่เลือกใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ ${this.frSelected.length} รายการที่เลือกใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
         const items = this.frItems.filter(i => this.frSelected.includes(i.sku));
+        let failed = false;
         for (const item of items) {
           try {
             await fetch(API + `/api/fabrics/${item.id}`, {
               method: 'DELETE',
               headers: { Authorization: 'Bearer ' + this.token },
             });
-          } catch (e) {}
+          } catch (e) { failed = true; }
         }
         this.frSelected = [];
         await this.frLoadItems();
+        failed ? this.fbFail('ลบบางรายการไม่สำเร็จ') : this.fbDone('ลบข้อมูลแล้ว');
       },
       async frExportExcel(selectedOnly) {
         const rows = selectedOnly ? this.frItems.filter(i => this.frSelected.includes(i.sku)) : this.frSortedFilteredItems;
         if (rows.length === 0) {
-          alert('ไม่มีข้อมูลให้ส่งออก');
+          this.fbFail('ไม่มีข้อมูลให้ส่งออก');
           return;
         }
         const XLSX = await import('xlsx');
@@ -1880,21 +1979,24 @@ data() {
       },
       async cuBulkDelete() {
         if (this.cuSelected.length === 0) return;
-        if (!confirm(`ต้องการลบ ${this.cuSelected.length} รายการที่เลือกใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ ${this.cuSelected.length} รายการที่เลือกใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
+        let failed = false;
         for (const id of [...this.cuSelected]) {
           try {
             await fetch(API + `/api/customers/${id}`, {
               method: 'DELETE',
               headers: { Authorization: 'Bearer ' + this.token },
             });
-          } catch (e) {}
+          } catch (e) { failed = true; }
         }
         this.cuSelected = [];
         await this.cuLoadItems();
+        failed ? this.fbFail('ลบบางรายการไม่สำเร็จ') : this.fbDone('ลบข้อมูลแล้ว');
       },
       async cuExportExcel(selectedOnly) {
         const rows = selectedOnly ? this.cuItems.filter(i => this.cuSelected.includes(i.id)) : this.cuSortedFilteredItems;
-        if (rows.length === 0) { alert('ไม่มีข้อมูลให้ส่งออก'); return; }
+        if (rows.length === 0) { this.fbFail('ไม่มีข้อมูลให้ส่งออก'); return; }
         const XLSX = await import('xlsx');
         const aoa = [
           ['รหัส', 'ชื่อบริษัท', 'ผู้ติดต่อ', 'เบอร์โทร', 'ที่อยู่', 'จังหวัด', 'กลุ่มลูกค้า', 'โซน', 'เงื่อนไขบัญชี', 'เงื่อนไขเงินสด', 'สกุลเงิน', 'วงเงิน', 'พนักงานขาย', 'เลขผู้เสียภาษี'],
@@ -1930,10 +2032,11 @@ data() {
       },
       async cuSaveAdd() {
         if (!this.cuNewItem.company_name || !this.cuNewItem.company_name.trim()) {
-          alert('กรุณากรอกชื่อบริษัท');
+          this.fbFail('กรุณากรอกชื่อบริษัท');
           return;
         }
         const payload = { ...this.cuNewItem };
+        this.fbLoading('กำลังบันทึก...');
         try {
           const url = this.cuEditingId ? API + `/api/customers/${this.cuEditingId}` : API + '/api/customers';
           const res = await fetch(url, {
@@ -1941,35 +2044,38 @@ data() {
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify(payload),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.cuShowAddModal = false;
             await this.cuLoadItems();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + (data.message || 'บันทึกไม่สำเร็จ'));
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('⚠️ บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+          this.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
         }
       },
       async cuDeleteItem(item) {
-        if (!confirm(`ต้องการลบลูกค้า "${item.company_name}" ใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบลูกค้า "${item.company_name}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
         try {
           const res = await fetch(API + `/api/customers/${item.id}`, {
             method: 'DELETE',
             headers: { Authorization: 'Bearer ' + this.token },
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.cuItems = this.cuItems.filter(i => i.id !== item.id);
             this.cuSelected = this.cuSelected.filter(id => id !== item.id);
+            this.fbDone('ลบข้อมูลแล้ว');
           } else {
-            alert('⚠️ ' + (data.message || 'ลบไม่สำเร็จ'));
+            this.fbFail(data.message || 'ลบไม่สำเร็จ');
           }
         } catch (e) {
-          alert('⚠️ ลบไม่สำเร็จ');
+          this.fbFail('ลบไม่สำเร็จ');
         }
       },
       genSort(colIdx) {
@@ -1999,18 +2105,19 @@ data() {
         if (idx === -1) this.genSelected.push(row);
         else this.genSelected.splice(idx, 1);
       },
-      genBulkDeleteRows() {
+      async genBulkDeleteRows() {
         if (this.genSelected.length === 0) return;
-        if (!confirm(`ต้องการลบ ${this.genSelected.length} รายการที่เลือกใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ ${this.genSelected.length} รายการที่เลือกใช่หรือไม่?`))) return;
         const t = this.genCurrentTable;
         t.rows = t.rows.filter(r => !this.genSelected.includes(r));
         this.genSelected = [];
+        this.fbDone('ลบข้อมูลแล้ว');
       },
       async genExportExcel(selectedOnly) {
         const t = this.genCurrentTable;
         const rows = selectedOnly ? this.genSelected : this.genSortedRows;
         if (rows.length === 0) {
-          alert('ไม่มีข้อมูลให้ส่งออก');
+          this.fbFail('ไม่มีข้อมูลให้ส่งออก');
           return;
         }
         const XLSX = await import('xlsx');
@@ -2086,21 +2193,23 @@ data() {
         this.frModalMode = 'view';
       },
       async frDeleteItem(item) {
-        if (!confirm(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
         try {
           const res = await fetch(API + `/api/fabrics/${item.id}`, {
             method: 'DELETE',
             headers: { Authorization: 'Bearer ' + this.token },
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.frItems = this.frItems.filter(i => i.id !== item.id);
+            this.fbDone('ลบข้อมูลแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'ลบไม่สำเร็จ');
           }
         } catch (e) {
-          alert('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       frCloseAddModal() {
@@ -2193,7 +2302,9 @@ data() {
       },
       async fiBulkDelete() {
         if (this.fiSelected.length === 0) return;
-        if (!confirm(`ต้องการลบ ${this.fiSelected.length} รายการที่เลือกใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ ${this.fiSelected.length} รายการที่เลือกใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
+        let failed = false;
         const items = this.fiItems.filter(i => this.fiSelected.includes(i.sku));
         for (const item of items) {
           try {
@@ -2201,15 +2312,16 @@ data() {
               method: 'DELETE',
               headers: { Authorization: 'Bearer ' + this.token },
             });
-          } catch (e) {}
+          } catch (e) { failed = true; }
         }
         this.fiSelected = [];
         await this.fiLoadItems();
+        failed ? this.fbFail('ลบบางรายการไม่สำเร็จ') : this.fbDone('ลบข้อมูลแล้ว');
       },
       async fiExportExcel(selectedOnly) {
         const rows = selectedOnly ? this.fiItems.filter(i => this.fiSelected.includes(i.sku)) : this.fiSortedFilteredItems;
         if (rows.length === 0) {
-          alert('ไม่มีข้อมูลให้ส่งออก');
+          this.fbFail('ไม่มีข้อมูลให้ส่งออก');
           return;
         }
         const XLSX = await import('xlsx');
@@ -2255,26 +2367,28 @@ data() {
         this.fiShowModal = false;
       },
       async fiDeleteItem(item) {
-        if (!confirm(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
         try {
           const res = await fetch(API + `/api/fabric-irregular/${item.id}`, {
             method: 'DELETE',
             headers: { Authorization: 'Bearer ' + this.token },
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.fiItems = this.fiItems.filter(i => i.id !== item.id);
+            this.fbDone('ลบข้อมูลแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'ลบไม่สำเร็จ');
           }
         } catch (e) {
-          alert('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       async fiSaveItem() {
         if (!this.fiNewItem.type || !this.fiNewItem.sku || !this.fiNewItem.width) {
-          alert('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
+          this.fbFail('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
           return;
         }
         const payload = {
@@ -2293,6 +2407,7 @@ data() {
           substitute: this.fiNewItem.substitute === 'yes',
           active: this.fiNewItem.active,
         };
+        this.fbLoading('กำลังบันทึก...');
         try {
           const url = this.fiEditingId ? API + `/api/fabric-irregular/${this.fiEditingId}` : API + '/api/fabric-irregular';
           const method = this.fiEditingId ? 'PUT' : 'POST';
@@ -2301,16 +2416,17 @@ data() {
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify(payload),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             await this.fiLoadItems();
             this.fiCloseModal();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       oeNewRow() {
@@ -2334,35 +2450,37 @@ data() {
         this.oeRenumberRows();
       },
       oeReport() {
-        alert('ตัวอย่างรายงานออร์เดอร์ (ยังไม่เชื่อมต่อระบบพิมพ์รายงานจริง)');
+        this.fbFail('ตัวอย่างรายงานออร์เดอร์ (ยังไม่เชื่อมต่อระบบพิมพ์รายงานจริง)');
       },
       async oeSave() {
         if (!this.oeForm.customer.trim()) {
-          alert('กรุณากรอกชื่อลูกค้า');
+          this.fbFail('กรุณากรอกชื่อลูกค้า');
           return;
         }
         const hasItem = this.oeItems.some(row => row.sku.trim() && Number(row.orderedQty) > 0);
         if (!hasItem) {
-          alert('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ (รหัสสินค้าและจำนวนที่สั่ง)');
+          this.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ (รหัสสินค้าและจำนวนที่สั่ง)');
           return;
         }
+        this.fbLoading('กำลังบันทึกออร์เดอร์...');
         try {
           const res = await fetch(API + '/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify({ ...this.oeForm, orderNo: '', items: this.oeItems }),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.oeForm.orderNo = data.order.order_no;
             this.oeSaved = true;
             await this.loadOrders();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกออร์เดอร์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกออร์เดอร์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       oePrintSlipNow() {
@@ -2409,10 +2527,11 @@ data() {
       },
       async ofFulfillOrder(order) {
         if (order.status === 'Prepared') {
-          alert('ออร์เดอร์นี้จัดครบแล้ว');
+          this.fbFail('ออร์เดอร์นี้จัดครบแล้ว');
           return;
         }
-        if (!confirm(`ยืนยันตัดสินค้าสำหรับออร์เดอร์ ${order.orderNo}?`)) return;
+        if (!(await this.fbAsk({ title: 'ยืนยันตัดสินค้า', message: `ยืนยันตัดสินค้าสำหรับออร์เดอร์ ${order.orderNo}?`, okText: 'ยืนยัน' }))) return;
+        this.fbLoading('กำลังตัดสินค้า...');
         if (order.status === 'Waiting to prepare') {
           order.status = 'Preparing';
         } else if (order.status === 'Preparing') {
@@ -2425,9 +2544,10 @@ data() {
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify({ withdrawnQty: order.withdrawnQty, status: order.status }),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          this.fbDone('บันทึกแล้ว');
         } catch (e) {
-          alert('อัปเดตออร์เดอร์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('อัปเดตออร์เดอร์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       pipelineBadgeCount(key) {
@@ -2464,7 +2584,7 @@ data() {
       },
       async xlImportFile() {
         if (!this.xlFile) {
-          alert('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
+          this.fbFail('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
           return;
         }
         this.xlImporting = true;
@@ -2558,7 +2678,7 @@ data() {
       },
       async cmImportFile() {
         if (!this.cmFile) {
-          alert('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
+          this.fbFail('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
           return;
         }
         this.cmImporting = true;
@@ -2630,43 +2750,47 @@ data() {
       },
       async cmSaveEdit() {
         if (!this.cmEditItem.customer_code.trim()) {
-          alert('กรุณากรอกรหัสลูกค้า');
+          this.fbFail('กรุณากรอกรหัสลูกค้า');
           return;
         }
+        this.fbLoading('กำลังบันทึก...');
         try {
           const res = await fetch(API + `/api/customer-master/${this.cmEditingId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify(this.cmEditItem),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             await this.cmLoadRows();
             this.cmCloseEdit();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       async cmDeleteRow(row) {
-        if (!confirm(`ต้องการลบ "${row.customer_name || row.customer_code}" ใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ "${row.customer_name || row.customer_code}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
         try {
           const res = await fetch(API + `/api/customer-master/${row.id}`, {
             method: 'DELETE',
             headers: { Authorization: 'Bearer ' + this.token },
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.cmRows = this.cmRows.filter(r => r.id !== row.id);
+            this.fbDone('ลบข้อมูลแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'ลบไม่สำเร็จ');
           }
         } catch (e) {
-          alert('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       cmPrevPage() {
@@ -2724,13 +2848,14 @@ data() {
         const shades = this.frShadeRows
           .filter(r => (r.name || '').trim())
           .map(r => ({ name: r.name.trim(), fabric_cost: Number(r.fabric_cost) || 0, dye_cost: Number(r.dye_cost) || 0 }));
+        this.fbLoading('กำลังบันทึกเฉดสี...');
         try {
           const res = await fetch(API + this.frShadeFabric.apiPath, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify({ shades }),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             if (this.frShadeContext === 'irregular') {
@@ -2739,11 +2864,12 @@ data() {
               await this.frLoadItems();
             }
             this.frCloseShadeModal();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกเฉดสีไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกเฉดสีไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       frNewShadeRow(base) {
@@ -2835,26 +2961,28 @@ data() {
         this.fiShowModal = false;
       },
       async fiDeleteItem(item) {
-        if (!confirm(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
         try {
           const res = await fetch(API + `/api/fabric-irregular/${item.id}`, {
             method: 'DELETE',
             headers: { Authorization: 'Bearer ' + this.token },
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.fiItems = this.fiItems.filter(i => i.id !== item.id);
+            this.fbDone('ลบข้อมูลแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'ลบไม่สำเร็จ');
           }
         } catch (e) {
-          alert('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       async fiSaveItem() {
         if (!this.fiNewItem.type || !this.fiNewItem.sku || !this.fiNewItem.width) {
-          alert('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
+          this.fbFail('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
           return;
         }
         const payload = {
@@ -2873,6 +3001,7 @@ data() {
           substitute: this.fiNewItem.substitute === 'yes',
           active: this.fiNewItem.active,
         };
+        this.fbLoading('กำลังบันทึก...');
         try {
           const url = this.fiEditingId ? API + `/api/fabric-irregular/${this.fiEditingId}` : API + '/api/fabric-irregular';
           const method = this.fiEditingId ? 'PUT' : 'POST';
@@ -2881,16 +3010,17 @@ data() {
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify(payload),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             await this.fiLoadItems();
             this.fiCloseModal();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       oeNewRow() {
@@ -2914,16 +3044,16 @@ data() {
         this.oeRenumberRows();
       },
       oeReport() {
-        alert('ตัวอย่างรายงานออร์เดอร์ (ยังไม่เชื่อมต่อระบบพิมพ์รายงานจริง)');
+        this.fbFail('ตัวอย่างรายงานออร์เดอร์ (ยังไม่เชื่อมต่อระบบพิมพ์รายงานจริง)');
       },
       oeSave() {
         if (!this.oeForm.customer.trim()) {
-          alert('กรุณากรอกชื่อลูกค้า');
+          this.fbFail('กรุณากรอกชื่อลูกค้า');
           return;
         }
         const hasItem = this.oeItems.some(row => row.sku.trim() && Number(row.orderedQty) > 0);
         if (!hasItem) {
-          alert('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ (รหัสสินค้าและจำนวนที่สั่ง)');
+          this.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ (รหัสสินค้าและจำนวนที่สั่ง)');
           return;
         }
         this.oeSaved = true;
@@ -2972,7 +3102,7 @@ data() {
       },
       ofFulfillOrder(order) {
         if (order.status === 'Prepared') {
-          alert('ออร์เดอร์นี้จัดครบแล้ว');
+          this.fbFail('ออร์เดอร์นี้จัดครบแล้ว');
           return;
         }
         if (!confirm(`ยืนยันตัดสินค้าสำหรับออร์เดอร์ ${order.orderNo}?`)) return;
@@ -3017,7 +3147,7 @@ data() {
       },
       async xlImportFile() {
         if (!this.xlFile) {
-          alert('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
+          this.fbFail('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
           return;
         }
         this.xlImporting = true;
@@ -3120,7 +3250,7 @@ data() {
       },
       async cmImportFile() {
         if (!this.cmFile) {
-          alert('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
+          this.fbFail('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV');
           return;
         }
         this.cmImporting = true;
@@ -3192,43 +3322,47 @@ data() {
       },
       async cmSaveEdit() {
         if (!this.cmEditItem.customer_code.trim()) {
-          alert('กรุณากรอกรหัสลูกค้า');
+          this.fbFail('กรุณากรอกรหัสลูกค้า');
           return;
         }
+        this.fbLoading('กำลังบันทึก...');
         try {
           const res = await fetch(API + `/api/customer-master/${this.cmEditingId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify(this.cmEditItem),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             await this.cmLoadRows();
             this.cmCloseEdit();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       async cmDeleteRow(row) {
-        if (!confirm(`ต้องการลบ "${row.customer_name || row.customer_code}" ใช่หรือไม่?`)) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ "${row.customer_name || row.customer_code}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
         try {
           const res = await fetch(API + `/api/customer-master/${row.id}`, {
             method: 'DELETE',
             headers: { Authorization: 'Bearer ' + this.token },
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             this.cmRows = this.cmRows.filter(r => r.id !== row.id);
+            this.fbDone('ลบข้อมูลแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'ลบไม่สำเร็จ');
           }
         } catch (e) {
-          alert('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       cmPrevPage() {
@@ -3286,13 +3420,14 @@ data() {
         const shades = this.frShadeRows
           .filter(r => (r.name || '').trim())
           .map(r => ({ name: r.name.trim(), fabric_cost: Number(r.fabric_cost) || 0, dye_cost: Number(r.dye_cost) || 0 }));
+        this.fbLoading('กำลังบันทึกเฉดสี...');
         try {
           const res = await fetch(API + this.frShadeFabric.apiPath, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify({ shades }),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             if (this.frShadeContext === 'irregular') {
@@ -3301,11 +3436,12 @@ data() {
               await this.frLoadItems();
             }
             this.frCloseShadeModal();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกเฉดสีไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกเฉดสีไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       frHandleFileChange(e) {
@@ -3320,7 +3456,7 @@ data() {
       },
       async frSaveAdd() {
         if (!this.frNewItem.type || !this.frNewItem.sku || !this.frNewItem.width) {
-          alert('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
+          this.fbFail('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
           return;
         }
         const payload = {
@@ -3339,6 +3475,7 @@ data() {
           substitute: this.frNewItem.substitute === 'yes',
           active: this.frNewItem.active,
         };
+        this.fbLoading('กำลังบันทึก...');
         try {
           const url = this.frEditingId ? API + `/api/fabrics/${this.frEditingId}` : API + '/api/fabrics';
           const method = this.frEditingId ? 'PUT' : 'POST';
@@ -3347,16 +3484,17 @@ data() {
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify(payload),
           });
-          if (res.status === 401) { this.sessionExpired(); return; }
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
             await this.frLoadItems();
             this.frCloseAddModal();
+            this.fbDone('บันทึกแล้ว');
           } else {
-            alert('⚠️ ' + data.message);
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
         } catch (e) {
-          alert('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+          this.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       goToMenu(child) {
@@ -3434,6 +3572,33 @@ data() {
           this.members = data.users || [];
         } catch (e) {
           console.log('ไม่สามารถโหลดข้อมูลสมาชิก');
+        }
+      },
+      // รายชื่อบทบาทที่เลือกได้ (พรีเซ็ต + บทบาทที่สร้างในหน้าสิทธิ์)
+      roleOptions() {
+        const presets = ['CEO / ผู้บริหาร', 'พนักงานคลังสินค้า', 'พนักงานส่งของ', 'ฝ่ายบัญชี', 'ฝ่ายรับออเดอร์', 'ฝ่ายตัด/หาผ้าออเดอร์'];
+        const custom = Object.keys(this.rolePerms || {});
+        return [...new Set([...presets, ...custom])];
+      },
+      // กำหนดบทบาท/ตำแหน่งให้ผู้ใช้ → บันทึกลง DB
+      async setUserRole(user, role) {
+        this.fbLoading('กำลังบันทึกบทบาท...');
+        try {
+          const res = await fetch(API + `/api/users/${user.id}/role`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
+            body: JSON.stringify({ role }),
+          });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const data = await res.json();
+          if (data.ok) {
+            user.role = role;
+            this.fbDone('บันทึกแล้ว');
+          } else {
+            this.fbFail(data.message || 'บันทึกบทบาทไม่สำเร็จ');
+          }
+        } catch (e) {
+          this.fbFail('บันทึกบทบาทไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
         }
       },
       dashExportPeriodRows(granularity) {
@@ -3706,6 +3871,10 @@ data() {
 
 <template>
   <div class="dashboard-page">
+  <!-- ============ กล่องแจ้งผลกลาง (spinner/ติ๊กถูก/ยืนยัน) ============ -->
+  <FeedbackModal />
+  <!-- ============ โมดัลสิทธิ์การเข้าใช้งาน ============ -->
+  <PermissionModal />
 <!-- ============ MOBILE TOP BAR ============ -->
   <div class="mobile-topbar">
     <button class="mobile-menu-btn" @click="mobileMenuOpen = true" title="เมนู" aria-label="เปิดเมนู">

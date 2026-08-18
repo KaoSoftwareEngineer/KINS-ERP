@@ -6,7 +6,7 @@
     </div>
     <div class="header-actions">
       <button class="btn-small fr-btn-search">{{ dash.t[dash.lang].search }}</button>
-      <button class="btn-small fr-btn-add">{{ dash.t[dash.lang].addRole }}</button>
+      <button class="btn-small fr-btn-add" @click="dash.pmOpen()">{{ dash.t[dash.lang].addRole }}</button>
     </div>
   </div>
 
@@ -34,7 +34,7 @@
         <tr v-for="(row, ridx) in dash.genPagedRows" :key="ridx">
           <td><input type="checkbox" :checked="dash.genSelected.includes(row)" @change="dash.genToggleSelectRow(row)" /></td>
           <td v-for="(cell, cidx) in row" :key="cidx">{{ cell }}</td>
-          <td><button class="btn-small">{{ dash.t[dash.lang].edit }}</button></td>
+          <td><button class="btn-small" @click="dash.pmEditRole(row)">{{ dash.t[dash.lang].edit }}</button></td>
         </tr>
       </tbody>
     </table>

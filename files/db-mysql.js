@@ -19,6 +19,21 @@ const pool = mysql.createPool({
 });
 
 // ------------------------------------------------------------
+//  เพิ่มคอลัมน์ให้ตารางเดิมแบบปลอดภัย (ถ้ายังไม่มี)
+// ------------------------------------------------------------
+async function ensureColumn(table, column, definition) {
+  const [rows] = await pool.query(
+    `SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+    [table, column]
+  );
+  if (rows[0].c === 0) {
+    await pool.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+    console.log(`  ➕ เพิ่มคอลัมน์ ${table}.${column}`);
+  }
+}
+
+// ------------------------------------------------------------
 //  สร้างตารางทั้งหมด (ถ้ายังไม่มี)
 // ------------------------------------------------------------
 async function initTables() {
@@ -34,6 +49,8 @@ async function initTables() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  // บทบาท/ตำแหน่งของผู้ใช้ (CEO/พนักงานคลัง/ส่งของ/บัญชี/รับออเดอร์/ตัดผ้า ฯลฯ)
+  await ensureColumn('users', 'role', "VARCHAR(64) NOT NULL DEFAULT ''");
 
   // ---- เซสชันล็อกอิน ----
   await pool.query(`

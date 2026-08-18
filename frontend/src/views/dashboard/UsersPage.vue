@@ -20,6 +20,7 @@
           <th>#</th>
           <th>{{ dash.t[dash.lang].completeName }}</th>
           <th>{{ dash.t[dash.lang].email }}</th>
+          <th>ตำแหน่ง / บทบาท</th>
           <th>{{ dash.t[dash.lang].status }}</th>
           <th>{{ dash.t[dash.lang].registeredDate }}</th>
         </tr>
@@ -29,6 +30,12 @@
           <td>{{ idx + 1 }}</td>
           <td><strong>{{ user.name || '-' }}</strong></td>
           <td>{{ user.email }}</td>
+          <td>
+            <select class="pm-role-select" :value="user.role || ''" @change="dash.setUserRole(user, $event.target.value)">
+              <option value="">— ยังไม่กำหนด —</option>
+              <option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option>
+            </select>
+          </td>
           <td><span class="badge success">✓ {{ dash.t[dash.lang].normal }}</span></td>
           <td>{{ user.created_at }}</td>
         </tr>
@@ -45,3 +52,12 @@ export default {
   inject: ['dash'],
 };
 </script>
+
+<style scoped>
+.pm-role-select {
+  padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 7px;
+  font-size: 13.5px; font-family: inherit; background: #fff; color: #334155;
+  cursor: pointer; max-width: 200px;
+}
+.pm-role-select:focus { outline: none; border-color: #1e40ff; }
+</style>

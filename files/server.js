@@ -185,9 +185,26 @@ app.put('/api/me', auth, async (req, res) => {
 // ------------------------------------------------------------
 app.get('/api/users', auth, async (req, res) => {
   const [users] = await mysqlPool.query(
-    'SELECT id, name, email, phone, avatar, created_at FROM users ORDER BY id DESC'
+    'SELECT id, name, email, phone, avatar, role, created_at FROM users ORDER BY id DESC'
   );
   res.json({ ok: true, total: users.length, users });
+});
+
+// ------------------------------------------------------------
+//  กำหนดบทบาท/ตำแหน่งให้ผู้ใช้ (ลิงก์กับหน้าสิทธิ์การเข้าใช้งาน)
+// ------------------------------------------------------------
+app.put('/api/users/:id/role', auth, async (req, res) => {
+  const role = (req.body.role || '').trim();
+  try {
+    const [info] = await mysqlPool.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
+    if (info.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: 'ไม่พบผู้ใช้งาน' });
+    }
+    res.json({ ok: true, message: 'บันทึกบทบาทแล้ว', role });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'บันทึกบทบาทไม่สำเร็จ' });
+  }
 });
 
 // ============================================================
