@@ -12,9 +12,13 @@ data() {
         token: null,
         currentUser: {},
         loginData: { email: '', password: '', remember: false },
-        regData: { name: '', email: '', password: '' },
+        regData: { name: '', email: '', phone: '', password: '', confirmPassword: '' },
         loginMsg: { type: '', text: '' },
         regMsg: { type: '', text: '' },
+        showLoginPwd: false,
+        showRegPwd: false,
+        showRegConfirm: false,
+        agreeTerms: false,
         // Translations
         t: {
           th: {
@@ -24,10 +28,23 @@ data() {
             login: 'เข้าสู่ระบบ',
             signIn: 'เข้าสู่ระบบ',
             createAccount: 'สร้างบัญชี',
-            name: 'ชื่อ',
+            name: 'ชื่อ - นามสกุล',
             email: 'Email',
+            phone: 'เบอร์โทรศัพท์',
+            confirmPassword: 'ยืนยันรหัสผ่าน',
             password: 'รหัสผ่าน',
-            passwordRequirement: '(อย่างน้อย 6 ตัว)',
+            passwordRequirement: '(อย่างน้อย 8 ตัว)',
+            agreeTerms: 'ยอมรับ',
+            termsLink: 'ข้อตกลงและเงื่อนไขการใช้งาน',
+            orRegisterWith: 'หรือสมัครด้วย',
+            orLoginWith: 'หรือเข้าสู่ระบบด้วย',
+            errNameRequired: 'กรุณากรอกชื่อ - นามสกุล',
+            errEmailInvalid: 'รูปแบบอีเมลไม่ถูกต้อง',
+            errPhoneInvalid: 'เบอร์โทรไม่ถูกต้อง (เช่น 0812345678)',
+            errPwdShort: 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร',
+            errPwdMismatch: 'รหัสผ่านไม่ตรงกัน',
+            errTerms: 'กรุณายอมรับข้อตกลงและเงื่อนไขการใช้งาน',
+            socialSoon: 'ระบบสมัครผ่าน {p} กำลังพัฒนา',
             rememberMe: 'จำไว้',
             forgotPassword: 'ลืมรหัสผ่าน?',
             haveAccount: 'มีบัญชีอยู่แล้ว?',
@@ -49,10 +66,23 @@ data() {
             login: 'LOGIN',
             signIn: 'Sign In',
             createAccount: 'Create Account',
-            name: 'Name',
+            name: 'Full Name',
             email: 'Email',
+            phone: 'Mobile Phone',
+            confirmPassword: 'Confirm Password',
             password: 'Password',
-            passwordRequirement: '(At least 6 characters)',
+            passwordRequirement: '(At least 8 characters)',
+            agreeTerms: 'I accept the',
+            termsLink: 'Terms & Conditions',
+            orRegisterWith: 'Or register with',
+            orLoginWith: 'Or login with',
+            errNameRequired: 'Please enter your full name',
+            errEmailInvalid: 'Invalid email format',
+            errPhoneInvalid: 'Invalid phone number (e.g. 0812345678)',
+            errPwdShort: 'Password must be at least 8 characters',
+            errPwdMismatch: 'Passwords do not match',
+            errTerms: 'Please accept the Terms & Conditions',
+            socialSoon: '{p} sign-up is coming soon',
             rememberMe: 'Remember me',
             forgotPassword: 'Forgot password?',
             haveAccount: 'Have an account?',
@@ -87,20 +117,40 @@ data() {
         this.langDropdownOpen = false;
         localStorage.setItem('lang', newLang);
       },
+      // ตรวจสอบข้อมูลฝั่งผู้ใช้ก่อนส่ง — คืน error text หรือ '' ถ้าผ่าน
+      validateRegister() {
+        const tt = this.t[this.lang];
+        const d = this.regData;
+        if (!d.name || !d.name.trim()) return tt.errNameRequired;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return tt.errEmailInvalid;
+        if (!/^0[0-9]{8,9}$/.test((d.phone || '').trim())) return tt.errPhoneInvalid;
+        if ((d.password || '').length < 8) return tt.errPwdShort;
+        if (d.password !== d.confirmPassword) return tt.errPwdMismatch;
+        if (!this.agreeTerms) return tt.errTerms;
+        return '';
+      },
       async register() {
+        const err = this.validateRegister();
+        if (err) { this.regMsg = { type: 'error', text: '⚠️ ' + err }; return; }
         this.regMsg = { type: '', text: this.t[this.lang].registering };
         try {
           const res = await fetch(API + '/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(this.regData),
+            body: JSON.stringify({
+              name: this.regData.name.trim(),
+              email: this.regData.email.trim(),
+              phone: this.regData.phone.trim(),
+              password: this.regData.password,
+            }),
           });
           const data = await res.json();
           if (data.ok) {
             this.regMsg = { type: 'success', text: '✅ ' + data.message };
             this.loginData.email = this.regData.email;
             setTimeout(() => {
-              this.regData = { name: '', email: '', password: '' };
+              this.regData = { name: '', email: '', phone: '', password: '', confirmPassword: '' };
+              this.agreeTerms = false;
               this.view = 'login';
               this.loginMsg = { type: 'success', text: '✅ ' + this.t[this.lang].registerSuccess };
             }, 1200);
@@ -110,6 +160,12 @@ data() {
         } catch (e) {
           this.regMsg = { type: 'error', text: this.t[this.lang].error };
         }
+      },
+      // ปุ่มสมัคร/ล็อกอินผ่านโซเชียล (UI ก่อน — ยังไม่ต่อ OAuth จริง)
+      socialAuth(provider) {
+        const msg = this.t[this.lang].socialSoon.replace('{p}', provider);
+        const target = this.view === 'register' ? 'regMsg' : 'loginMsg';
+        this[target] = { type: 'error', text: 'ℹ️ ' + msg };
       },
       async login() {
         this.loginMsg = { type: '', text: this.t[this.lang].loggingIn };
@@ -180,12 +236,27 @@ data() {
         <h2>{{ t[lang].signIn }}</h2>
         <div class="msg" :class="loginMsg.type">{{ loginMsg.text }}</div>
         <input class="field" type="email" v-model="loginData.email" :placeholder="t[lang].email" required />
-        <input class="field" type="password" v-model="loginData.password" :placeholder="t[lang].password" required />
+        <div class="pwd-wrap">
+          <input class="field" :type="showLoginPwd ? 'text' : 'password'" v-model="loginData.password" :placeholder="t[lang].password" required />
+          <button type="button" class="eye-btn" @click="showLoginPwd = !showLoginPwd" :aria-label="showLoginPwd ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'">
+            <svg v-if="showLoginPwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
         <div class="row">
           <label><input type="checkbox" v-model="loginData.remember" /> {{ t[lang].rememberMe }}</label>
           <a href="#" @click.prevent>{{ t[lang].forgotPassword }}</a>
         </div>
         <button class="primary-btn" type="submit">{{ t[lang].login }}</button>
+
+        <div class="social-divider"><span>{{ t[lang].orLoginWith }}</span></div>
+        <div class="social-row">
+          <button type="button" class="social-btn google" @click="socialAuth('Google')" title="Google"><span>G</span></button>
+          <button type="button" class="social-btn facebook" @click="socialAuth('Facebook')" title="Facebook"><span>f</span></button>
+          <button type="button" class="social-btn apple" @click="socialAuth('Apple')" title="Apple ID"><span></span></button>
+          <button type="button" class="social-btn line" @click="socialAuth('LINE')" title="LINE"><span>L</span></button>
+        </div>
+
         <div class="switch-hint">{{ t[lang].noAccount }} <a @click="view = 'register'">{{ t[lang].registerLink }}</a></div>
       </form>
 
@@ -195,8 +266,35 @@ data() {
         <div class="msg" :class="regMsg.type">{{ regMsg.text }}</div>
         <input class="field" type="text" v-model="regData.name" :placeholder="t[lang].name" />
         <input class="field" type="email" v-model="regData.email" :placeholder="t[lang].email" required />
-        <input class="field" type="password" v-model="regData.password" :placeholder="t[lang].password + ' ' + t[lang].passwordRequirement" required />
+        <input class="field" type="tel" v-model="regData.phone" :placeholder="t[lang].phone + ' (เช่น 0812345678)'" required />
+        <div class="pwd-wrap">
+          <input class="field" :type="showRegPwd ? 'text' : 'password'" v-model="regData.password" :placeholder="t[lang].password + ' ' + t[lang].passwordRequirement" required />
+          <button type="button" class="eye-btn" @click="showRegPwd = !showRegPwd" :aria-label="showRegPwd ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'">
+            <svg v-if="showRegPwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="pwd-wrap">
+          <input class="field" :type="showRegConfirm ? 'text' : 'password'" v-model="regData.confirmPassword" :placeholder="t[lang].confirmPassword" required />
+          <button type="button" class="eye-btn" @click="showRegConfirm = !showRegConfirm" :aria-label="showRegConfirm ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'">
+            <svg v-if="showRegConfirm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <label class="terms-row">
+          <input type="checkbox" v-model="agreeTerms" />
+          <span>{{ t[lang].agreeTerms }} <a href="#" @click.prevent>{{ t[lang].termsLink }}</a></span>
+        </label>
         <button class="primary-btn" type="submit" style="margin-top:6px">{{ t[lang].register }}</button>
+
+        <div class="social-divider"><span>{{ t[lang].orRegisterWith }}</span></div>
+        <div class="social-row">
+          <button type="button" class="social-btn google" @click="socialAuth('Google')" title="Google"><span>G</span></button>
+          <button type="button" class="social-btn facebook" @click="socialAuth('Facebook')" title="Facebook"><span>f</span></button>
+          <button type="button" class="social-btn apple" @click="socialAuth('Apple')" title="Apple ID"><span></span></button>
+          <button type="button" class="social-btn line" @click="socialAuth('LINE')" title="LINE"><span>L</span></button>
+        </div>
+
         <div class="switch-hint">{{ t[lang].haveAccount }} <a @click="view = 'login'">{{ t[lang].loginLink }}</a></div>
       </form>
     </section>
@@ -366,6 +464,48 @@ data() {
 
   .switch-hint { margin-top: 18px; font-size: 13px; color: var(--muted); }
   .switch-hint a { color: var(--brand); font-weight: 600; text-decoration: none; cursor: pointer; }
+
+  /* ---- ช่องรหัสผ่าน + ปุ่มตา ---- */
+  .pwd-wrap { position: relative; }
+  .pwd-wrap .field { padding-right: 46px; }
+  .eye-btn {
+    position: absolute; top: 13px; right: 12px;
+    width: 24px; height: 24px; padding: 0; border: none; background: none;
+    color: var(--muted); cursor: pointer; display: grid; place-items: center;
+  }
+  .eye-btn:hover { color: var(--brand); }
+  .eye-btn svg { width: 18px; height: 18px; display: block; }
+
+  /* ---- ยอมรับเงื่อนไข ---- */
+  .terms-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 12.5px; color: var(--muted); margin: 2px 2px 16px; cursor: pointer; line-height: 1.4;
+  }
+  .terms-row input { margin-top: 2px; cursor: pointer; }
+  .terms-row a { color: var(--brand); font-weight: 600; text-decoration: none; }
+  .terms-row a:hover { text-decoration: underline; }
+
+  /* ---- ตัวคั่น "หรือสมัครด้วย" ---- */
+  .social-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 20px 0 14px; color: var(--muted); font-size: 12px;
+  }
+  .social-divider::before, .social-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--field-border);
+  }
+
+  /* ---- ปุ่มโซเชียล ---- */
+  .social-row { display: flex; gap: 10px; }
+  .social-btn {
+    flex: 1; height: 42px; border-radius: 10px; border: 1px solid var(--field-border);
+    background: var(--field); cursor: pointer; display: grid; place-items: center;
+    font-size: 18px; font-weight: 700; transition: transform .1s, box-shadow .2s, border-color .2s;
+  }
+  .social-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+  .social-btn.google  { color: #ea4335; }
+  .social-btn.facebook{ color: #1877f2; }
+  .social-btn.apple   { color: var(--text); font-size: 20px; }
+  .social-btn.line    { color: #06c755; }
 
   .dash {
     width: 100%; max-width: 960px; background: var(--surface);
