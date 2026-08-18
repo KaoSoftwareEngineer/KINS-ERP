@@ -1,7 +1,9 @@
 // ============================================================================
-//  permissionSchema.js — โครงสร้างสิทธิ์การเข้าใช้งานทั้งหมด (ตามแบบฟอร์ม)
-//  ใช้ร่วมกันระหว่าง PermissionModal (แก้ไขสิทธิ์) และการบังคับสิทธิ์ฝั่งเมนู
-//  แต่ละ item มี key ที่ไม่ซ้ำ — เก็บลง DB เป็นลิสต์ของ key ที่ได้รับสิทธิ์
+//  permissionSchema.js — โครงสร้างสิทธิ์การเข้าใช้งาน
+//  * ออกแบบใหม่ให้ leaf ทุกตัว = "key เมนูจริง" ในระบบ (currentPage)
+//    → ติ๊กสิทธิ์ = อนุญาตให้เห็น/เข้าหน้านั้นได้ (ไม่มีรายการซ้ำ)
+//  * node ที่มี children = หัวข้อกลุ่ม (key ขึ้นต้น 'grp.' ไม่ใช่หน้าเพจ)
+//  เก็บลง DB/บทบาท เป็นลิสต์ของ key ที่ได้รับสิทธิ์
 // ============================================================================
 
 // ---- สิทธิ์การกระทำ (แสดงเป็น 3 คอลัมน์ด้านบน) ----
@@ -9,197 +11,180 @@ export const PERM_ACTIONS = [
   {
     title: 'สิทธิ์ในข้อมูลพื้นฐาน',
     items: [
-      { key: 'act.basic.add', label: 'เพิ่มรายการในข้อมูลพื้นฐาน' },
-      { key: 'act.basic.edit', label: 'แก้ไขรายการในข้อมูลพื้นฐาน' },
-      { key: 'act.basic.delete', label: 'ลบรายการในข้อมูลพื้นฐาน' },
+      { key: 'act.add', label: 'เพิ่มรายการ' },
+      { key: 'act.edit', label: 'แก้ไขรายการ' },
+      { key: 'act.delete', label: 'ลบรายการ' },
     ],
   },
   {
     title: 'สิทธิ์พิเศษ',
     items: [
-      { key: 'act.special.approve', label: 'อนุมัติรายการ' },
-      { key: 'act.special.cancel', label: 'ยกเลิกรายการ' },
-      { key: 'act.special.export', label: 'ส่งออกข้อมูล' },
+      { key: 'act.approve', label: 'อนุมัติรายการ' },
+      { key: 'act.cancel', label: 'ยกเลิกรายการ' },
+      { key: 'act.export', label: 'ส่งออกข้อมูล' },
     ],
   },
   {
     title: 'สิทธิ์การแสดงผล',
     items: [
-      { key: 'act.view.buyPrice', label: 'แสดงราคาซื้อ' },
-      { key: 'act.view.sellPrice', label: 'แสดงราคาขาย' },
-      { key: 'act.view.total', label: 'แสดงผลรวม' },
+      { key: 'act.viewBuyPrice', label: 'แสดงราคาซื้อ' },
+      { key: 'act.viewSellPrice', label: 'แสดงราคาขาย' },
+      { key: 'act.viewTotal', label: 'แสดงผลรวม' },
     ],
   },
 ];
 
-// ---- สิทธิ์การเข้าถึง (ต้นไม้ parent → children) ----
-//  โครงสร้าง node: { key, label, children? }
-//  node ที่มี children = หัวข้อกลุ่ม (ติ๊กเพื่อเลือก/ยกเลิกลูกทั้งหมด)
+// ---- สิทธิ์การเข้าถึง (ต้นไม้เมนูจริง) ----
+//  leaf.key = currentPage key จริง ; group.key = 'grp.*'
 export const PERM_ACCESS = [
   {
-    key: 'acc.basic', label: 'ข้อมูลพื้นฐาน',
+    key: 'grp.basic', label: 'ข้อมูลพื้นฐาน',
     children: [
-      { key: 'acc.basic.fabricReg', label: 'ผ้าประจำ', children: [
-        { key: 'acc.basic.fabricReg.item', label: 'ผ้าประจำ' },
-        { key: 'acc.basic.fabricReg.group', label: 'กลุ่มผ้าประจำ' },
-      ]},
-      { key: 'acc.basic.fabricIrr', label: 'ผ้าไม่ประจำ', children: [
-        { key: 'acc.basic.fabricIrr.item', label: 'ผ้าไม่ประจำ' },
-        { key: 'acc.basic.fabricIrr.group', label: 'กลุ่มผ้าไม่ประจำ' },
-      ]},
-      { key: 'acc.basic.greige', label: 'ผ้าดิบ' },
-      { key: 'acc.basic.customer', label: 'ลูกค้า', children: [
-        { key: 'acc.basic.customer.item', label: 'ลูกค้า' },
-        { key: 'acc.basic.customer.group', label: 'กลุ่มลูกค้า' },
-        { key: 'acc.basic.customer.zone', label: 'โซนลูกค้า' },
-      ]},
-      { key: 'acc.basic.partner', label: 'คู่ค้า' },
-      { key: 'acc.basic.fabricInfo', label: 'ข้อมูลผ้า', children: [
-        { key: 'acc.basic.fabricInfo.structure', label: 'โครงสร้างผ้า' },
-        { key: 'acc.basic.fabricInfo.composition', label: 'ส่วนประกอบ' },
-        { key: 'acc.basic.fabricInfo.width', label: 'หน้ากว้าง' },
-        { key: 'acc.basic.fabricInfo.finishing', label: 'Finishing' },
-        { key: 'acc.basic.fabricInfo.weight', label: 'น้ำหนัก' },
-      ]},
-      { key: 'acc.basic.staff', label: 'ข้อมูลพนักงาน', children: [
-        { key: 'acc.basic.staff.sales', label: 'พนักงานขาย' },
-        { key: 'acc.basic.staff.delivery', label: 'พนักงานส่งของ' },
-      ]},
-      { key: 'acc.basic.note', label: 'ข้อมูลหมายเหตุ' },
-      { key: 'acc.basic.zoneRack', label: 'โซน & แร็ค' },
+      { key: 'fabric-regular', label: 'ผ้าประจำ' },
+      { key: 'fabric-regular-group', label: 'กลุ่มผ้าประจำ' },
+      { key: 'fabric-irregular', label: 'ผ้าไม่ประจำ' },
+      { key: 'fabric-irregular-group', label: 'กลุ่มผ้าไม่ประจำ' },
+      { key: 'fabric-raw', label: 'ผ้าดิบ' },
+      { key: 'customers', label: 'ลูกค้า' },
+      { key: 'partners', label: 'คู่ค้า' },
+      { key: 'fabric-info', label: 'ข้อมูลผ้า' },
+      { key: 'employee-info', label: 'ข้อมูลพนักงาน' },
+      { key: 'note-info', label: 'ข้อมูลหมายเหตุ' },
+      { key: 'zone-rack', label: 'โซน & แร็ค' },
     ],
   },
   {
-    key: 'acc.po', label: 'เปิดใบสั่งซื้อ',
+    key: 'grp.po', label: 'เปิดใบสั่งซื้อ',
     children: [
-      { key: 'acc.po.finished', label: 'ผ้าสำเร็จ' },
-      { key: 'acc.po.greige', label: 'ผ้าดิบ' },
-      { key: 'acc.po.dye', label: 'สั่งย้อม' },
+      { key: 'po-fabric-finished', label: 'ผ้าสำเร็จ' },
+      { key: 'po-fabric-raw', label: 'ผ้าดิบ' },
+      { key: 'po-dye-order', label: 'สั่งย้อม' },
     ],
   },
   {
-    key: 'acc.stock', label: 'จัดการสินค้า',
+    key: 'grp.stock', label: 'จัดการสินค้า',
     children: [
-      { key: 'acc.stock.recvFinished', label: 'รับผ้าสำเร็จ' },
-      { key: 'acc.stock.recvGreige', label: 'รับผ้าดิบ' },
-      { key: 'acc.stock.recvDye', label: 'รับผ้าย้อม' },
-      { key: 'acc.stock.move', label: 'ย้ายสินค้า' },
-      { key: 'acc.stock.moveGreige', label: 'ย้ายผ้าดิบ' },
-      { key: 'acc.stock.moveShelf', label: 'ย้ายชั้นสินค้า' },
-      { key: 'acc.stock.barcode', label: 'บาร์โค้ด' },
+      { key: 'receive-fabric-finished', label: 'รับผ้าสำเร็จ' },
+      { key: 'receive-fabric-raw', label: 'รับผ้าดิบ' },
+      { key: 'receive-fabric-dyed', label: 'รับผ้าย้อม' },
+      { key: 'move-stock', label: 'ย้ายสินค้า' },
+      { key: 'move-fabric-raw', label: 'ย้ายผ้าดิบ' },
+      { key: 'move-shelf', label: 'ย้ายชั้นสินค้า' },
+      { key: 'barcode', label: 'บาร์โค้ด' },
+      { key: 'stock-history', label: 'ประวัติเคลื่อนไหว' },
     ],
   },
   {
-    key: 'acc.vat', label: 'จัดการ VAT',
+    key: 'grp.vat', label: 'จัดการ VAT',
     children: [
-      { key: 'acc.vat.group', label: 'กลุ่มสินค้า VAT' },
-      { key: 'acc.vat.recv', label: 'รับสินค้า VAT' },
-      { key: 'acc.vat.issue', label: 'ตัดสต็อก VAT' },
-      { key: 'acc.vat.taxInvoice', label: 'ใบกำกับภาษี' },
-      { key: 'acc.vat.issueFromTax', label: 'ตัดสต็อก VAT จากใบกำกับภาษี' },
+      { key: 'vat-product-group', label: 'กลุ่มสินค้า VAT' },
+      { key: 'vat-receive', label: 'รับสินค้า VAT' },
+      { key: 'vat-stock-cut', label: 'ตัดสต็อก VAT' },
+      { key: 'vat-invoice', label: 'ใบกำกับภาษี' },
+      { key: 'vat-stock-cut-from-invoice', label: 'ตัดสต็อก VAT จากใบกำกับภาษี' },
     ],
   },
-  { key: 'acc.salesContract', label: 'สัญญาขาย' },
+  { key: 'sales-contract', label: 'สัญญาขาย' },
   {
-    key: 'acc.order', label: 'จัดการออร์เดอร์',
+    key: 'grp.order', label: 'จัดการออร์เดอร์',
     children: [
-      { key: 'acc.order.receive', label: 'รับออร์เดอร์' },
-      { key: 'acc.order.fulfill', label: 'จัดออร์เดอร์' },
-      { key: 'acc.order.invoice', label: 'เปิดอินวอยส์' },
-      { key: 'acc.order.returnInvoice', label: 'รับคืนอินวอยส์' },
-    ],
-  },
-  {
-    key: 'acc.custAcc', label: 'บัญชีลูกค้า',
-    children: [
-      { key: 'acc.custAcc.bill', label: 'วางบิลลูกค้า' },
-      { key: 'acc.custAcc.receive', label: 'รับเงินลูกค้า' },
-      { key: 'acc.custAcc.deduct', label: 'หักบัญชีลูกค้า' },
-      { key: 'acc.custAcc.creditNote', label: 'ใบลดหนี้ลูกค้า' },
+      { key: 'order-receive', label: 'รับออร์เดอร์' },
+      { key: 'order-fulfill', label: 'จัดออร์เดอร์' },
+      { key: 'invoice-open', label: 'เปิดอินวอยส์' },
+      { key: 'invoice-return', label: 'รับคืนอินวอยส์' },
     ],
   },
   {
-    key: 'acc.partnerAcc', label: 'บัญชีคู่ค้า',
+    key: 'grp.custAcc', label: 'บัญชีลูกค้า',
     children: [
-      { key: 'acc.partnerAcc.pay', label: 'จ่ายเงินคู่ค้า' },
-      { key: 'acc.partnerAcc.deduct', label: 'หักบัญชีคู่ค้า' },
-      { key: 'acc.partnerAcc.creditNote', label: 'ใบลดหนี้คู่ค้า' },
+      { key: 'billing-customer', label: 'วางบิลลูกค้า' },
+      { key: 'receive-payment-customer', label: 'รับเงินลูกค้า' },
+      { key: 'deduct-customer-account', label: 'หักบัญชีลูกค้า' },
+      { key: 'credit-note-customer', label: 'ใบลดหนี้ลูกค้า' },
     ],
   },
   {
-    key: 'acc.report', label: 'รายงาน',
+    key: 'grp.partnerAcc', label: 'บัญชีคู่ค้า',
     children: [
-      { key: 'acc.report.stock', label: 'คลังสินค้า', children: [
-        { key: 'acc.report.stock.onhand', label: 'รายงานสินค้าคงคลัง' },
-        { key: 'acc.report.stock.onhandShelf', label: 'รายงานสินค้าคงคลังตามชั้น' },
-        { key: 'acc.report.stock.greige', label: 'รายงานผ้าดิบคงคลัง' },
-        { key: 'acc.report.stock.recv', label: 'รายงานการรับสินค้า' },
-        { key: 'acc.report.stock.issue', label: 'รายงานการเบิกสินค้า' },
-        { key: 'acc.report.stock.move', label: 'รายงานการย้ายสินค้า' },
-        { key: 'acc.report.stock.moveGreige', label: 'รายงานการย้ายผ้าดิบ' },
-        { key: 'acc.report.stock.moveShelf', label: 'รายงานการย้ายชั้นสินค้า' },
-      ]},
-      { key: 'acc.report.vat', label: 'คลัง VAT', children: [
-        { key: 'acc.report.vat.onhand', label: 'รายงานสินค้า VAT คงคลัง' },
-        { key: 'acc.report.vat.recv', label: 'รายงานรับสินค้า VAT' },
-        { key: 'acc.report.vat.issue', label: 'รายงานเบิกสินค้า VAT' },
-      ]},
-      { key: 'acc.report.po', label: 'รายงานใบสั่งซื้อ' },
-      { key: 'acc.report.dyeOrder', label: 'รายงานใบสั่งย้อม' },
-      { key: 'acc.report.salesContract', label: 'รายงานใบสัญญาขาย' },
-      { key: 'acc.report.order', label: 'รายงานออร์เดอร์' },
-      { key: 'acc.report.sales', label: 'การขาย', children: [
-        { key: 'acc.report.sales.wholesale', label: 'รายงานการขายส่ง' },
-        { key: 'acc.report.sales.retail', label: 'รายงานการขายปลีก' },
-        { key: 'acc.report.sales.all', label: 'รายงานการขาย' },
-        { key: 'acc.report.sales.returnInvoice', label: 'รายงานรับคืนอินวอยส์' },
-      ]},
-      { key: 'acc.report.taxInvoice', label: 'รายงานใบกำกับภาษี' },
-      { key: 'acc.report.pl', label: 'กำไร & ขาดทุน', children: [
-        { key: 'acc.report.pl.wholesale', label: 'รายงานกำไร & ขาดทุนขายส่ง' },
-        { key: 'acc.report.pl.retail', label: 'รายงานกำไร & ขาดทุนขายปลีก' },
-        { key: 'acc.report.pl.annual', label: 'รายงานกำไร & ขาดทุนรายปี' },
-      ]},
-      { key: 'acc.report.custAcc', label: 'บัญชีลูกค้า', children: [
-        { key: 'acc.report.custAcc.bill', label: 'รายงานวางบิลลูกค้า' },
-        { key: 'acc.report.custAcc.receive', label: 'รายงานรับเงินลูกค้า' },
-        { key: 'acc.report.custAcc.creditNote', label: 'รายงานใบลดหนี้ลูกค้า' },
-      ]},
-      { key: 'acc.report.partnerAcc', label: 'บัญชีคู่ค้า', children: [
-        { key: 'acc.report.partnerAcc.pay', label: 'รายงานจ่ายเงินคู่ค้า' },
-        { key: 'acc.report.partnerAcc.creditNote', label: 'รายงานใบลดหนี้คู่ค้า' },
-      ]},
-      { key: 'acc.report.annual', label: 'รายงานสรุปประจำปี' },
-      { key: 'acc.report.reorder', label: 'รายงานจุดสั่งซื้อสินค้า' },
-      { key: 'acc.report.others', label: 'อื่นๆ', children: [
-        { key: 'acc.report.others.priceEdit', label: 'รายงานการแก้ไขราคาขาย' },
-        { key: 'acc.report.others.stockAdjust', label: 'รายงานการปรับสต็อกสินค้า' },
-        { key: 'acc.report.others.split', label: 'รายงานการแบ่งพับสินค้า' },
-        { key: 'acc.report.others.barcodeHistory', label: 'รายงานประวัติบาร์โค้ด' },
-      ]},
+      { key: 'pay-partner', label: 'จ่ายเงินคู่ค้า' },
+      { key: 'deduct-partner-account', label: 'หักบัญชีคู่ค้า' },
+      { key: 'credit-note-partner', label: 'ใบลดหนี้คู่ค้า' },
     ],
   },
   {
-    key: 'acc.users', label: 'ผู้ใช้งาน',
+    key: 'grp.report', label: 'รายงาน',
     children: [
-      { key: 'acc.users.accounts', label: 'บัญชีผู้ใช้งาน' },
-      { key: 'acc.users.permissions', label: 'สิทธิ์การเข้าใช้งาน' },
+      { key: 'report-stock', label: 'คลังสินค้า' },
+      { key: 'report-vat-stock', label: 'คลัง VAT' },
+      { key: 'report-po', label: 'รายงานใบสั่งซื้อ' },
+      { key: 'report-dye-order', label: 'รายงานใบสั่งย้อม' },
+      { key: 'report-sales-contract', label: 'รายงานใบสัญญาขาย' },
+      { key: 'report-order', label: 'รายงานออร์เดอร์' },
+      { key: 'report-sales', label: 'การขาย' },
+      { key: 'report-tax-invoice', label: 'รายงานใบกำกับภาษี' },
+      { key: 'report-profit-loss', label: 'กำไร & ขาดทุน' },
+      { key: 'report-customer-account', label: 'บัญชีลูกค้า' },
+      { key: 'report-partner-account', label: 'บัญชีคู่ค้า' },
+      { key: 'report-annual-summary', label: 'รายงานสรุปประจำปี' },
+      { key: 'report-reorder-point', label: 'รายงานจุดสั่งซื้อสินค้า' },
+      { key: 'report-others', label: 'อื่นๆ' },
+    ],
+  },
+  {
+    key: 'grp.users', label: 'ผู้ใช้งาน',
+    children: [
+      { key: 'users', label: 'บัญชีผู้ใช้งาน' },
+      { key: 'user-permissions', label: 'สิทธิ์การเข้าใช้งาน' },
     ],
   },
 ];
 
-// ---- รวบรวม key ทั้งหมด (ใบ) ของ node หนึ่ง (ใช้ตอนติ๊กหัวข้อ) ----
+// ---- รวบรวม key ใบทั้งหมดของ node หนึ่ง (ใช้ตอนติ๊กหัวข้อ) ----
 export function leafKeysOf(node) {
   if (!node.children || node.children.length === 0) return [node.key];
   return node.children.flatMap(leafKeysOf);
 }
 
-// ---- ตำแหน่ง/ฝ่าย เริ่มต้น + สิทธิ์ที่แนะนำ (ใช้เป็นเทมเพลตเลือกเร็ว) ----
+// ---- key เพจจริงทั้งหมด (ใช้ตรวจ/บังคับสิทธิ์เมนู) ----
+export function allPageKeys() {
+  return PERM_ACCESS.flatMap(leafKeysOf);
+}
+
+// ---- ตำแหน่ง/ฝ่าย เริ่มต้น + สิทธิ์แนะนำ (พรีเซ็ตเลือกเร็ว) ----
+//  presetKeys = รายการ key เมนูที่บทบาทนั้นควรเข้าถึงได้
 export const ROLE_PRESETS = [
-  { key: 'ceo', label: 'CEO / ผู้บริหาร', desc: 'เข้าถึงได้ทุกเมนู แก้ไข/ลบ/อนุมัติได้ทั้งหมด' },
-  { key: 'warehouse', label: 'พนักงานคลังสินค้า', desc: 'จัดการสต็อก รับ-ย้ายสินค้า บาร์โค้ด' },
-  { key: 'delivery', label: 'พนักงานส่งของ', desc: 'ดูออร์เดอร์/จัดออร์เดอร์ที่ต้องส่ง' },
-  { key: 'accounting', label: 'ฝ่ายบัญชี', desc: 'VAT ใบกำกับภาษี บัญชีลูกค้า/คู่ค้า รายงาน' },
-  { key: 'order', label: 'ฝ่ายรับออเดอร์', desc: 'รับออร์เดอร์ เปิดอินวอยส์ สัญญาขาย' },
-  { key: 'fabricPicker', label: 'ฝ่ายตัด/หาผ้าออเดอร์', desc: 'ดูผ้า/สต็อก จัดผ้าตามออร์เดอร์' },
+  {
+    key: 'ceo', label: 'CEO / ผู้บริหาร', desc: 'เข้าถึงได้ทุกเมนู',
+    presetKeys: null, // null = ทุกสิทธิ์
+  },
+  {
+    key: 'warehouse', label: 'พนักงานคลังสินค้า', desc: 'จัดการสต็อก รับ-ย้ายสินค้า บาร์โค้ด',
+    presetKeys: ['fabric-regular', 'fabric-irregular', 'fabric-raw', 'zone-rack',
+      'receive-fabric-finished', 'receive-fabric-raw', 'receive-fabric-dyed',
+      'move-stock', 'move-fabric-raw', 'move-shelf', 'barcode', 'stock-history',
+      'report-stock'],
+  },
+  {
+    key: 'delivery', label: 'พนักงานส่งของ', desc: 'ดูออร์เดอร์ที่ต้องจัด/ส่ง',
+    presetKeys: ['order-fulfill', 'order-receive', 'customers'],
+  },
+  {
+    key: 'accounting', label: 'ฝ่ายบัญชี', desc: 'VAT ใบกำกับภาษี บัญชีลูกค้า/คู่ค้า รายงาน',
+    presetKeys: ['vat-product-group', 'vat-receive', 'vat-stock-cut', 'vat-invoice', 'vat-stock-cut-from-invoice',
+      'billing-customer', 'receive-payment-customer', 'deduct-customer-account', 'credit-note-customer',
+      'pay-partner', 'deduct-partner-account', 'credit-note-partner',
+      'report-vat-stock', 'report-tax-invoice', 'report-profit-loss', 'report-customer-account',
+      'report-partner-account', 'report-annual-summary'],
+  },
+  {
+    key: 'order', label: 'ฝ่ายรับออเดอร์', desc: 'รับออร์เดอร์ เปิดอินวอยส์ สัญญาขาย',
+    presetKeys: ['order-receive', 'order-fulfill', 'invoice-open', 'invoice-return',
+      'sales-contract', 'customers', 'fabric-regular', 'fabric-irregular',
+      'report-order', 'report-sales', 'report-sales-contract'],
+  },
+  {
+    key: 'fabricPicker', label: 'ฝ่ายตัด/หาผ้าออเดอร์', desc: 'ดูผ้า/สต็อก จัดผ้าตามออร์เดอร์',
+    presetKeys: ['fabric-regular', 'fabric-irregular', 'fabric-raw', 'fabric-info', 'zone-rack',
+      'order-fulfill', 'stock-history', 'report-stock', 'report-reorder-point'],
+  },
 ];

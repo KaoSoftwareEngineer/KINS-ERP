@@ -19,7 +19,7 @@
           <!-- เลือกตำแหน่งเริ่มต้น (พรีเซ็ต) -->
           <div class="pm-presets">
             <span class="pm-presets-label">ตำแหน่งแนะนำ:</span>
-            <button v-for="p in presets" :key="p.key" class="pm-preset-btn" :title="p.desc" @click="name = p.label">
+            <button v-for="p in presets" :key="p.key" class="pm-preset-btn" :title="p.desc" @click="applyPreset(p)">
               {{ p.label }}
             </button>
           </div>
@@ -59,7 +59,7 @@
 
 <script>
 import PermNode from './PermNode.vue';
-import { PERM_ACTIONS, PERM_ACCESS, ROLE_PRESETS, leafKeysOf } from './permissionSchema.js';
+import { PERM_ACTIONS, PERM_ACCESS, ROLE_PRESETS, leafKeysOf, allPageKeys } from './permissionSchema.js';
 
 export default {
   name: 'PermissionModal',
@@ -98,6 +98,16 @@ export default {
     },
   },
   methods: {
+    // เลือกสิทธิ์ตามตำแหน่งพรีเซ็ต (ตั้งชื่อ + ติ๊กสิทธิ์เมนูให้อัตโนมัติ)
+    applyPreset(p) {
+      if (!this.name.trim()) this.name = p.label;
+      const keys = p.presetKeys === null ? [...allPageKeys(),
+        'act.add', 'act.edit', 'act.delete', 'act.approve', 'act.cancel', 'act.export',
+        'act.viewBuyPrice', 'act.viewSellPrice', 'act.viewTotal'] : p.presetKeys;
+      const next = {};
+      keys.forEach(k => { next[k] = true; });
+      this.selected = next;
+    },
     toggleLeaf(key, val) {
       if (val) this.selected[key] = true;
       else delete this.selected[key];
