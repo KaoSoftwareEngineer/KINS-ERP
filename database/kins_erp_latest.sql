@@ -596,6 +596,44 @@ INSERT INTO `orders` VALUES (2,'OR2608-005','14/08/2026','Alex fashion','ปั�
 UNLOCK TABLES;
 
 --
+-- Table structure for table `purchase_orders`
+--
+
+DROP TABLE IF EXISTS `purchase_orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `purchase_orders` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `po_no` varchar(32) NOT NULL,
+  `po_type` varchar(24) NOT NULL DEFAULT 'finished',
+  `po_date` varchar(20) DEFAULT '',
+  `vendor` varchar(255) DEFAULT '',
+  `account_term` varchar(64) DEFAULT '',
+  `ship_to` varchar(64) DEFAULT '',
+  `remark` text DEFAULT NULL,
+  `ref_no` varchar(64) DEFAULT '',
+  `ship_date` varchar(20) DEFAULT '',
+  `approved` tinyint(4) DEFAULT 0,
+  `subtotal` double DEFAULT 0,
+  `discount` double DEFAULT 0,
+  `vat` double DEFAULT 0,
+  `net_total` double DEFAULT 0,
+  `items_json` mediumtext DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `purchase_orders`
+--
+
+LOCK TABLES `purchase_orders` WRITE;
+/*!40000 ALTER TABLE `purchase_orders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `purchase_orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `roles`
 --
 
@@ -854,4 +892,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-18 16:09:26
+-- Dump completed on 2026-08-18 16:20:15

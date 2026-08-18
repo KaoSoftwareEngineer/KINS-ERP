@@ -319,6 +319,52 @@ app.delete('/api/roles/:name', auth, async (req, res) => {
 });
 
 // ============================================================
+//  ใบสั่งซื้อ (purchase_orders) — ผ้าสำเร็จ/ผ้าดิบ/สั่งย้อม
+// ============================================================
+async function makePoNo() {
+  const d = new Date();
+  const prefix = 'PO' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM purchase_orders WHERE po_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/purchase-orders/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, po_no: await makePoNo() });
+}));
+app.get('/api/purchase-orders', auth, wrap(async (req, res) => {
+  const type = req.query.type || null;
+  const sql = type ? 'SELECT * FROM purchase_orders WHERE po_type = ? ORDER BY id DESC'
+                   : 'SELECT * FROM purchase_orders ORDER BY id DESC';
+  const [rows] = await mysqlPool.query(sql, type ? [type] : []);
+  res.json({ ok: true, total: rows.length, orders: rows });
+}));
+app.post('/api/purchase-orders', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const po_no = await makePoNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO purchase_orders (po_no, po_type, po_date, vendor, account_term, ship_to, remark, ref_no, ship_date, approved, subtotal, discount, vat, net_total, items_json)
+     VALUES (:po_no, :po_type, :po_date, :vendor, :account_term, :ship_to, :remark, :ref_no, :ship_date, :approved, :subtotal, :discount, :vat, :net_total, :items_json)`,
+    {
+      po_no,
+      po_type: b.po_type || 'finished',
+      po_date: b.po_date || '',
+      vendor: b.vendor || '',
+      account_term: b.account_term || '',
+      ship_to: b.ship_to || '',
+      remark: b.remark || '',
+      ref_no: b.ref_no || '',
+      ship_date: b.ship_date || '',
+      approved: b.approved ? 1 : 0,
+      subtotal: Number(b.subtotal) || 0,
+      discount: Number(b.discount) || 0,
+      vat: Number(b.vat) || 0,
+      net_total: Number(b.net_total) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกใบสั่งซื้อแล้ว', id: info.insertId, po_no });
+}));
+
+// ============================================================
 //  กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม
 // ============================================================
 app.get('/api/fabric-regular-group', auth, wrap(async (req, res) => {

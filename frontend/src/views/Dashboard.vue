@@ -13,6 +13,7 @@ import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
 import PoGenericPage from './dashboard/PoGenericPage.vue';
+import PoFabricFinishedPage from './dashboard/PoFabricFinishedPage.vue';
 import StockGenericPage from './dashboard/StockGenericPage.vue';
 import VatGenericPage from './dashboard/VatGenericPage.vue';
 import OrderReceivePage from './dashboard/OrderReceivePage.vue';
@@ -48,6 +49,7 @@ export default {
     StockHistoryPage,
     BasicDataGenericPage,
     PoGenericPage,
+    PoFabricFinishedPage,
     StockGenericPage,
     VatGenericPage,
     OrderReceivePage,
@@ -4461,7 +4463,10 @@ data() {
       <!-- ============ ข้อมูลพื้นฐาน (เมนูย่อยทั้ง 9 หน้า) ============ -->
       <BasicDataGenericPage v-else-if="basicDataPages[currentPage]" />
 
-      <!-- ============ เปิดใบสั่งซื้อ (เมนูย่อยทั้ง 3 หน้า) ============ -->
+      <!-- ============ เปิดใบสั่งซื้อ: ผ้าสำเร็จ (ฟอร์มจริง + PDF) ============ -->
+      <PoFabricFinishedPage v-else-if="currentPage === 'po-fabric-finished'" />
+
+      <!-- ============ เปิดใบสั่งซื้อ (เมนูย่อยที่เหลือ) ============ -->
       <PoGenericPage v-else-if="poPages[currentPage]" />
 
       <!-- ============ จัดการสินค้า (เมนูย่อยทั้ง 7 หน้า) ============ -->
