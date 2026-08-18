@@ -274,6 +274,51 @@ app.delete('/api/users/:id', auth, async (req, res) => {
 });
 
 // ============================================================
+//  บทบาท + สิทธิ์การเข้าถึง (roles)
+// ============================================================
+app.get('/api/roles', auth, async (req, res) => {
+  try {
+    const [rows] = await mysqlPool.query('SELECT name, permissions FROM roles ORDER BY name');
+    const roles = {};
+    rows.forEach(r => {
+      try { roles[r.name] = JSON.parse(r.permissions || '[]'); }
+      catch { roles[r.name] = []; }
+    });
+    res.json({ ok: true, roles });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'โหลดบทบาทไม่สำเร็จ' });
+  }
+});
+
+app.put('/api/roles/:name', auth, async (req, res) => {
+  const name = (req.params.name || '').trim();
+  const keys = Array.isArray(req.body.permissions) ? req.body.permissions : [];
+  if (!name) return res.status(400).json({ ok: false, message: 'ต้องระบุชื่อบทบาท' });
+  try {
+    await mysqlPool.query(
+      `INSERT INTO roles (name, permissions) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE permissions = VALUES(permissions)`,
+      [name, JSON.stringify(keys)]
+    );
+    res.json({ ok: true, message: 'บันทึกบทบาทแล้ว', name, permissions: keys });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'บันทึกบทบาทไม่สำเร็จ' });
+  }
+});
+
+app.delete('/api/roles/:name', auth, async (req, res) => {
+  try {
+    await mysqlPool.query('DELETE FROM roles WHERE name = ?', [req.params.name]);
+    res.json({ ok: true, message: 'ลบบทบาทแล้ว' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'ลบบทบาทไม่สำเร็จ' });
+  }
+});
+
+// ============================================================
 //  ผ้าประจำ (fabrics)
 // ============================================================
 app.get('/api/fabrics', auth, wrap(async (req, res) => {

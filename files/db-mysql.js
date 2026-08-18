@@ -52,6 +52,16 @@ async function initTables() {
   // บทบาท/ตำแหน่งของผู้ใช้ (CEO/พนักงานคลัง/ส่งของ/บัญชี/รับออเดอร์/ตัดผ้า ฯลฯ)
   await ensureColumn('users', 'role', "VARCHAR(64) NOT NULL DEFAULT ''");
 
+  // ---- บทบาท + สิทธิ์การเข้าถึง (permissions = JSON array ของ key เมนู) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS roles (
+      name        VARCHAR(64) PRIMARY KEY,
+      permissions MEDIUMTEXT,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- เซสชันล็อกอิน ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS sessions (

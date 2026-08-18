@@ -79,6 +79,8 @@ data() {
         pmInitialKeys: [],
         pmEditingRowIdx: -1,
         rolePerms: JSON.parse(localStorage.getItem('rolePerms') || '{}'), // ชื่อบทบาท -> [keys]
+        // ตำแหน่งเมนูภาษา (ลอยหน้าสุด)
+        langFlyoutPos: { top: 0, left: 0 },
         // ===== แก้ไขบัญชีผู้ใช้ =====
         usModalShow: false,
         usEditItem: { id: null, name: '', email: '', phone: '', role: '', password: '' },
@@ -1016,6 +1018,12 @@ data() {
     watch: {
       currentPage(val) {
         this.mobileMenuOpen = false;
+        // บังคับสิทธิ์: ถ้าไม่มีสิทธิ์เข้าหน้านี้ → เด้งกลับแดชบอร์ด
+        if (!this.canAccess(val)) {
+          this.fbFail('คุณไม่มีสิทธิ์เข้าถึงเมนูนี้');
+          this.$nextTick(() => { this.currentPage = 'dashboard'; });
+          return;
+        }
         if (val === 'fabric-regular') {
           this.frLoadItems();
         } else if (val === 'fabric-irregular') {
@@ -1033,6 +1041,14 @@ data() {
       },
     },
     computed: {
+      // ---- สิทธิ์เมนูของผู้ใช้ที่ล็อกอินอยู่ (null = ไม่จำกัด/เห็นทุกเมนู) ----
+      myAllowedKeys() {
+        const role = (this.currentUser && this.currentUser.role) || '';
+        if (!role) return null;                       // ไม่ได้กำหนดบทบาท → เห็นทุกเมนู
+        const keys = this.rolePerms[role];
+        if (!keys || keys.length === 0) return null;   // บทบาทยังไม่ตั้งสิทธิ์ → เห็นทุกเมนู
+        return new Set(keys);
+      },
       frTypeOptions() {
         return [...new Set(this.frItems.map(i => i.type))].sort();
       },
@@ -1647,6 +1663,9 @@ data() {
       this.loadMembers();
       this.loadOrders();
       this.loadLowStock();
+      this.loadRoles();   // โหลดบทบาท+สิทธิ์จาก MySQL
+      // ถ้าหน้าที่ค้างไว้เกินสิทธิ์ → กลับแดชบอร์ด
+      this.$nextTick(() => { if (!this.canAccess(this.currentPage)) this.currentPage = 'dashboard'; });
       // ตัวอย่างการอัพเดทสถิติ
       this.newUsersThisMonth = Math.floor(this.members.length * 0.3);
       // โหลดข้อมูลของหน้าที่ค้างไว้ (กรณีรีเฟรชแล้วอยู่หน้าเดิม — watcher ไม่ทำงานกับค่าเริ่มต้น)
@@ -1698,6 +1717,24 @@ data() {
       // ===================================================================
       //  โมดัลสิทธิ์การเข้าใช้งาน (เพิ่ม/แก้ไขบทบาท + ต้นไม้สิทธิ์)
       // ===================================================================
+      // ตรวจสิทธิ์เข้าถึงหน้า/เมนู (true = เข้าได้)
+      canAccess(key) {
+        const allowed = this.myAllowedKeys;
+        if (allowed === null) return true;                 // ไม่จำกัด
+        // หน้าพื้นฐานเข้าได้เสมอ + หัวข้อกลุ่มไม่ต้องเช็ค
+        if (['dashboard', 'analytics', 'settings'].includes(key)) return true;
+        if (typeof key === 'string' && key.startsWith('grp.')) return true;
+        return allowed.has(key);
+      },
+      // กลุ่มเมนูมีอย่างน้อย 1 รายการที่เข้าได้ไหม (ใช้ซ่อนทั้งกลุ่ม)
+      canAccessAny(keys) {
+        return keys.some(k => this.canAccess(k));
+      },
+      // กลุ่มเมนู (array) มีรายการที่เข้าได้อย่างน้อย 1 ไหม (รองรับเมนูย่อยซ้อน)
+      menuGroupVisible(menuArray) {
+        const keys = menuArray.flatMap(c => (c.children ? c.children.map(x => x.key) : [c.key]));
+        return this.myAllowedKeys === null || this.canAccessAny(keys);
+      },
       pmOpen() {
         this.pmEditing = false;
         this.pmEditingRowIdx = -1;
@@ -1717,19 +1754,54 @@ data() {
       pmClose() {
         this.pmShow = false;
       },
-      pmSave(name, keys) {
+      async loadRoles() {
+        try {
+          const res = await fetch(API + '/api/roles', { headers: { Authorization: 'Bearer ' + this.token } });
+          if (res.status === 401) return;
+          const data = await res.json();
+          if (data.ok) {
+            this.rolePerms = data.roles || {};
+            localStorage.setItem('rolePerms', JSON.stringify(this.rolePerms));
+            // sync ตารางบทบาทให้ตรงกับ DB
+            this.userRoles.rows = Object.keys(this.rolePerms).map(name => {
+              const existing = this.userRoles.rows.find(r => r[0] === name);
+              return [name, existing ? existing[1] : '', `${this.rolePerms[name].length} สิทธิ์`,
+                existing ? existing[3] : '0', 'ใช้งาน'];
+            });
+          }
+        } catch (e) { /* ใช้ค่าจาก localStorage ต่อไป */ }
+      },
+      async pmSave(name, keys) {
         if (!name) { this.fbFail('กรุณากรอกชื่อบทบาท'); return; }
-        // เก็บสิทธิ์
+        this.fbLoading('กำลังบันทึก...');
+        // ถ้าเปลี่ยนชื่อบทบาท ลบชื่อเดิมออกจาก DB
         const oldName = this.pmEditing ? this.pmInitialName : null;
-        if (oldName && oldName !== name) delete this.rolePerms[oldName];
+        try {
+          if (oldName && oldName !== name) {
+            await fetch(API + `/api/roles/${encodeURIComponent(oldName)}`, {
+              method: 'DELETE', headers: { Authorization: 'Bearer ' + this.token },
+            });
+            delete this.rolePerms[oldName];
+          }
+          const res = await fetch(API + `/api/roles/${encodeURIComponent(name)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
+            body: JSON.stringify({ permissions: keys }),
+          });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const data = await res.json();
+          if (!data.ok) { this.fbFail(data.message || 'บันทึกไม่สำเร็จ'); return; }
+        } catch (e) {
+          this.fbFail('บันทึกบทบาทไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+          return;
+        }
+        // อัปเดตในหน่วยความจำ + localStorage
         this.rolePerms[name] = keys;
         localStorage.setItem('rolePerms', JSON.stringify(this.rolePerms));
-        // อัปเดต/เพิ่มแถวในตารางบทบาท
         const summary = `${keys.length} สิทธิ์`;
         if (this.pmEditing && this.pmEditingRowIdx >= 0) {
           const r = this.userRoles.rows[this.pmEditingRowIdx];
-          r[0] = name;
-          r[2] = summary;
+          r[0] = name; r[2] = summary;
         } else {
           this.userRoles.rows.push([name, '', summary, '0', 'ใช้งาน']);
         }
@@ -1741,8 +1813,13 @@ data() {
         document.documentElement.setAttribute('data-theme', this.theme);
         localStorage.setItem('theme', this.theme);
       },
-      toggleLangDropdown() {
+      toggleLangDropdown(e) {
         this.langDropdownOpen = !this.langDropdownOpen;
+        if (this.langDropdownOpen && e && e.currentTarget) {
+          const r = e.currentTarget.getBoundingClientRect();
+          // วางเมนูออกด้านขวาของปุ่ม แบบลอยหน้าสุด (ไม่โดน sidebar ตัด)
+          this.langFlyoutPos = { top: Math.round(r.top), left: Math.round(r.right + 8) };
+        }
       },
       toggleGroup(key) {
         this.openGroups[key] = !this.openGroups[key];
@@ -3949,20 +4026,27 @@ data() {
       <div class="sidebar-utils">
 
         <div class="sidebar-lang-row">
-          <!-- Language Dropdown -->
-          <div class="lang-dropdown-container">
-            <button class="lang-dropdown-btn" @click="toggleLangDropdown" title="เลือกภาษา">
-              <span>🌐 {{ lang === 'th' ? 'TH (ไทย)' : 'EN (ENG)' }}</span>
-              <span style="font-size: 10px; opacity: 0.6;">▼</span>
+          <!-- Language — บานพับออกด้านข้าง -->
+          <div class="lang-flyout-container" :class="{ open: langDropdownOpen }">
+            <button class="lang-flyout-btn" @click="toggleLangDropdown" title="Language">
+              <span class="lang-flyout-label">🌐 Language</span>
+              <span class="lang-flyout-caret">▶</span>
             </button>
-            <div class="lang-dropdown-menu" :class="{ active: langDropdownOpen }">
-              <div class="lang-dropdown-item" :class="{ selected: lang === 'th' }" @click="setLanguage('th')">
-                <span>ไทย (Thai)</span>
+            <!-- เมนูลอยหน้าสุด (teleport ไป body เพื่อไม่โดน sidebar ตัดขอบ) -->
+            <teleport to="body">
+              <div v-if="langDropdownOpen" class="lang-flyout-backdrop" @click="langDropdownOpen = false"></div>
+              <div v-if="langDropdownOpen" class="lang-flyout-menu-fixed"
+                   :style="{ top: langFlyoutPos.top + 'px', left: langFlyoutPos.left + 'px' }">
+                <div class="lang-flyout-item" :class="{ selected: lang === 'th' }" @click="setLanguage('th')">
+                  <span>🇹🇭 ไทย (Thai)</span>
+                  <span v-if="lang === 'th'" class="lang-flyout-check">✓</span>
+                </div>
+                <div class="lang-flyout-item" :class="{ selected: lang === 'en' }" @click="setLanguage('en')">
+                  <span>🇬🇧 English (ENG)</span>
+                  <span v-if="lang === 'en'" class="lang-flyout-check">✓</span>
+                </div>
               </div>
-              <div class="lang-dropdown-item" :class="{ selected: lang === 'en' }" @click="setLanguage('en')">
-                <span>English (ENG)</span>
-              </div>
-            </div>
+            </teleport>
           </div>
 
           <!-- Theme Toggle -->
@@ -3980,7 +4064,7 @@ data() {
         </div>
 
         <!-- ====== ข้อมูลพื้นฐาน (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(basicDataMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.basic, 'has-open-child': basicDataMenu.some(c => c.children ? c.children.some(cc => cc.key === currentPage) : c.key === currentPage) }"
                @click="toggleGroup('basic')">
@@ -3990,7 +4074,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.basic">
-              <template v-for="child in basicDataMenu" :key="child.key">
+              <template v-for="child in basicDataMenu.filter(c => c.children ? canAccessAny(c.children.map(x => x.key)) : canAccess(c.key))" :key="child.key">
                 <template v-if="child.children">
                   <div class="submenu-item submenu-group-header"
                        :class="{ active: nestedMenuOpen[child.key], 'has-open-child': child.children.some(cc => cc.key === currentPage) }"
@@ -4000,7 +4084,7 @@ data() {
                   </div>
                   <transition name="dropdown">
                     <div class="submenu submenu-nested" v-if="nestedMenuOpen[child.key]">
-                      <div class="submenu-item" v-for="gchild in child.children" :key="gchild.key"
+                      <div class="submenu-item" v-for="gchild in child.children.filter(g => canAccess(g.key))" :key="gchild.key"
                            :class="{ active: currentPage === gchild.key }" @click="goToMenu(gchild)">
                         <span>{{ lang === 'th' ? gchild.label.th : gchild.label.en }}</span>
                       </div>
@@ -4018,7 +4102,7 @@ data() {
         </div>
 
         <!-- ====== เปิดใบสั่งซื้อ (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(poMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.po, 'has-open-child': poMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('po')">
@@ -4028,7 +4112,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.po">
-              <div class="submenu-item" v-for="child in poMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in poMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4037,7 +4121,7 @@ data() {
         </div>
 
         <!-- ====== จัดการสินค้า (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(stockMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.stock, 'has-open-child': stockMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('stock')">
@@ -4047,7 +4131,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.stock">
-              <div class="submenu-item" v-for="child in stockMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in stockMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4056,7 +4140,7 @@ data() {
         </div>
 
         <!-- ====== จัดการ VAT (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(vatMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.vat, 'has-open-child': vatMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('vat')">
@@ -4066,7 +4150,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.vat">
-              <div class="submenu-item" v-for="child in vatMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in vatMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4075,7 +4159,7 @@ data() {
         </div>
 
         <!-- ====== จัดการออร์เดอร์ (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(orderMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.order, 'has-open-child': orderMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('order')">
@@ -4085,7 +4169,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.order">
-              <div class="submenu-item" v-for="child in orderMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in orderMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4094,7 +4178,7 @@ data() {
         </div>
 
         <!-- ====== บัญชีลูกค้า (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(custAccMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.custAcc, 'has-open-child': custAccMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('custAcc')">
@@ -4104,7 +4188,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.custAcc">
-              <div class="submenu-item" v-for="child in custAccMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in custAccMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4113,7 +4197,7 @@ data() {
         </div>
 
         <!-- ====== บัญชีคู่ค้า (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(partnerAccMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.partnerAcc, 'has-open-child': partnerAccMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('partnerAcc')">
@@ -4123,7 +4207,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.partnerAcc">
-              <div class="submenu-item" v-for="child in partnerAccMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in partnerAccMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4132,7 +4216,7 @@ data() {
         </div>
 
         <!-- ====== รายงาน (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(reportMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.report, 'has-open-child': reportMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('report')">
@@ -4142,7 +4226,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.report">
-              <div class="submenu-item" v-for="child in reportMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in reportMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4150,13 +4234,13 @@ data() {
           </transition>
         </div>
 
-        <div class="menu-item" :class="{ active: currentPage === 'sales-contract' }" @click="currentPage = 'sales-contract'">
+        <div class="menu-item" v-if="canAccess('sales-contract')" :class="{ active: currentPage === 'sales-contract' }" @click="currentPage = 'sales-contract'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>
           <span>{{ t[lang].salesContractTitle }}</span>
         </div>
 
         <!-- ====== ผู้ใช้งาน (เมนูหลัก + เมนูย่อย) ====== -->
-        <div class="menu-group">
+        <div class="menu-group" v-if="menuGroupVisible(usersMenu)">
           <div class="menu-item menu-group-header"
                :class="{ active: openGroups.usersGrp, 'has-open-child': usersMenu.some(c => c.key === currentPage) }"
                @click="toggleGroup('usersGrp')">
@@ -4166,7 +4250,7 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.usersGrp">
-              <div class="submenu-item" v-for="child in usersMenu" :key="child.key"
+              <div class="submenu-item" v-for="child in usersMenu.filter(c => canAccess(c.key))" :key="child.key"
                    :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
                 <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
               </div>
@@ -4287,6 +4371,37 @@ data() {
     align-items: center;
     gap: 12px;
   }
+  /* ---- Language แบบบานพับออกข้าง ---- */
+  .lang-flyout-container { position: relative; }
+  .lang-flyout-btn {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    min-width: 130px; padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--field-border); background: var(--surface);
+    color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background .2s, border-color .2s;
+  }
+  .lang-flyout-btn:hover { background: var(--field); border-color: var(--brand); }
+  .lang-flyout-caret { font-size: 9px; opacity: .6; transition: transform .2s; }
+  .lang-flyout-container.open .lang-flyout-caret { transform: rotate(90deg); }
+  /* เมนูภาษาแบบลอยหน้าสุด (teleport ไป body) */
+  .lang-flyout-backdrop { position: fixed; inset: 0; z-index: 2999; }
+  .lang-flyout-menu-fixed {
+    position: fixed; min-width: 180px;
+    background: var(--surface); border: 1px solid var(--field-border);
+    border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    padding: 6px; z-index: 3000;
+    font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    animation: langFlyIn .16s ease;
+  }
+  @keyframes langFlyIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+  .lang-flyout-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 12px; border-radius: 7px; font-size: 13.5px; color: var(--text);
+    cursor: pointer; transition: background .15s;
+  }
+  .lang-flyout-item:hover { background: var(--field); }
+  .lang-flyout-item.selected { background: var(--brand-soft); color: var(--brand-2); font-weight: 600; }
+  .lang-flyout-check { color: var(--brand); font-weight: 700; }
   .sidebar-notif-row {
     display: flex;
     align-items: center;
