@@ -246,7 +246,8 @@ export default {
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
 .po-field { display: flex; align-items: center; gap: 8px; }
 .po-field > label { min-width: 96px; text-align: right; color: var(--muted); font-size: 12.5px; }
-.po-field input, .po-field select { padding: 6px 9px; border: 1px solid var(--field-border); border-radius: 6px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 140px; }
+.po-field input, .po-field select { height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 140px; transition: border-color .2s, box-shadow .2s; }
+.po-field input:focus, .po-field select:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-ro { background: var(--field) !important; font-weight: 700; }
 .po-approve { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
 .dy-pick-btn { padding: 7px 14px; border: 1px solid var(--field-border); border-radius: 7px; background: var(--surface); color: var(--text); cursor: pointer; font-weight: 600; font-family: inherit; }
@@ -263,9 +264,11 @@ export default {
 
 .po-items { padding: 12px 16px; }
 .po-item-table { width: 100%; border-collapse: collapse; }
-.po-item-table th { text-align: center; font-size: 12px; color: var(--muted); border-bottom: 2px solid var(--field-border); padding: 6px 4px; font-weight: 600; }
-.po-item-table td { padding: 4px; border-bottom: 1px solid var(--field-border); }
-.po-item-table input { width: 100%; padding: 5px 7px; border: 1px solid var(--field-border); border-radius: 5px; font-size: 12.5px; font-family: inherit; background: var(--surface); color: var(--text); }
+.po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; letter-spacing: .3px; border-right: 1px solid rgba(255,255,255,.18); }
+.po-item-table th:last-child { border-right: none; }
+.po-item-table td { padding: 5px 6px; border-bottom: 1px solid var(--field-border); }
+.po-item-table input { width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12.5px; font-family: inherit; background: var(--surface); color: var(--text); transition: border-color .2s, box-shadow .2s; }
+.po-item-table input:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-num { text-align: right; } .po-no { text-align: center; color: var(--muted); }
 .po-row-actions { display: flex; gap: 4px; justify-content: center; }
 .po-ic { width: 24px; height: 24px; border-radius: 50%; border: none; color: #fff; cursor: pointer; font-size: 14px; }
@@ -293,8 +296,10 @@ export default {
 .po-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--field-border); }
 .po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
-.po-btn { padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 7px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text); }
+.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
+.po-btn:hover { background: #dde1ea; border-color: #c7cede; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
+.po-btn-save:hover { background: #158045; border-color: #158045; }
 
 /* Drawer */
 .dy-drawer-wrap { position: fixed; inset: 0; z-index: 3300; }
