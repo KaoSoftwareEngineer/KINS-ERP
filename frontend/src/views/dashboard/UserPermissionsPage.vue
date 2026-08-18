@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="fr-page-compact">
   <div class="header flex-wrap">
     <div>
       <h1>🔐 {{ dash.pageTitle('user-permissions') }}</h1>

@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="fr-page-compact">
   <div class="header flex-wrap">
     <h1>{{ dash.t[dash.lang].membersList }}</h1>
     <div class="header-actions">
@@ -20,6 +20,7 @@
           <th>#</th>
           <th>{{ dash.t[dash.lang].completeName }}</th>
           <th>{{ dash.t[dash.lang].email }}</th>
+          <th>เบอร์มือถือ</th>
           <th>ตำแหน่ง / บทบาท</th>
           <th>{{ dash.t[dash.lang].status }}</th>
           <th>{{ dash.t[dash.lang].registeredDate }}</th>
@@ -30,6 +31,7 @@
           <td>{{ idx + 1 }}</td>
           <td><strong>{{ user.name || '-' }}</strong></td>
           <td>{{ user.email }}</td>
+          <td>{{ user.phone || '-' }}</td>
           <td>
             <select class="pm-role-select" :value="user.role || ''" @change="dash.setUserRole(user, $event.target.value)">
               <option value="">— ยังไม่กำหนด —</option>
