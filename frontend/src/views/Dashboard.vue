@@ -81,6 +81,9 @@ data() {
         rolePerms: JSON.parse(localStorage.getItem('rolePerms') || '{}'), // ชื่อบทบาท -> [keys]
         // ตำแหน่งเมนูภาษา (ลอยหน้าสุด)
         langFlyoutPos: { top: 0, left: 0 },
+        // เมนูย่อยซ้อน (cascading) ลอยออกข้าง
+        nestedFlyoutKey: null,
+        nestedFlyoutPos: { top: 0, left: 0 },
         // ===== แก้ไขบัญชีผู้ใช้ =====
         usModalShow: false,
         usEditItem: { id: null, name: '', email: '', phone: '', role: '', password: '' },
@@ -1049,6 +1052,13 @@ data() {
         if (!keys || keys.length === 0) return null;   // บทบาทยังไม่ตั้งสิทธิ์ → เห็นทุกเมนู
         return new Set(keys);
       },
+      // รายการลูกของเมนูย่อยซ้อนที่กำลังเปิด (กรองตามสิทธิ์)
+      nestedFlyoutChildren() {
+        if (!this.nestedFlyoutKey) return [];
+        const parent = this.basicDataMenu.find(c => c.key === this.nestedFlyoutKey);
+        if (!parent || !parent.children) return [];
+        return parent.children.filter(g => this.canAccess(g.key));
+      },
       frTypeOptions() {
         return [...new Set(this.frItems.map(i => i.type))].sort();
       },
@@ -1819,6 +1829,15 @@ data() {
           const r = e.currentTarget.getBoundingClientRect();
           // วางเมนูออกด้านขวาของปุ่ม แบบลอยหน้าสุด (ไม่โดน sidebar ตัด)
           this.langFlyoutPos = { top: Math.round(r.top), left: Math.round(r.right + 8) };
+        }
+      },
+      // เปิด/ปิดเมนูย่อยซ้อน แบบบานพับออกข้าง (คำนวณตำแหน่งจากปุ่ม)
+      openNestedFlyout(child, e) {
+        if (this.nestedFlyoutKey === child.key) { this.nestedFlyoutKey = null; return; }
+        this.nestedFlyoutKey = child.key;
+        if (e && e.currentTarget) {
+          const r = e.currentTarget.getBoundingClientRect();
+          this.nestedFlyoutPos = { top: Math.round(r.top), left: Math.round(r.right + 6) };
         }
       },
       toggleGroup(key) {
@@ -4077,19 +4096,11 @@ data() {
               <template v-for="child in basicDataMenu.filter(c => c.children ? canAccessAny(c.children.map(x => x.key)) : canAccess(c.key))" :key="child.key">
                 <template v-if="child.children">
                   <div class="submenu-item submenu-group-header"
-                       :class="{ active: nestedMenuOpen[child.key], 'has-open-child': child.children.some(cc => cc.key === currentPage) }"
-                       @click="nestedMenuOpen[child.key] = !nestedMenuOpen[child.key]">
+                       :class="{ active: nestedFlyoutKey === child.key, 'has-open-child': child.children.some(cc => cc.key === currentPage) }"
+                       @click="openNestedFlyout(child, $event)">
                     <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
-                    <span class="menu-chevron" :class="{ open: nestedMenuOpen[child.key] }">▾</span>
+                    <span class="menu-chevron-right">›</span>
                   </div>
-                  <transition name="dropdown">
-                    <div class="submenu submenu-nested" v-if="nestedMenuOpen[child.key]">
-                      <div class="submenu-item" v-for="gchild in child.children.filter(g => canAccess(g.key))" :key="gchild.key"
-                           :class="{ active: currentPage === gchild.key }" @click="goToMenu(gchild)">
-                        <span>{{ lang === 'th' ? gchild.label.th : gchild.label.en }}</span>
-                      </div>
-                    </div>
-                  </transition>
                 </template>
                 <template v-else>
                   <div class="submenu-item" :class="{ active: currentPage === child.key }" @click="goToMenu(child)">
@@ -4264,6 +4275,19 @@ data() {
         </div>
       </nav>
 
+      <!-- เมนูย่อยซ้อน (cascading) — ลอยออกด้านข้าง ไม่โดน sidebar ตัดขอบ -->
+      <teleport to="body">
+        <div v-if="nestedFlyoutKey" class="nested-flyout-backdrop" @click="nestedFlyoutKey = null"></div>
+        <div v-if="nestedFlyoutKey" class="nested-flyout"
+             :style="{ top: nestedFlyoutPos.top + 'px', left: nestedFlyoutPos.left + 'px' }">
+          <div class="nested-flyout-item" v-for="gchild in nestedFlyoutChildren" :key="gchild.key"
+               :class="{ active: currentPage === gchild.key }"
+               @click="goToMenu(gchild); nestedFlyoutKey = null">
+            <span>{{ lang === 'th' ? gchild.label.th : gchild.label.en }}</span>
+          </div>
+        </div>
+      </teleport>
+
       <div class="sidebar-footer">
         <div class="user-mini">
           <div class="name">{{ currentUser.name || (lang === 'th' ? 'ผู้ใช้งาน' : 'User') }}</div>
@@ -4394,6 +4418,25 @@ data() {
     animation: langFlyIn .16s ease;
   }
   @keyframes langFlyIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* ลูกศร › สำหรับเมนูย่อยซ้อน */
+  .menu-chevron-right { margin-left: auto; font-size: 16px; opacity: .55; font-weight: 700; }
+  /* เมนูย่อยซ้อน (cascading) ลอยออกข้าง */
+  .nested-flyout-backdrop { position: fixed; inset: 0; z-index: 2999; }
+  .nested-flyout {
+    position: fixed; min-width: 190px;
+    background: var(--surface); border: 1px solid var(--field-border);
+    border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    padding: 6px; z-index: 3000;
+    font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    animation: langFlyIn .16s ease;
+  }
+  .nested-flyout-item {
+    padding: 9px 13px; border-radius: 7px; font-size: 13.5px; color: var(--text);
+    cursor: pointer; transition: background .15s;
+  }
+  .nested-flyout-item:hover { background: var(--field); }
+  .nested-flyout-item.active { background: var(--brand-soft); color: var(--brand-2); font-weight: 600; }
   .lang-flyout-item {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     padding: 9px 12px; border-radius: 7px; font-size: 13.5px; color: var(--text);

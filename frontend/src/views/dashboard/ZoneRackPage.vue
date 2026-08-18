@@ -246,15 +246,16 @@ export default {
       } catch (e) { this.addMsg = '⚠️ บันทึกไม่สำเร็จ'; this.addErr = true; }
     },
     async deleteLoc(loc) {
-      if (loc.total_rolls > 0) { alert(`ช่อง ${loc.location_code} มีผ้าอยู่ ${loc.total_rolls} ม้วน — ต้องย้ายผ้าออกก่อนจึงจะลบได้`); return; }
-      if (!confirm(`ต้องการลบช่อง "${loc.location_code}" ใช่หรือไม่?`)) return;
+      if (loc.total_rolls > 0) { this.dash.fbFail(`ช่อง ${loc.location_code} มีผ้าอยู่ ${loc.total_rolls} ม้วน — ต้องย้ายผ้าออกก่อนจึงจะลบได้`); return; }
+      if (!(await this.dash.fbAskDelete(`ต้องการลบช่อง "${loc.location_code}" ใช่หรือไม่?`))) return;
+      this.dash.fbLoading('กำลังลบ...');
       try {
         const res = await fetch('/api/warehouse-locations/' + loc.location_id, { method: 'DELETE', headers: this.authHeaders() });
-        if (res.status === 401) { this.dash.sessionExpired(); return; }
+        if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const data = await res.json();
-        if (data.ok) { await this.loadMap(); }
-        else { alert('⚠️ ' + data.message); }
-      } catch (e) { alert('⚠️ ลบไม่สำเร็จ'); }
+        if (data.ok) { await this.loadMap(); this.dash.fbDone('ลบข้อมูลแล้ว'); }
+        else { this.dash.fbFail(data.message || 'ลบไม่สำเร็จ'); }
+      } catch (e) { this.dash.fbFail('ลบไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
     async printLocationQR(loc) {
       const qr = await QRCode.toDataURL(loc.location_qr, { width: 240, margin: 1 });
