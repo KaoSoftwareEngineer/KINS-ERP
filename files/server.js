@@ -367,6 +367,38 @@ app.delete('/api/roles/:name', auth, async (req, res) => {
 });
 
 // ============================================================
+//  คู่ค้า / ผู้ขาย (partners)
+// ============================================================
+app.get('/api/partners', auth, wrap(async (req, res) => {
+  const [items] = await mysqlPool.query('SELECT * FROM partners ORDER BY name ASC');
+  res.json({ ok: true, total: items.length, items });
+}));
+app.post('/api/partners', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อคู่ค้า' });
+  const [info] = await mysqlPool.query(
+    `INSERT INTO partners (code, name, phone, email, address, tax_id, contact, note, active)
+     VALUES (:code, :name, :phone, :email, :address, :tax_id, :contact, :note, :active)`,
+    { code: b.code || '', name: b.name.trim(), phone: b.phone || '', email: b.email || '', address: b.address || '', tax_id: b.tax_id || '', contact: b.contact || '', note: b.note || '', active: b.active === false ? 0 : 1 }
+  );
+  res.json({ ok: true, message: 'บันทึกคู่ค้าแล้ว', id: info.insertId });
+}));
+app.put('/api/partners/:id', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อคู่ค้า' });
+  await mysqlPool.query(
+    `UPDATE partners SET code=:code, name=:name, phone=:phone, email=:email, address=:address, tax_id=:tax_id, contact=:contact, note=:note, active=:active WHERE id=:id`,
+    { id: req.params.id, code: b.code || '', name: b.name.trim(), phone: b.phone || '', email: b.email || '', address: b.address || '', tax_id: b.tax_id || '', contact: b.contact || '', note: b.note || '', active: b.active === false ? 0 : 1 }
+  );
+  res.json({ ok: true, message: 'บันทึกแล้ว' });
+}));
+app.delete('/api/partners/:id', auth, wrap(async (req, res) => {
+  const [info] = await mysqlPool.query('DELETE FROM partners WHERE id = ?', [req.params.id]);
+  if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบคู่ค้า' });
+  res.json({ ok: true, message: 'ลบคู่ค้าแล้ว' });
+}));
+
+// ============================================================
 //  ใบสั่งซื้อ (purchase_orders) — ผ้าสำเร็จ/ผ้าดิบ/สั่งย้อม
 // ============================================================
 async function makePoNo() {

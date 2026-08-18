@@ -691,6 +691,40 @@ INSERT INTO `orders` VALUES (2,'OR2608-005','14/08/2026','Alex fashion','ปั�
 UNLOCK TABLES;
 
 --
+-- Table structure for table `partners`
+--
+
+DROP TABLE IF EXISTS `partners`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `partners` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(32) DEFAULT '',
+  `name` varchar(255) NOT NULL,
+  `phone` varchar(32) DEFAULT '',
+  `email` varchar(255) DEFAULT '',
+  `address` text DEFAULT NULL,
+  `tax_id` varchar(20) DEFAULT '',
+  `contact` varchar(255) DEFAULT '',
+  `note` text DEFAULT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `partners`
+--
+
+LOCK TABLES `partners` WRITE;
+/*!40000 ALTER TABLE `partners` DISABLE KEYS */;
+INSERT INTO `partners` VALUES (1,'V-001','D Finest Fabric','02-391-5737','info@dfinest.co.th',NULL,'0105551234567','คุณเก่า',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(2,'V-002','บจก. สยามเทรดดิ้ง','02-222-3333','sale@siamtrading.co.th',NULL,'0105549876543','คุณสมชาย',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(3,'V-003','หจก. เอเชียยาร์น','02-444-5555','contact@asiayarn.com',NULL,'0105547654321','คุณสมหญิง',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(4,'V-004','บจก. ไทยเท็กซ์ไทล์','02-666-7777','info@thaitextile.co.th',NULL,'0105543216549','คุณวิชัย',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(5,'V-005','โรงย้อมรุ่งเรือง','02-888-9999','rungrueng.dye@gmail.com',NULL,'0105541122334','คุณมานะ',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06');
+/*!40000 ALTER TABLE `partners` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `purchase_orders`
 --
 
@@ -989,4 +1023,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-18 17:44:37
+-- Dump completed on 2026-08-18 17:49:10

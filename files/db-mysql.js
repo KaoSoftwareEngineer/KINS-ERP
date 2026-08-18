@@ -66,6 +66,35 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- คู่ค้า / ผู้ขาย (partners) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS partners (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      code        VARCHAR(32) DEFAULT '',
+      name        VARCHAR(255) NOT NULL,
+      phone       VARCHAR(32) DEFAULT '',
+      email       VARCHAR(255) DEFAULT '',
+      address     TEXT,
+      tax_id      VARCHAR(20) DEFAULT '',
+      contact     VARCHAR(255) DEFAULT '',
+      note        TEXT,
+      active      TINYINT DEFAULT 1,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  // ใส่ข้อมูลตัวอย่างถ้ายังว่าง
+  const [[{ pc }]] = await pool.query('SELECT COUNT(*) AS pc FROM partners');
+  if (pc === 0) {
+    await pool.query(`INSERT INTO partners (code, name, phone, email, tax_id, contact) VALUES
+      ('V-001', 'D Finest Fabric', '02-391-5737', 'info@dfinest.co.th', '0105551234567', 'คุณเก่า'),
+      ('V-002', 'บจก. สยามเทรดดิ้ง', '02-222-3333', 'sale@siamtrading.co.th', '0105549876543', 'คุณสมชาย'),
+      ('V-003', 'หจก. เอเชียยาร์น', '02-444-5555', 'contact@asiayarn.com', '0105547654321', 'คุณสมหญิง'),
+      ('V-004', 'บจก. ไทยเท็กซ์ไทล์', '02-666-7777', 'info@thaitextile.co.th', '0105543216549', 'คุณวิชัย'),
+      ('V-005', 'โรงย้อมรุ่งเรือง', '02-888-9999', 'rungrueng.dye@gmail.com', '0105541122334', 'คุณมานะ')`);
+    console.log('  ➕ ใส่ข้อมูลคู่ค้าตัวอย่าง 5 ราย');
+  }
+
   // ---- ใบสั่งซื้อ (purchase_orders) — ผ้าสำเร็จ/ผ้าดิบ/สั่งย้อม ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS purchase_orders (
