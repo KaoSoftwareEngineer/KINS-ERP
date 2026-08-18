@@ -14,6 +14,7 @@ const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const Anthropic = require('@anthropic-ai/sdk');
+const { OAuth2Client } = require('google-auth-library');
 const { pool: mysqlPool, initTables } = require('./db-mysql');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -116,6 +117,46 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ ok: false, message: 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ' });
+  }
+});
+
+// ------------------------------------------------------------
+//  เข้าสู่ระบบ / สมัคร ด้วย Google (Gmail) — ตรวจ ID token ฝั่งเซิร์ฟเวอร์
+// ------------------------------------------------------------
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+app.post('/api/auth/google', async (req, res) => {
+  const credential = req.body.credential || '';
+  if (!credential) return res.status(400).json({ ok: false, message: 'ไม่พบ credential จาก Google' });
+  try {
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    const email = (payload.email || '').toLowerCase();
+    if (!email) return res.status(400).json({ ok: false, message: 'บัญชี Google ไม่มีอีเมล' });
+    const name = payload.name || email.split('@')[0];
+    const avatar = payload.picture || null;
+
+    // หา user เดิม หรือสร้างใหม่ (บัญชี Google ไม่มีรหัสผ่าน — ใส่ marker)
+    let [rows] = await mysqlPool.query('SELECT * FROM users WHERE email = ?', [email]);
+    let user = rows[0];
+    if (!user) {
+      const [info] = await mysqlPool.query(
+        'INSERT INTO users (name, email, phone, avatar, password) VALUES (?, ?, ?, ?, ?)',
+        [name, email, '', avatar, 'google:' + crypto.randomBytes(8).toString('hex')]
+      );
+      user = { id: info.insertId, name, email, phone: '', avatar, role: '' };
+    }
+
+    const token = crypto.randomBytes(24).toString('hex');
+    await mysqlPool.query('INSERT INTO sessions (token, user_id) VALUES (?, ?)', [token, user.id]);
+    return res.json({
+      ok: true,
+      message: 'เข้าสู่ระบบด้วย Google สำเร็จ',
+      token,
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role || '' },
+    });
+  } catch (err) {
+    console.error('Google auth error:', err.message);
+    return res.status(401).json({ ok: false, message: 'ยืนยันบัญชี Google ไม่สำเร็จ' });
   }
 });
 
