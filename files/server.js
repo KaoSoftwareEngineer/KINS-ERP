@@ -207,6 +207,72 @@ app.put('/api/users/:id/role', auth, async (req, res) => {
   }
 });
 
+// ------------------------------------------------------------
+//  แก้ไขข้อมูลบัญชีผู้ใช้ (ชื่อ/อีเมล/เบอร์/บทบาท) + รีเซ็ตรหัสผ่าน (ถ้าส่งมา)
+// ------------------------------------------------------------
+app.put('/api/users/:id', auth, async (req, res) => {
+  const name = (req.body.name || '').trim();
+  const email = (req.body.email || '').trim().toLowerCase();
+  const phone = (req.body.phone || '').trim();
+  const role = (req.body.role || '').trim();
+  const password = req.body.password || '';
+
+  if (!name || !email) {
+    return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อและอีเมล' });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ ok: false, message: 'รูปแบบอีเมลไม่ถูกต้อง' });
+  }
+  if (phone && !/^0[0-9]{8,9}$/.test(phone)) {
+    return res.status(400).json({ ok: false, message: 'รูปแบบเบอร์โทรไม่ถูกต้อง (เช่น 0812345678)' });
+  }
+  if (password && password.length < 6) {
+    return res.status(400).json({ ok: false, message: 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร' });
+  }
+
+  try {
+    // กันอีเมลซ้ำกับบัญชีอื่น
+    const [dup] = await mysqlPool.query('SELECT id FROM users WHERE email = ? AND id <> ?', [email, req.params.id]);
+    if (dup.length > 0) {
+      return res.status(409).json({ ok: false, message: 'อีเมลนี้ถูกใช้กับบัญชีอื่นแล้ว' });
+    }
+
+    const fields = ['name = ?', 'email = ?', 'phone = ?', 'role = ?'];
+    const params = [name, email, phone, role];
+    if (password) { fields.push('password = ?'); params.push(hashPassword(password)); }
+    params.push(req.params.id);
+
+    const [info] = await mysqlPool.query(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params);
+    if (info.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: 'ไม่พบผู้ใช้งาน' });
+    }
+    res.json({ ok: true, message: 'บันทึกข้อมูลผู้ใช้แล้ว', user: { id: Number(req.params.id), name, email, phone, role } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'บันทึกข้อมูลไม่สำเร็จ' });
+  }
+});
+
+// ------------------------------------------------------------
+//  ลบบัญชีผู้ใช้ (พร้อมเซสชันของบัญชีนั้น) — กันลบตัวเอง
+// ------------------------------------------------------------
+app.delete('/api/users/:id', auth, async (req, res) => {
+  try {
+    if (String(req.userId) === String(req.params.id)) {
+      return res.status(400).json({ ok: false, message: 'ไม่สามารถลบบัญชีที่กำลังใช้งานอยู่ได้' });
+    }
+    await mysqlPool.query('DELETE FROM sessions WHERE user_id = ?', [req.params.id]);
+    const [info] = await mysqlPool.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+    if (info.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: 'ไม่พบผู้ใช้งาน' });
+    }
+    res.json({ ok: true, message: 'ลบบัญชีผู้ใช้แล้ว' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'ลบบัญชีไม่สำเร็จ' });
+  }
+});
+
 // ============================================================
 //  ผ้าประจำ (fabrics)
 // ============================================================

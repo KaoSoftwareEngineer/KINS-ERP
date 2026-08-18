@@ -79,6 +79,9 @@ data() {
         pmInitialKeys: [],
         pmEditingRowIdx: -1,
         rolePerms: JSON.parse(localStorage.getItem('rolePerms') || '{}'), // ชื่อบทบาท -> [keys]
+        // ===== แก้ไขบัญชีผู้ใช้ =====
+        usModalShow: false,
+        usEditItem: { id: null, name: '', email: '', phone: '', role: '', password: '' },
         theme: localStorage.getItem('theme') || 'light',
         lang: localStorage.getItem('lang') || 'th',
         langDropdownOpen: false,
@@ -3579,6 +3582,55 @@ data() {
         const presets = ['CEO / ผู้บริหาร', 'พนักงานคลังสินค้า', 'พนักงานส่งของ', 'ฝ่ายบัญชี', 'ฝ่ายรับออเดอร์', 'ฝ่ายตัด/หาผ้าออเดอร์'];
         const custom = Object.keys(this.rolePerms || {});
         return [...new Set([...presets, ...custom])];
+      },
+      // ---- แก้ไข/ลบบัญชีผู้ใช้ ----
+      usOpenEdit(user) {
+        this.usEditItem = { id: user.id, name: user.name || '', email: user.email || '', phone: user.phone || '', role: user.role || '', password: '' };
+        this.usModalShow = true;
+      },
+      usCloseModal() { this.usModalShow = false; },
+      async usSaveUser() {
+        const u = this.usEditItem;
+        if (!u.name.trim() || !u.email.trim()) { this.fbFail('กรุณากรอกชื่อและอีเมล'); return; }
+        this.fbLoading('กำลังบันทึก...');
+        try {
+          const res = await fetch(API + `/api/users/${u.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
+            body: JSON.stringify({ name: u.name.trim(), email: u.email.trim(), phone: u.phone.trim(), role: u.role, password: u.password || '' }),
+          });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const data = await res.json();
+          if (data.ok) {
+            this.usModalShow = false;
+            await this.loadMembers();
+            this.fbDone('บันทึกแล้ว');
+          } else {
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
+          }
+        } catch (e) {
+          this.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+        }
+      },
+      async usDeleteUser(user) {
+        if (!(await this.fbAskDelete(`ต้องการลบบัญชี "${user.name || user.email}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
+        try {
+          const res = await fetch(API + `/api/users/${user.id}`, {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + this.token },
+          });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const data = await res.json();
+          if (data.ok) {
+            this.members = this.members.filter(m => m.id !== user.id);
+            this.fbDone('ลบข้อมูลแล้ว');
+          } else {
+            this.fbFail(data.message || 'ลบไม่สำเร็จ');
+          }
+        } catch (e) {
+          this.fbFail('ลบไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+        }
       },
       // กำหนดบทบาท/ตำแหน่งให้ผู้ใช้ → บันทึกลง DB
       async setUserRole(user, role) {
