@@ -4,7 +4,6 @@
     <h1>{{ dash.t[dash.lang].membersList }}</h1>
     <div class="header-actions">
       <button class="btn-small fr-btn-search">{{ dash.t[dash.lang].search }}</button>
-      <button class="btn-small fr-btn-add">{{ dash.t[dash.lang].addMember }}</button>
     </div>
   </div>
 
