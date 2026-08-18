@@ -494,6 +494,7 @@ data() {
   }
   .social-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
   .social-btn.google {
+    display: flex; flex-direction: row; align-items: center; justify-content: center;
     gap: 10px; font-size: 14px; font-weight: 600; color: var(--text);
     background: var(--surface); flex: initial; width: 100%; padding: 0 16px;
   }

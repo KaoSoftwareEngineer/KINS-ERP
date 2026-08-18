@@ -31,6 +31,7 @@ import CustomerEditModal from './dashboard/CustomerEditModal.vue';
 import ShadeModal from './dashboard/ShadeModal.vue';
 import FeedbackModal from './dashboard/FeedbackModal.vue';
 import PermissionModal from './dashboard/PermissionModal.vue';
+import { useAuthStore } from '../stores/auth.js';
 
 const API = '';
 
@@ -73,6 +74,10 @@ export default {
   provide() {
     return { dash: this };
   },
+  setup() {
+    // แหล่งความจริงเดียวของ user/token/สิทธิ์ (แยกออกจาก Dashboard)
+    return { auth: useAuthStore() };
+  },
 data() {
       return {
         // ===== กล่องแจ้งผลกลาง (spinner / ติ๊กถูก / กากบาท) =====
@@ -86,7 +91,7 @@ data() {
         pmInitialName: '',
         pmInitialKeys: [],
         pmEditingRowIdx: -1,
-        rolePerms: JSON.parse(localStorage.getItem('rolePerms') || '{}'), // ชื่อบทบาท -> [keys]
+        // rolePerms ย้ายไปที่ auth store (this.rolePerms = computed proxy)
         // ตำแหน่งเมนูภาษา (ลอยหน้าสุด)
         langFlyoutPos: { top: 0, left: 0 },
         // เมนูย่อยซ้อน (cascading) ลอยออกข้าง
@@ -758,8 +763,7 @@ data() {
           finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
           imageName: '', substitute: 'no', active: true,
         },
-        token: localStorage.getItem('token') || null,
-        currentUser: JSON.parse(localStorage.getItem('currentUser')) || {},
+        // token / currentUser ย้ายไปที่ auth store (เป็น computed proxy ด้านล่าง)
         settingsEditOpen: false,
         settingsEditForm: { name: '', phone: '', avatar: '' },
         settingsEditSaving: false,
@@ -1065,13 +1069,22 @@ data() {
       },
     },
     computed: {
+      // ---- proxy ไปที่ auth store (แหล่งความจริงเดียว) ----
+      token: {
+        get() { return this.auth.token; },
+        set(v) { this.auth.setToken(v); },
+      },
+      currentUser: {
+        get() { return this.auth.currentUser; },
+        set(v) { this.auth.setCurrentUser(v); },
+      },
+      rolePerms: {
+        get() { return this.auth.rolePerms; },
+        set(v) { this.auth.rolePerms = v; },
+      },
       // ---- สิทธิ์เมนูของผู้ใช้ที่ล็อกอินอยู่ (null = ไม่จำกัด/เห็นทุกเมนู) ----
       myAllowedKeys() {
-        const role = (this.currentUser && this.currentUser.role) || '';
-        if (!role) return null;                       // ไม่ได้กำหนดบทบาท → เห็นทุกเมนู
-        const keys = this.rolePerms[role];
-        if (!keys || keys.length === 0) return null;   // บทบาทยังไม่ตั้งสิทธิ์ → เห็นทุกเมนู
-        return new Set(keys);
+        return this.auth.myAllowedKeys;
       },
       // รายการลูกของเมนูย่อยซ้อนที่กำลังเปิด (กรองตามสิทธิ์)
       nestedFlyoutChildren() {
@@ -1718,6 +1731,8 @@ data() {
       },
     },
     mounted() {
+      // โหลด token/user/สิทธิ์ ล่าสุดจาก localStorage เข้า store (กันค้างหลัง re-login)
+      this.auth.hydrate();
       document.documentElement.setAttribute('data-theme', this.theme);
       // เช็ค token - ถ้าไม่มีให้ redirect ไปที่ login
       if (!this.token) {
@@ -1784,24 +1799,10 @@ data() {
       // ===================================================================
       //  โมดัลสิทธิ์การเข้าใช้งาน (เพิ่ม/แก้ไขบทบาท + ต้นไม้สิทธิ์)
       // ===================================================================
-      // ตรวจสิทธิ์เข้าถึงหน้า/เมนู (true = เข้าได้)
-      canAccess(key) {
-        const allowed = this.myAllowedKeys;
-        if (allowed === null) return true;                 // ไม่จำกัด
-        // หน้าพื้นฐานเข้าได้เสมอ + หัวข้อกลุ่มไม่ต้องเช็ค
-        if (['dashboard', 'analytics', 'settings'].includes(key)) return true;
-        if (typeof key === 'string' && key.startsWith('grp.')) return true;
-        return allowed.has(key);
-      },
-      // กลุ่มเมนูมีอย่างน้อย 1 รายการที่เข้าได้ไหม (ใช้ซ่อนทั้งกลุ่ม)
-      canAccessAny(keys) {
-        return keys.some(k => this.canAccess(k));
-      },
-      // กลุ่มเมนู (array) มีรายการที่เข้าได้อย่างน้อย 1 ไหม (รองรับเมนูย่อยซ้อน)
-      menuGroupVisible(menuArray) {
-        const keys = menuArray.flatMap(c => (c.children ? c.children.map(x => x.key) : [c.key]));
-        return this.myAllowedKeys === null || this.canAccessAny(keys);
-      },
+      // ตรวจสิทธิ์เข้าถึงหน้า/เมนู — delegate ไป auth store
+      canAccess(key) { return this.auth.canAccess(key); },
+      canAccessAny(keys) { return this.auth.canAccessAny(keys); },
+      menuGroupVisible(menuArray) { return this.auth.menuGroupVisible(menuArray); },
       pmOpen() {
         this.pmEditing = false;
         this.pmEditingRowIdx = -1;
@@ -2285,8 +2286,8 @@ data() {
         XLSX.writeFile(wb, `${title}-${new Date().toISOString().slice(0, 10)}.xlsx`);
       },
       sessionExpired() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
+        this.auth.setToken(null);
+        this.auth.setCurrentUser({});
         alert('เซสชันหมดอายุ (เซิร์ฟเวอร์อาจรีสตาร์ทไป) กรุณาเข้าสู่ระบบใหม่');
         this.$router.push('/login');
       },
@@ -4069,8 +4070,8 @@ data() {
           }); 
         } catch (e) {}
         // ลบข้อมูลออกจาก localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
+        this.auth.setToken(null);
+        this.auth.setCurrentUser({});
         // redirect ไปที่ login
         setTimeout(() => {
           this.$router.push('/login');
