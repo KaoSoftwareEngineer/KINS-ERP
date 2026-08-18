@@ -5,6 +5,7 @@ import UsersPage from './dashboard/UsersPage.vue';
 import AnalyticsPage from './dashboard/AnalyticsPage.vue';
 import SettingsPage from './dashboard/SettingsPage.vue';
 import FabricRegularPage from './dashboard/FabricRegularPage.vue';
+import FabricRegularGroupPage from './dashboard/FabricRegularGroupPage.vue';
 import FabricIrregularPage from './dashboard/FabricIrregularPage.vue';
 import CustomersPage from './dashboard/CustomersPage.vue';
 import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
@@ -39,6 +40,7 @@ export default {
     AnalyticsPage,
     SettingsPage,
     FabricRegularPage,
+    FabricRegularGroupPage,
     FabricIrregularPage,
     CustomersPage,
     GoodsReceivePage,
@@ -87,6 +89,16 @@ data() {
         // ===== แก้ไขบัญชีผู้ใช้ =====
         usModalShow: false,
         usEditItem: { id: null, name: '', email: '', phone: '', role: '', password: '' },
+        // ===== กลุ่มผ้าประจำ (fabric-regular-group) =====
+        frgItems: [],
+        frgLoading: false,
+        frgFilters: { search: '' },
+        frgSortCol: -1, frgSortDir: 'asc',
+        frgPage: 1, frgPageSize: 15, frgSelected: [],
+        frgShowAddModal: false, frgModalMode: 'add', frgEditingId: null,
+        frgNewItem: { name: '', width: '', weight: '', retail_price: '' },
+        frgWidthChoices: ['36"', '44"', '58', '60"', '72"'],
+        frgWeightChoices: ['บาง', 'ปานกลาง', 'หนา'],
         theme: localStorage.getItem('theme') || 'light',
         lang: localStorage.getItem('lang') || 'th',
         langDropdownOpen: false,
@@ -1029,6 +1041,8 @@ data() {
         }
         if (val === 'fabric-regular') {
           this.frLoadItems();
+        } else if (val === 'fabric-regular-group') {
+          this.frgLoadItems();
         } else if (val === 'fabric-irregular') {
           this.fiLoadItems();
         } else if (val === 'customers') {
@@ -1058,6 +1072,35 @@ data() {
         const parent = this.basicDataMenu.find(c => c.key === this.nestedFlyoutKey);
         if (!parent || !parent.children) return [];
         return parent.children.filter(g => this.canAccess(g.key));
+      },
+      // ---- กลุ่มผ้าประจำ ----
+      frgFilteredItems() {
+        const q = (this.frgFilters.search || '').trim().toLowerCase();
+        let list = this.frgItems;
+        if (q) list = list.filter(i => (i.name || '').toLowerCase().includes(q));
+        return list;
+      },
+      frgSortedFilteredItems() {
+        const list = [...this.frgFilteredItems];
+        if (this.frgSortCol >= 0) {
+          const keys = ['name', 'width', 'weight', 'retail_price', 'colors'];
+          const key = keys[this.frgSortCol];
+          list.sort((a, b) => {
+            let x = a[key], y = b[key];
+            if (key === 'retail_price' || key === 'colors') { x = Number(x) || 0; y = Number(y) || 0; return this.frgSortDir === 'asc' ? x - y : y - x; }
+            x = (x || '').toString(); y = (y || '').toString();
+            return this.frgSortDir === 'asc' ? x.localeCompare(y, 'th') : y.localeCompare(x, 'th');
+          });
+        }
+        return list;
+      },
+      frgTotalPages() { return Math.max(1, Math.ceil(this.frgSortedFilteredItems.length / this.frgPageSize)); },
+      frgPagedRows() {
+        const start = (this.frgPage - 1) * this.frgPageSize;
+        return this.frgSortedFilteredItems.slice(start, start + this.frgPageSize);
+      },
+      frgAllSelectedOnPage() {
+        return this.frgPagedRows.length > 0 && this.frgPagedRows.every(r => this.frgSelected.includes(r.id));
       },
       frTypeOptions() {
         return [...new Set(this.frItems.map(i => i.type))].sort();
@@ -1680,6 +1723,7 @@ data() {
       this.newUsersThisMonth = Math.floor(this.members.length * 0.3);
       // โหลดข้อมูลของหน้าที่ค้างไว้ (กรณีรีเฟรชแล้วอยู่หน้าเดิม — watcher ไม่ทำงานกับค่าเริ่มต้น)
       if (this.currentPage === 'fabric-regular') this.frLoadItems();
+      else if (this.currentPage === 'fabric-regular-group') this.frgLoadItems();
       else if (this.currentPage === 'fabric-irregular') this.fiLoadItems();
       else if (this.currentPage === 'customers') this.cuLoadItems();
       else if (this.currentPage === 'order-receive') this.oeLoadFabrics();
@@ -2959,6 +3003,8 @@ data() {
           if (data.ok) {
             if (this.frShadeContext === 'irregular') {
               await this.fiLoadItems();
+            } else if (this.frShadeContext === 'regular-group') {
+              await this.frgLoadItems();
             } else {
               await this.frLoadItems();
             }
@@ -3531,6 +3577,8 @@ data() {
           if (data.ok) {
             if (this.frShadeContext === 'irregular') {
               await this.fiLoadItems();
+            } else if (this.frShadeContext === 'regular-group') {
+              await this.frgLoadItems();
             } else {
               await this.frLoadItems();
             }
@@ -3678,6 +3726,87 @@ data() {
         const presets = ['CEO / ผู้บริหาร', 'พนักงานคลังสินค้า', 'พนักงานส่งของ', 'ฝ่ายบัญชี', 'ฝ่ายรับออเดอร์', 'ฝ่ายตัด/หาผ้าออเดอร์'];
         const custom = Object.keys(this.rolePerms || {});
         return [...new Set([...presets, ...custom])];
+      },
+      // ================= กลุ่มผ้าประจำ (fabric-regular-group) =================
+      async frgLoadItems() {
+        this.frgLoading = true;
+        try {
+          const res = await fetch(API + '/api/fabric-regular-group', { headers: { Authorization: 'Bearer ' + this.token } });
+          if (res.status === 401) { this.sessionExpired(); return; }
+          const data = await res.json();
+          this.frgItems = data.items || [];
+        } catch (e) { /* เงียบ */ } finally { this.frgLoading = false; }
+      },
+      frgResetFilters() { this.frgFilters = { search: '' }; this.frgPage = 1; },
+      frgSort(colIdx) {
+        if (this.frgSortCol === colIdx) this.frgSortDir = this.frgSortDir === 'asc' ? 'desc' : 'asc';
+        else { this.frgSortCol = colIdx; this.frgSortDir = 'asc'; }
+      },
+      frgSortIcon(colIdx) {
+        if (this.frgSortCol !== colIdx) return '↕';
+        return this.frgSortDir === 'asc' ? '▲' : '▼';
+      },
+      frgPrevPage() { if (this.frgPage > 1) this.frgPage -= 1; },
+      frgNextPage() { if (this.frgPage < this.frgTotalPages) this.frgPage += 1; },
+      frgToggleSelectAll() {
+        if (this.frgAllSelectedOnPage) this.frgSelected = this.frgSelected.filter(id => !this.frgPagedRows.some(r => r.id === id));
+        else { const add = this.frgPagedRows.map(r => r.id).filter(id => !this.frgSelected.includes(id)); this.frgSelected = [...this.frgSelected, ...add]; }
+      },
+      frgToggleSelectRow(item) {
+        const i = this.frgSelected.indexOf(item.id);
+        if (i === -1) this.frgSelected.push(item.id); else this.frgSelected.splice(i, 1);
+      },
+      frgOpenAdd() {
+        this.frgModalMode = 'add'; this.frgEditingId = null;
+        this.frgNewItem = { name: '', width: '', weight: '', retail_price: '' };
+        this.frgShowAddModal = true;
+      },
+      frgEditItem(item) {
+        this.frgModalMode = 'edit'; this.frgEditingId = item.id;
+        this.frgNewItem = { name: item.name, width: item.width, weight: item.weight, retail_price: item.retail_price };
+        this.frgShowAddModal = true;
+      },
+      frgCloseAddModal() { this.frgShowAddModal = false; },
+      async frgSaveAdd() {
+        if (!this.frgNewItem.name || !this.frgNewItem.name.trim()) { this.fbFail('กรุณากรอกชื่อกลุ่มผ้า'); return; }
+        this.fbLoading('กำลังบันทึก...');
+        try {
+          const url = this.frgEditingId ? API + `/api/fabric-regular-group/${this.frgEditingId}` : API + '/api/fabric-regular-group';
+          const res = await fetch(url, {
+            method: this.frgEditingId ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
+            body: JSON.stringify(this.frgNewItem),
+          });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const data = await res.json();
+          if (data.ok) { this.frgShowAddModal = false; await this.frgLoadItems(); this.fbDone('บันทึกแล้ว'); }
+          else { this.fbFail(data.message || 'บันทึกไม่สำเร็จ'); }
+        } catch (e) { this.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
+      },
+      async frgDeleteItem(item) {
+        if (!(await this.fbAskDelete(`ต้องการลบกลุ่มผ้า "${item.name}" ใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
+        try {
+          const res = await fetch(API + `/api/fabric-regular-group/${item.id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + this.token } });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const data = await res.json();
+          if (data.ok) { this.frgItems = this.frgItems.filter(i => i.id !== item.id); this.frgSelected = this.frgSelected.filter(id => id !== item.id); this.fbDone('ลบข้อมูลแล้ว'); }
+          else { this.fbFail(data.message || 'ลบไม่สำเร็จ'); }
+        } catch (e) { this.fbFail('ลบไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
+      },
+      async frgBulkDelete() {
+        if (this.frgSelected.length === 0) return;
+        if (!(await this.fbAskDelete(`ต้องการลบ ${this.frgSelected.length} รายการที่เลือกใช่หรือไม่?`))) return;
+        this.fbLoading('กำลังลบ...');
+        let failed = false;
+        for (const id of [...this.frgSelected]) {
+          try { await fetch(API + `/api/fabric-regular-group/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + this.token } }); } catch (e) { failed = true; }
+        }
+        this.frgSelected = []; await this.frgLoadItems();
+        failed ? this.fbFail('ลบบางรายการไม่สำเร็จ') : this.fbDone('ลบข้อมูลแล้ว');
+      },
+      frgOpenShades(item) {
+        this.frOpenShadeModal({ id: item.id, sku: '', name: item.name, apiPath: `/api/fabric-regular-group/${item.id}/shades` }, 'regular-group');
       },
       // ---- แก้ไข/ลบบัญชีผู้ใช้ ----
       usOpenEdit(user) {
@@ -4316,6 +4445,9 @@ data() {
 
       <!-- ============ ผ้าประจำ (ฝังตรงในหน้าแดชบอร์ด ไม่แยกแอป) ============ -->
       <FabricRegularPage v-else-if="currentPage === 'fabric-regular'" />
+
+      <!-- ============ กลุ่มผ้าประจำ ============ -->
+      <FabricRegularGroupPage v-else-if="currentPage === 'fabric-regular-group'" />
 
       <!-- ============ ผ้าไม่ประจำ ============ -->
       <FabricIrregularPage v-else-if="currentPage === 'fabric-irregular'" />

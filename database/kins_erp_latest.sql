@@ -199,6 +199,61 @@ INSERT INTO `fabric_master` VALUES (256,'18001','ผ้าประจำ','Avan
 UNLOCK TABLES;
 
 --
+-- Table structure for table `fabric_regular_group`
+--
+
+DROP TABLE IF EXISTS `fabric_regular_group`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fabric_regular_group` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `width` varchar(64) DEFAULT '',
+  `weight` varchar(64) DEFAULT '',
+  `retail_price` double DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fabric_regular_group`
+--
+
+LOCK TABLES `fabric_regular_group` WRITE;
+/*!40000 ALTER TABLE `fabric_regular_group` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fabric_regular_group` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `fabric_regular_group_shades`
+--
+
+DROP TABLE IF EXISTS `fabric_regular_group_shades`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fabric_regular_group_shades` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `group_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `fabric_cost` double DEFAULT 0,
+  `dye_cost` double DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_frg_shade_group` (`group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fabric_regular_group_shades`
+--
+
+LOCK TABLES `fabric_regular_group_shades` WRITE;
+/*!40000 ALTER TABLE `fabric_regular_group_shades` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fabric_regular_group_shades` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `fabric_rolls`
 --
 
@@ -562,6 +617,7 @@ CREATE TABLE `roles` (
 
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES ('ผู้ดูแลระบบ (Admin)','[\"user-permissions\",\"users\",\"report-stock\",\"report-vat-stock\",\"report-po\",\"report-dye-order\",\"report-sales-contract\",\"report-order\",\"report-sales\",\"report-tax-invoice\",\"report-profit-loss\",\"report-customer-account\",\"report-partner-account\",\"report-annual-summary\",\"report-reorder-point\",\"report-others\",\"pay-partner\",\"deduct-partner-account\",\"credit-note-partner\",\"billing-customer\",\"receive-payment-customer\",\"deduct-customer-account\",\"credit-note-customer\",\"order-receive\",\"order-fulfill\",\"invoice-open\",\"invoice-return\",\"sales-contract\",\"receive-fabric-finished\",\"receive-fabric-raw\",\"receive-fabric-dyed\",\"move-stock\",\"move-fabric-raw\",\"move-shelf\",\"barcode\",\"stock-history\",\"vat-product-group\",\"vat-receive\",\"vat-stock-cut\",\"vat-invoice\",\"vat-stock-cut-from-invoice\",\"po-fabric-finished\",\"po-fabric-raw\",\"po-dye-order\",\"fabric-regular\",\"fabric-regular-group\",\"fabric-irregular\",\"fabric-irregular-group\",\"fabric-raw\",\"customers\",\"partners\",\"fabric-info\",\"employee-info\",\"note-info\",\"zone-rack\",\"act.add\",\"act.edit\",\"act.delete\",\"act.approve\",\"act.cancel\",\"act.export\",\"act.viewBuyPrice\",\"act.viewSellPrice\",\"act.viewTotal\"]','2026-08-18 15:36:21','2026-08-18 15:36:21');
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -798,4 +854,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-18 15:34:56
+-- Dump completed on 2026-08-18 16:09:26
