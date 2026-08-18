@@ -108,6 +108,29 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- กลุ่มผ้าไม่ประจำ (fabric_irregular_group) + เฉดสีของกลุ่ม ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS fabric_irregular_group (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      name         VARCHAR(255) NOT NULL,
+      width        VARCHAR(64) DEFAULT '',
+      weight       VARCHAR(64) DEFAULT '',
+      retail_price DOUBLE DEFAULT 0,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS fabric_irregular_group_shades (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      group_id    INT NOT NULL,
+      name        VARCHAR(255) NOT NULL,
+      fabric_cost DOUBLE DEFAULT 0,
+      dye_cost    DOUBLE DEFAULT 0,
+      INDEX idx_fig_shade_group (group_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- เซสชันล็อกอิน ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS sessions (

@@ -134,6 +134,61 @@ INSERT INTO `fabric_irregular` VALUES (1,'FI-SAT01','Satin-44\"','ผ้าซ�
 UNLOCK TABLES;
 
 --
+-- Table structure for table `fabric_irregular_group`
+--
+
+DROP TABLE IF EXISTS `fabric_irregular_group`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fabric_irregular_group` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `width` varchar(64) DEFAULT '',
+  `weight` varchar(64) DEFAULT '',
+  `retail_price` double DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fabric_irregular_group`
+--
+
+LOCK TABLES `fabric_irregular_group` WRITE;
+/*!40000 ALTER TABLE `fabric_irregular_group` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fabric_irregular_group` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `fabric_irregular_group_shades`
+--
+
+DROP TABLE IF EXISTS `fabric_irregular_group_shades`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fabric_irregular_group_shades` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `group_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `fabric_cost` double DEFAULT 0,
+  `dye_cost` double DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_fig_shade_group` (`group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fabric_irregular_group_shades`
+--
+
+LOCK TABLES `fabric_irregular_group_shades` WRITE;
+/*!40000 ALTER TABLE `fabric_irregular_group_shades` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fabric_irregular_group_shades` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `fabric_irregular_shades`
 --
 
@@ -765,7 +820,7 @@ CREATE TABLE `sessions` (
 
 LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
-INSERT INTO `sessions` VALUES ('1636cc5aec51e7de3c0155aa5db1b2e14be58100174a9ed3',16,'2026-08-14 16:02:17'),('24947d90e4d4f1bb0d1b1213520649dba7e29a52c2784415',1,'2026-08-15 16:03:38'),('5c9acfb994620749381e18fd796c44c31d81b4e7695e36a1',1,'2026-08-15 15:56:17'),('9334d56196f3e55210c346dc73fadff2f0218405a24c8da7',1,'2026-08-14 15:35:31'),('c27cb0b2d39e8dfa6c62d532d44e6fd135d7c56ae5808417',16,'2026-08-15 09:11:19'),('d10942ecbd11366f1a2b9b6560c56992eb6e2bb9484fa14f',16,'2026-08-15 11:16:44'),('e1e912c4458708916308532c90ace85562fc835f177fef25',16,'2026-08-18 13:20:50'),('e6d277e59f1f20be924bdb3c7d201bd63f04959b3f21760b',16,'2026-08-14 17:52:47');
+INSERT INTO `sessions` VALUES ('1636cc5aec51e7de3c0155aa5db1b2e14be58100174a9ed3',16,'2026-08-14 16:02:17'),('24947d90e4d4f1bb0d1b1213520649dba7e29a52c2784415',1,'2026-08-15 16:03:38'),('5c9acfb994620749381e18fd796c44c31d81b4e7695e36a1',1,'2026-08-15 15:56:17'),('9334d56196f3e55210c346dc73fadff2f0218405a24c8da7',1,'2026-08-14 15:35:31'),('be984ccef1b04deb7fad55c178c93c17e08d0f07fb6550c5',16,'2026-08-18 16:54:05'),('c27cb0b2d39e8dfa6c62d532d44e6fd135d7c56ae5808417',16,'2026-08-15 09:11:19'),('d10942ecbd11366f1a2b9b6560c56992eb6e2bb9484fa14f',16,'2026-08-15 11:16:44'),('e6d277e59f1f20be924bdb3c7d201bd63f04959b3f21760b',16,'2026-08-14 17:52:47');
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -892,4 +947,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-18 16:20:15
+-- Dump completed on 2026-08-18 16:54:56

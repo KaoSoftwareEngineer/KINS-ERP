@@ -249,14 +249,6 @@ data() {
         </div>
         <button class="primary-btn" type="submit">{{ t[lang].login }}</button>
 
-        <div class="social-divider"><span>{{ t[lang].orLoginWith }}</span></div>
-        <div class="social-row">
-          <button type="button" class="social-btn google" @click="socialAuth('Google')" title="Google"><span>G</span></button>
-          <button type="button" class="social-btn facebook" @click="socialAuth('Facebook')" title="Facebook"><span>f</span></button>
-          <button type="button" class="social-btn apple" @click="socialAuth('Apple')" title="Apple ID"><span></span></button>
-          <button type="button" class="social-btn line" @click="socialAuth('LINE')" title="LINE"><span>L</span></button>
-        </div>
-
         <div class="switch-hint">{{ t[lang].noAccount }} <a @click="view = 'register'">{{ t[lang].registerLink }}</a></div>
       </form>
 

@@ -1045,7 +1045,8 @@ data() {
         }
         if (val === 'fabric-regular') {
           this.frLoadItems();
-        } else if (val === 'fabric-regular-group') {
+        } else if (val === 'fabric-regular-group' || val === 'fabric-irregular-group') {
+          this.frgSelected = []; this.frgPage = 1;
           this.frgLoadItems();
         } else if (val === 'fabric-irregular') {
           this.fiLoadItems();
@@ -1077,7 +1078,13 @@ data() {
         if (!parent || !parent.children) return [];
         return parent.children.filter(g => this.canAccess(g.key));
       },
-      // ---- กลุ่มผ้าประจำ ----
+      // ---- กลุ่มผ้าประจำ / กลุ่มผ้าไม่ประจำ (ใช้ร่วมกัน สลับตามหน้า) ----
+      frgApiBase() {
+        return this.currentPage === 'fabric-irregular-group' ? '/api/fabric-irregular-group' : '/api/fabric-regular-group';
+      },
+      frgPageTitle() {
+        return this.currentPage === 'fabric-irregular-group' ? 'กลุ่มผ้าไม่ประจำ' : 'กลุ่มผ้าประจำ';
+      },
       frgFilteredItems() {
         const q = (this.frgFilters.search || '').trim().toLowerCase();
         let list = this.frgItems;
@@ -1727,7 +1734,7 @@ data() {
       this.newUsersThisMonth = Math.floor(this.members.length * 0.3);
       // โหลดข้อมูลของหน้าที่ค้างไว้ (กรณีรีเฟรชแล้วอยู่หน้าเดิม — watcher ไม่ทำงานกับค่าเริ่มต้น)
       if (this.currentPage === 'fabric-regular') this.frLoadItems();
-      else if (this.currentPage === 'fabric-regular-group') this.frgLoadItems();
+      else if (this.currentPage === 'fabric-regular-group' || this.currentPage === 'fabric-irregular-group') this.frgLoadItems();
       else if (this.currentPage === 'fabric-irregular') this.fiLoadItems();
       else if (this.currentPage === 'customers') this.cuLoadItems();
       else if (this.currentPage === 'order-receive') this.oeLoadFabrics();
@@ -3735,7 +3742,7 @@ data() {
       async frgLoadItems() {
         this.frgLoading = true;
         try {
-          const res = await fetch(API + '/api/fabric-regular-group', { headers: { Authorization: 'Bearer ' + this.token } });
+          const res = await fetch(API + this.frgApiBase, { headers: { Authorization: 'Bearer ' + this.token } });
           if (res.status === 401) { this.sessionExpired(); return; }
           const data = await res.json();
           this.frgItems = data.items || [];
@@ -3775,7 +3782,7 @@ data() {
         if (!this.frgNewItem.name || !this.frgNewItem.name.trim()) { this.fbFail('กรุณากรอกชื่อกลุ่มผ้า'); return; }
         this.fbLoading('กำลังบันทึก...');
         try {
-          const url = this.frgEditingId ? API + `/api/fabric-regular-group/${this.frgEditingId}` : API + '/api/fabric-regular-group';
+          const url = this.frgEditingId ? API + `${this.frgApiBase}/${this.frgEditingId}` : API + this.frgApiBase;
           const res = await fetch(url, {
             method: this.frgEditingId ? 'PUT' : 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
@@ -3791,7 +3798,7 @@ data() {
         if (!(await this.fbAskDelete(`ต้องการลบกลุ่มผ้า "${item.name}" ใช่หรือไม่?`))) return;
         this.fbLoading('กำลังลบ...');
         try {
-          const res = await fetch(API + `/api/fabric-regular-group/${item.id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + this.token } });
+          const res = await fetch(API + `${this.frgApiBase}/${item.id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + this.token } });
           if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) { this.frgItems = this.frgItems.filter(i => i.id !== item.id); this.frgSelected = this.frgSelected.filter(id => id !== item.id); this.fbDone('ลบข้อมูลแล้ว'); }
@@ -3804,13 +3811,13 @@ data() {
         this.fbLoading('กำลังลบ...');
         let failed = false;
         for (const id of [...this.frgSelected]) {
-          try { await fetch(API + `/api/fabric-regular-group/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + this.token } }); } catch (e) { failed = true; }
+          try { await fetch(API + `${this.frgApiBase}/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + this.token } }); } catch (e) { failed = true; }
         }
         this.frgSelected = []; await this.frgLoadItems();
         failed ? this.fbFail('ลบบางรายการไม่สำเร็จ') : this.fbDone('ลบข้อมูลแล้ว');
       },
       frgOpenShades(item) {
-        this.frOpenShadeModal({ id: item.id, sku: '', name: item.name, apiPath: `/api/fabric-regular-group/${item.id}/shades` }, 'regular-group');
+        this.frOpenShadeModal({ id: item.id, sku: '', name: item.name, apiPath: `${this.frgApiBase}/${item.id}/shades` }, 'regular-group');
       },
       // ---- แก้ไข/ลบบัญชีผู้ใช้ ----
       usOpenEdit(user) {
@@ -4450,8 +4457,8 @@ data() {
       <!-- ============ ผ้าประจำ (ฝังตรงในหน้าแดชบอร์ด ไม่แยกแอป) ============ -->
       <FabricRegularPage v-else-if="currentPage === 'fabric-regular'" />
 
-      <!-- ============ กลุ่มผ้าประจำ ============ -->
-      <FabricRegularGroupPage v-else-if="currentPage === 'fabric-regular-group'" />
+      <!-- ============ กลุ่มผ้าประจำ / กลุ่มผ้าไม่ประจำ (ใช้ component เดียวกัน) ============ -->
+      <FabricRegularGroupPage v-else-if="currentPage === 'fabric-regular-group' || currentPage === 'fabric-irregular-group'" />
 
       <!-- ============ ผ้าไม่ประจำ ============ -->
       <FabricIrregularPage v-else-if="currentPage === 'fabric-irregular'" />

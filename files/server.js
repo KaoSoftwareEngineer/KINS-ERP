@@ -442,6 +442,67 @@ app.put('/api/fabric-regular-group/:id/shades', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  กลุ่มผ้าไม่ประจำ (fabric_irregular_group) + เฉดสีของกลุ่ม
+// ============================================================
+app.get('/api/fabric-irregular-group', auth, wrap(async (req, res) => {
+  const [groups] = await mysqlPool.query('SELECT * FROM fabric_irregular_group ORDER BY name ASC');
+  const [shades] = await mysqlPool.query('SELECT id, group_id, name, fabric_cost, dye_cost FROM fabric_irregular_group_shades ORDER BY id ASC');
+  const byGroup = {};
+  shades.forEach(s => { (byGroup[s.group_id] = byGroup[s.group_id] || []).push(s); });
+  const items = groups.map(g => ({ ...g, shades: byGroup[g.id] || [], colors: (byGroup[g.id] || []).length }));
+  res.json({ ok: true, total: items.length, items });
+}));
+app.post('/api/fabric-irregular-group', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const name = (b.name || '').trim();
+  if (!name) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อกลุ่มผ้า' });
+  const [info] = await mysqlPool.query(
+    `INSERT INTO fabric_irregular_group (name, width, weight, retail_price) VALUES (:name, :width, :weight, :retail_price)`,
+    { name, width: b.width || '', weight: b.weight || '', retail_price: Number(b.retail_price) || 0 }
+  );
+  res.json({ ok: true, message: 'บันทึกกลุ่มผ้าแล้ว', id: info.insertId });
+}));
+app.put('/api/fabric-irregular-group/:id', auth, wrap(async (req, res) => {
+  const b = req.body || {}; const id = req.params.id;
+  if (typeof b.name === 'string') {
+    if (!b.name.trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อกลุ่มผ้า' });
+    await mysqlPool.query(
+      `UPDATE fabric_irregular_group SET name = :name, width = :width, weight = :weight, retail_price = :retail_price WHERE id = :id`,
+      { id, name: b.name.trim(), width: b.width || '', weight: b.weight || '', retail_price: Number(b.retail_price) || 0 }
+    );
+  }
+  if (Array.isArray(b.shades)) {
+    await mysqlPool.query('DELETE FROM fabric_irregular_group_shades WHERE group_id = ?', [id]);
+    for (const s of b.shades) {
+      const nm = (s.name || '').trim(); if (!nm) continue;
+      await mysqlPool.query('INSERT INTO fabric_irregular_group_shades (group_id, name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?)', [id, nm, Number(s.fabric_cost) || 0, Number(s.dye_cost) || 0]);
+    }
+  }
+  res.json({ ok: true, message: 'บันทึกแล้ว' });
+}));
+app.delete('/api/fabric-irregular-group/:id', auth, wrap(async (req, res) => {
+  await mysqlPool.query('DELETE FROM fabric_irregular_group_shades WHERE group_id = ?', [req.params.id]);
+  const [info] = await mysqlPool.query('DELETE FROM fabric_irregular_group WHERE id = ?', [req.params.id]);
+  if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบกลุ่มผ้า' });
+  res.json({ ok: true, message: 'ลบกลุ่มผ้าแล้ว' });
+}));
+app.get('/api/fabric-irregular-group/:id/shades', auth, wrap(async (req, res) => {
+  const [shades] = await mysqlPool.query('SELECT * FROM fabric_irregular_group_shades WHERE group_id = ? ORDER BY id ASC', [req.params.id]);
+  res.json({ ok: true, shades });
+}));
+app.put('/api/fabric-irregular-group/:id/shades', auth, wrap(async (req, res) => {
+  const gid = Number(req.params.id);
+  const rows = Array.isArray(req.body.shades) ? req.body.shades : [];
+  await mysqlPool.query('DELETE FROM fabric_irregular_group_shades WHERE group_id = ?', [gid]);
+  for (const item of rows) {
+    const name = (item.name || '').trim(); if (!name) continue;
+    await mysqlPool.query('INSERT INTO fabric_irregular_group_shades (group_id, name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?)', [gid, name, Number(item.fabric_cost) || 0, Number(item.dye_cost) || 0]);
+  }
+  const [shades] = await mysqlPool.query('SELECT * FROM fabric_irregular_group_shades WHERE group_id = ? ORDER BY id ASC', [gid]);
+  res.json({ ok: true, message: 'บันทึกเฉดสีสำเร็จ', shades });
+}));
+
+// ============================================================
 //  ผ้าประจำ (fabrics)
 // ============================================================
 app.get('/api/fabrics', auth, wrap(async (req, res) => {

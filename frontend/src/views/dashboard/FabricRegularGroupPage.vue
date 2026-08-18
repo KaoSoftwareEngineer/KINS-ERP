@@ -1,9 +1,9 @@
 <template>
 <div class="fr-page-compact">
   <div class="header flex-wrap">
-    <div><h1>🏷️ กลุ่มผ้าประจำ</h1></div>
+    <div><h1>🏷️ {{ dash.frgPageTitle }}</h1></div>
     <div class="header-actions">
-      <button class="btn-small fr-btn-add" @click="dash.frgOpenAdd()">+ เพิ่มกลุ่มผ้าประจำ</button>
+      <button class="btn-small fr-btn-add" @click="dash.frgOpenAdd()">+ เพิ่ม{{ dash.frgPageTitle }}</button>
     </div>
   </div>
 
@@ -84,7 +84,7 @@
     <div v-if="dash.frgShowAddModal" class="frg-overlay" @click.self="dash.frgCloseAddModal()">
       <div class="frg-modal">
         <div class="frg-modal-head">
-          <span>{{ dash.frgModalMode === 'edit' ? 'แก้ไข' : 'เพิ่ม' }} กลุ่มผ้าประจำ</span>
+          <span>{{ dash.frgModalMode === 'edit' ? 'แก้ไข' : 'เพิ่ม' }} {{ dash.frgPageTitle }}</span>
           <button class="frg-x" @click="dash.frgCloseAddModal()">✕</button>
         </div>
         <div class="frg-modal-body">
