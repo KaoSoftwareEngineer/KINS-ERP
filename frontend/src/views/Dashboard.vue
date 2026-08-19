@@ -6169,11 +6169,11 @@ data() {
     font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
   }
   .erp-modal { background: var(--surface); border-radius: 14px; width: 860px; max-width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
-  .erp-modal-head { background: #3c4453; color: #fff; padding: 15px 24px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+  .erp-modal-head { background: #3c4453; color: #fff; padding: 15px 24px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .erp-head-ic { margin-right: 6px; }
   .erp-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; font-size: 15px; cursor: pointer; }
   .erp-x:hover { background: rgba(255,255,255,.3); }
-  .erp-modal-body { padding: 22px 30px; overflow-y: auto; }
+  .erp-modal-body { padding: 22px 30px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
   .erp-sec-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
   .erp-sec-title:not(:first-child) { margin-top: 22px; }
   .erp-sec-bar { width: 4px; height: 16px; border-radius: 2px; background: #3c4453; display: inline-block; }
@@ -6190,7 +6190,7 @@ data() {
   .erp-field textarea { height: auto; padding: 9px 12px; resize: vertical; }
   .erp-field input:focus, .erp-field select:focus, .erp-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
   .erp-field input.erp-err { border-color: #a82a3a; box-shadow: 0 0 0 3px rgba(168,42,58,.12); }
-  .erp-modal-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 14px 24px; border-top: 1px solid var(--field-border); background: var(--field); }
+  .erp-modal-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 14px 24px; border-top: 1px solid var(--field-border); background: var(--field); flex-shrink: 0; }
   .erp-btn { padding: 10px 26px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .erp-btn-cancel { background: #e2e8f0; color: #334155; }
   .erp-btn-cancel:hover { background: #cbd5e1; }
