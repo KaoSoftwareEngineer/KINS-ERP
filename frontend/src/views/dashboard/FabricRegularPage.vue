@@ -184,112 +184,64 @@
     </div>
   </div>
 
-  <!-- ============ Modal: เพิ่ม ผ้าประจำ ============ -->
-  <div class="fr-modal-overlay" v-if="dash.frShowAddModal" @click.self="dash.frCloseAddModal">
-    <div class="fr-modal">
-      <div class="fr-modal-header">
-        <h3>{{ dash.frModalMode === 'edit' ? dash.t[dash.lang].edit : dash.frModalMode === 'view' ? dash.t[dash.lang].viewDetails : dash.t[dash.lang].add }} {{ dash.pageTitle('fabric-regular') }}</h3>
-        <button class="fr-modal-close" @click="dash.frCloseAddModal" title="ปิด">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+  <!-- ============ Modal: เพิ่ม ผ้าประจำ (ERP มาตรฐานกลาง) ============ -->
+  <div class="erp-overlay" v-if="dash.frShowAddModal" @click.self="dash.frCloseAddModal">
+    <div class="erp-modal">
+      <div class="erp-modal-head">
+        <span><span class="erp-head-ic">🧵</span> {{ dash.frModalMode === 'edit' ? dash.t[dash.lang].edit : dash.frModalMode === 'view' ? dash.t[dash.lang].viewDetails : dash.t[dash.lang].add }} {{ dash.pageTitle('fabric-regular') }}</span>
+        <button class="erp-x" @click="dash.frCloseAddModal" title="ปิด">✕</button>
       </div>
-
-      <fieldset :disabled="dash.frModalMode === 'view'" class="fr-modal-body">
-        <div class="fr-form-row">
-          <label>ประเภท <span class="fr-required">*</span></label>
-          <select v-model="dash.frNewItem.type">
-            <option value="">เลือกประเภท</option>
-            <option v-for="opt in dash.frTypeOptions" :key="opt" :value="opt">{{ opt }}</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>รหัสสินค้า <span class="fr-required">*</span></label>
-          <input type="text" v-model="dash.frNewItem.sku" placeholder="เช่น 100S03" />
-        </div>
-        <div class="fr-form-row">
-          <label>ชื่อ</label>
-          <input type="text" v-model="dash.frNewItem.name" placeholder="ชื่อผ้า" />
-        </div>
-        <div class="fr-form-row">
-          <label>โครงสร้างผ้า</label>
-          <select v-model="dash.frNewItem.structure">
-            <option value="">เลือกโครงสร้างผ้า</option>
-            <option v-for="opt in dash.frStructureOptions" :key="opt" :value="opt">{{ opt }}</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>ส่วนประกอบ</label>
-          <select v-model="dash.frNewItem.composition">
-            <option value="">เลือกส่วนประกอบ</option>
-            <option v-for="opt in dash.frCompositionOptions" :key="opt" :value="opt">{{ opt }}</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>หน้ากว้าง <span class="fr-required">*</span></label>
-          <select v-model="dash.frNewItem.width">
-            <option value="">เลือกหน้ากว้าง</option>
-            <option v-for="opt in dash.frWidthOptions" :key="opt" :value="opt">{{ opt }}</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>Finishing</label>
-          <select v-model="dash.frNewItem.finishing">
-            <option value="">เลือก Finishing</option>
-            <option v-for="opt in dash.frFinishingOptions" :key="opt" :value="opt">{{ opt }}</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>น้ำหนัก</label>
-          <select v-model="dash.frNewItem.weight">
-            <option value="">เลือกน้ำหนัก</option>
-            <option v-for="opt in dash.frWeightOptions" :key="opt" :value="opt">{{ opt }} GSM</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>หน่วย</label>
-          <select v-model="dash.frNewItem.unit">
-            <option v-for="opt in dash.frUnitOptions" :key="opt" :value="opt">{{ opt }}</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>คำอธิบาย</label>
-          <input type="text" v-model="dash.frNewItem.description" placeholder="คำอธิบายเพิ่มเติม" />
-        </div>
-        <div class="fr-form-row">
-          <label>จำนวนวันที่ใช้ผลิต</label>
-          <input type="number" min="0" v-model="dash.frNewItem.productionDays" placeholder="0" />
-        </div>
-        <div class="fr-form-row">
-          <label>รูป</label>
-          <div class="fr-file-input">
-            <span class="fr-file-name">{{ dash.frNewItem.imageName || 'ยังไม่ได้เลือกไฟล์' }}</span>
-            <button type="button" class="fr-file-btn" @click="$refs.frFileInput.click()" title="แนบไฟล์รูปภาพ">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-            </button>
-            <input ref="frFileInput" type="file" accept="image/*" class="fr-file-hidden" @change="dash.frHandleFileChange" />
+      <fieldset :disabled="dash.frModalMode === 'view'" class="erp-modal-body" style="border:0;margin:0;min-width:0;">
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลผ้า</div>
+        <div class="erp-grid">
+          <div class="erp-field"><label>ประเภท <span class="erp-req">*</span></label>
+            <select v-model="dash.frNewItem.type"><option value="">เลือกประเภท</option><option v-for="opt in dash.frTypeOptions" :key="opt" :value="opt">{{ opt }}</option></select>
+          </div>
+          <div class="erp-field"><label>รหัสสินค้า <span class="erp-req">*</span></label><input type="text" v-model="dash.frNewItem.sku" placeholder="เช่น 100S03" /></div>
+          <div class="erp-field erp-col-2"><label>ชื่อ</label><input type="text" v-model="dash.frNewItem.name" placeholder="ชื่อผ้า" /></div>
+          <div class="erp-field"><label>โครงสร้างผ้า</label>
+            <select v-model="dash.frNewItem.structure"><option value="">เลือกโครงสร้างผ้า</option><option v-for="opt in dash.frStructureOptions" :key="opt" :value="opt">{{ opt }}</option></select>
+          </div>
+          <div class="erp-field"><label>ส่วนประกอบ</label>
+            <select v-model="dash.frNewItem.composition"><option value="">เลือกส่วนประกอบ</option><option v-for="opt in dash.frCompositionOptions" :key="opt" :value="opt">{{ opt }}</option></select>
+          </div>
+          <div class="erp-field"><label>หน้ากว้าง <span class="erp-req">*</span></label>
+            <select v-model="dash.frNewItem.width"><option value="">เลือกหน้ากว้าง</option><option v-for="opt in dash.frWidthOptions" :key="opt" :value="opt">{{ opt }}</option></select>
+          </div>
+          <div class="erp-field"><label>Finishing</label>
+            <select v-model="dash.frNewItem.finishing"><option value="">เลือก Finishing</option><option v-for="opt in dash.frFinishingOptions" :key="opt" :value="opt">{{ opt }}</option></select>
+          </div>
+          <div class="erp-field"><label>น้ำหนัก</label>
+            <select v-model="dash.frNewItem.weight"><option value="">เลือกน้ำหนัก</option><option v-for="opt in dash.frWeightOptions" :key="opt" :value="opt">{{ opt }} GSM</option></select>
+          </div>
+          <div class="erp-field"><label>หน่วย</label>
+            <select v-model="dash.frNewItem.unit"><option v-for="opt in dash.frUnitOptions" :key="opt" :value="opt">{{ opt }}</option></select>
           </div>
         </div>
-        <div class="fr-form-row">
-          <label>สินค้าทดแทน</label>
-          <select v-model="dash.frNewItem.substitute">
-            <option value="no">ไม่มี</option>
-            <option value="yes">มี</option>
-          </select>
-        </div>
-        <div class="fr-form-row">
-          <label>Active</label>
-          <input type="checkbox" class="fr-active-checkbox" v-model="dash.frNewItem.active" />
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>รายละเอียดเพิ่มเติม</div>
+        <div class="erp-grid">
+          <div class="erp-field erp-col-2"><label>คำอธิบาย</label><input type="text" v-model="dash.frNewItem.description" placeholder="คำอธิบายเพิ่มเติม" /></div>
+          <div class="erp-field"><label>จำนวนวันที่ใช้ผลิต</label><input type="number" min="0" v-model="dash.frNewItem.productionDays" placeholder="0" /></div>
+          <div class="erp-field"><label>สินค้าทดแทน</label>
+            <select v-model="dash.frNewItem.substitute"><option value="no">ไม่มี</option><option value="yes">มี</option></select>
+          </div>
+          <div class="erp-field erp-col-2"><label>รูป</label>
+            <div class="fr-file-input">
+              <span class="fr-file-name">{{ dash.frNewItem.imageName || 'ยังไม่ได้เลือกไฟล์' }}</span>
+              <button type="button" class="fr-file-btn" @click="$refs.frFileInput.click()" title="แนบไฟล์รูปภาพ">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <input ref="frFileInput" type="file" accept="image/*" class="fr-file-hidden" @change="dash.frHandleFileChange" />
+            </div>
+          </div>
+          <div class="erp-field"><label>สถานะ</label>
+            <select v-model="dash.frNewItem.active"><option :value="true">Active</option><option :value="false">Inactive</option></select>
+          </div>
         </div>
       </fieldset>
-
-      <div class="fr-modal-footer">
-        <button v-if="dash.frModalMode === 'view'" class="fr-btn-save" @click="dash.frCloseAddModal">
-          {{ dash.t[dash.lang].close }}
-        </button>
-        <button v-else class="fr-btn-save" @click="dash.frSaveAdd">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          {{ dash.t[dash.lang].save }}
-        </button>
+      <div class="erp-modal-foot">
+        <button class="erp-btn erp-btn-cancel" @click="dash.frCloseAddModal">{{ dash.frModalMode === 'view' ? dash.t[dash.lang].close : 'ยกเลิก' }}</button>
+        <button v-if="dash.frModalMode !== 'view'" class="erp-btn erp-btn-save" @click="dash.frSaveAdd">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>

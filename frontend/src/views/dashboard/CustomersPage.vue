@@ -165,81 +165,38 @@
     </div>
   </div>
 
-  <!-- ============ Modal: เพิ่ม/แก้ไข ลูกค้า ============ -->
-  <div class="fr-modal-overlay" v-if="dash.cuShowAddModal" @click.self="dash.cuCloseAddModal">
-    <div class="fr-modal">
-      <div class="fr-modal-header">
-        <h3>{{ dash.cuModalMode === 'edit' ? 'แก้ไข' : dash.cuModalMode === 'view' ? 'รายละเอียด' : 'เพิ่ม' }} ลูกค้า</h3>
-        <button class="fr-modal-close" @click="dash.cuCloseAddModal" title="ปิด">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+  <!-- ============ Modal: เพิ่ม/แก้ไข ลูกค้า (ERP มาตรฐานกลาง) ============ -->
+  <div class="erp-overlay" v-if="dash.cuShowAddModal" @click.self="dash.cuCloseAddModal">
+    <div class="erp-modal">
+      <div class="erp-modal-head">
+        <span><span class="erp-head-ic">🧑‍💼</span> {{ dash.cuModalMode === 'edit' ? 'แก้ไข' : dash.cuModalMode === 'view' ? 'รายละเอียด' : 'เพิ่ม' }} ลูกค้า</span>
+        <button class="erp-x" @click="dash.cuCloseAddModal" title="ปิด">✕</button>
       </div>
-
-      <fieldset :disabled="dash.cuModalMode === 'view'" class="fr-modal-body">
-        <div class="fr-form-row">
-          <label>รหัสลูกค้า</label>
-          <input type="text" v-model="dash.cuNewItem.code" placeholder="รหัส (เว้นว่างได้)" />
+      <fieldset :disabled="dash.cuModalMode === 'view'" class="erp-modal-body" style="border:0;margin:0;min-width:0;">
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลลูกค้า</div>
+        <div class="erp-grid">
+          <div class="erp-field"><label>รหัสลูกค้า</label><input type="text" v-model="dash.cuNewItem.code" placeholder="รหัส (เว้นว่างได้)" /></div>
+          <div class="erp-field"><label>ชื่อบริษัท <span class="erp-req">*</span></label><input type="text" v-model="dash.cuNewItem.company_name" placeholder="ชื่อบริษัท / ร้าน" /></div>
+          <div class="erp-field"><label>ผู้ติดต่อ</label><input type="text" v-model="dash.cuNewItem.contact" placeholder="ชื่อผู้ติดต่อ" /></div>
+          <div class="erp-field"><label>เบอร์โทร</label><input type="text" v-model="dash.cuNewItem.phone" placeholder="เบอร์โทรศัพท์" /></div>
+          <div class="erp-field erp-col-2"><label>ที่อยู่</label><input type="text" v-model="dash.cuNewItem.address" placeholder="ที่อยู่" /></div>
+          <div class="erp-field"><label>จังหวัด</label><input type="text" v-model="dash.cuNewItem.province" placeholder="จังหวัด" /></div>
+          <div class="erp-field"><label>กลุ่มลูกค้า</label><input type="text" v-model="dash.cuNewItem.customer_group" placeholder="กลุ่มลูกค้า" /></div>
+          <div class="erp-field"><label>โซน</label><input type="text" v-model="dash.cuNewItem.zone" placeholder="โซน" /></div>
         </div>
-        <div class="fr-form-row">
-          <label>ชื่อบริษัท <span class="fr-required">*</span></label>
-          <input type="text" v-model="dash.cuNewItem.company_name" placeholder="ชื่อบริษัท / ร้าน" />
-        </div>
-        <div class="fr-form-row">
-          <label>ผู้ติดต่อ</label>
-          <input type="text" v-model="dash.cuNewItem.contact" placeholder="ชื่อผู้ติดต่อ" />
-        </div>
-        <div class="fr-form-row">
-          <label>เบอร์โทร</label>
-          <input type="text" v-model="dash.cuNewItem.phone" placeholder="เบอร์โทรศัพท์" />
-        </div>
-        <div class="fr-form-row">
-          <label>ที่อยู่</label>
-          <input type="text" v-model="dash.cuNewItem.address" placeholder="ที่อยู่" />
-        </div>
-        <div class="fr-form-row">
-          <label>จังหวัด</label>
-          <input type="text" v-model="dash.cuNewItem.province" placeholder="จังหวัด" />
-        </div>
-        <div class="fr-form-row">
-          <label>กลุ่มลูกค้า</label>
-          <input type="text" v-model="dash.cuNewItem.customer_group" placeholder="กลุ่มลูกค้า" />
-        </div>
-        <div class="fr-form-row">
-          <label>โซน</label>
-          <input type="text" v-model="dash.cuNewItem.zone" placeholder="โซน" />
-        </div>
-        <div class="fr-form-row">
-          <label>เงื่อนไขบัญชี</label>
-          <input type="text" v-model="dash.cuNewItem.account_terms" placeholder="เช่น 30 Days" />
-        </div>
-        <div class="fr-form-row">
-          <label>เงื่อนไขเงินสด</label>
-          <input type="text" v-model="dash.cuNewItem.cash_terms" placeholder="เช่น ปกติ" />
-        </div>
-        <div class="fr-form-row">
-          <label>สกุลเงิน</label>
-          <input type="text" v-model="dash.cuNewItem.currency" placeholder="THB" />
-        </div>
-        <div class="fr-form-row">
-          <label>วงเงิน</label>
-          <input type="text" v-model="dash.cuNewItem.credit_limit" placeholder="วงเงิน" />
-        </div>
-        <div class="fr-form-row">
-          <label>พนักงานขาย</label>
-          <input type="text" v-model="dash.cuNewItem.salesperson" placeholder="พนักงานขาย" />
-        </div>
-        <div class="fr-form-row">
-          <label>เลขผู้เสียภาษี</label>
-          <input type="text" v-model="dash.cuNewItem.tax_id" placeholder="เลขประจำตัวผู้เสียภาษี" />
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>เงื่อนไขการค้า / การเงิน</div>
+        <div class="erp-grid">
+          <div class="erp-field"><label>เงื่อนไขบัญชี</label><input type="text" v-model="dash.cuNewItem.account_terms" placeholder="เช่น 30 Days" /></div>
+          <div class="erp-field"><label>เงื่อนไขเงินสด</label><input type="text" v-model="dash.cuNewItem.cash_terms" placeholder="เช่น ปกติ" /></div>
+          <div class="erp-field"><label>สกุลเงิน</label><input type="text" v-model="dash.cuNewItem.currency" placeholder="THB" /></div>
+          <div class="erp-field"><label>วงเงิน</label><input type="text" v-model="dash.cuNewItem.credit_limit" placeholder="วงเงิน" /></div>
+          <div class="erp-field"><label>พนักงานขาย</label><input type="text" v-model="dash.cuNewItem.salesperson" placeholder="พนักงานขาย" /></div>
+          <div class="erp-field"><label>เลขผู้เสียภาษี</label><input type="text" v-model="dash.cuNewItem.tax_id" placeholder="เลขประจำตัวผู้เสียภาษี" /></div>
         </div>
       </fieldset>
-
-      <div class="fr-modal-footer">
-        <button v-if="dash.cuModalMode === 'view'" class="fr-btn-save" @click="dash.cuCloseAddModal">ปิด</button>
-        <button v-else class="fr-btn-save" @click="dash.cuSaveAdd">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          บันทึก
-        </button>
+      <div class="erp-modal-foot">
+        <button class="erp-btn erp-btn-cancel" @click="dash.cuCloseAddModal">{{ dash.cuModalMode === 'view' ? 'ปิด' : 'ยกเลิก' }}</button>
+        <button v-if="dash.cuModalMode !== 'view'" class="erp-btn erp-btn-save" @click="dash.cuSaveAdd">💾 บันทึก</button>
       </div>
     </div>
   </div>
