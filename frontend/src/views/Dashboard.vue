@@ -110,6 +110,8 @@ data() {
         // ===== แก้ไขบัญชีผู้ใช้ =====
         usModalShow: false,
         usEditItem: { id: null, name: '', email: '', phone: '', role: '', gender: '', age: '', password: '' },
+        // ข้อมูลผ้า (master data) สำหรับ dropdown ในฟอร์มผ้าประจำ/ไม่ประจำ
+        md: { structure: [], composition: [], width: [], finishing: [], weight: [] },
         // ===== กลุ่มผ้าประจำ (fabric-regular-group) =====
         frgItems: [],
         frgLoading: false,
@@ -1095,7 +1097,9 @@ data() {
           return;
         }
         if (val === 'fabric-regular') {
-          this.frLoadItems();
+          this.frLoadItems(); this.loadMasterData();
+        } else if (val === 'fabric-irregular') {
+          this.fiLoadItems(); this.loadMasterData();
         } else if (val === 'fabric-regular-group' || val === 'fabric-irregular-group') {
           this.frgSelected = []; this.frgPage = 1;
           this.frgLoadItems();
@@ -1177,19 +1181,19 @@ data() {
         return [...new Set(this.frItems.map(i => i.type))].sort();
       },
       frCompositionOptions() {
-        return [...new Set(this.frItems.map(i => i.composition))].sort();
+        return this.mdMerge('composition', this.frItems.map(i => i.composition));
       },
       frWidthOptions() {
-        return [...new Set(this.frItems.map(i => i.width))].sort();
+        return this.mdMerge('width', this.frItems.map(i => i.width));
       },
       frStructureOptions() {
-        return [...new Set(this.frItems.map(i => i.structure))].sort();
+        return this.mdMerge('structure', this.frItems.map(i => i.structure));
       },
       frFinishingOptions() {
-        return [...new Set(this.frItems.map(i => i.finishing))].sort();
+        return this.mdMerge('finishing', this.frItems.map(i => i.finishing));
       },
       frWeightOptions() {
-        return [...new Set(this.frItems.map(i => i.weight))].sort((a, b) => Number(a) - Number(b));
+        return this.mdMerge('weight', this.frItems.map(i => i.weight)).sort((a, b) => (Number(a) || 0) - (Number(b) || 0));
       },
       frUnitOptions() {
         return ['หลา', 'เมตร', 'กิโลกรัม', 'ม้วน'];
@@ -1338,19 +1342,19 @@ data() {
         return [...new Set(this.fiItems.map(i => i.type))].sort();
       },
       fiCompositionOptions() {
-        return [...new Set(this.fiItems.map(i => i.composition))].sort();
+        return this.mdMerge('composition', this.fiItems.map(i => i.composition));
       },
       fiWidthOptions() {
-        return [...new Set(this.fiItems.map(i => i.width))].sort();
+        return this.mdMerge('width', this.fiItems.map(i => i.width));
       },
       fiStructureOptions() {
-        return [...new Set(this.fiItems.map(i => i.structure))].sort();
+        return this.mdMerge('structure', this.fiItems.map(i => i.structure));
       },
       fiFinishingOptions() {
-        return [...new Set(this.fiItems.map(i => i.finishing))].sort();
+        return this.mdMerge('finishing', this.fiItems.map(i => i.finishing));
       },
       fiWeightOptions() {
-        return [...new Set(this.fiItems.map(i => i.weight))].sort((a, b) => Number(a) - Number(b));
+        return this.mdMerge('weight', this.fiItems.map(i => i.weight)).sort((a, b) => (Number(a) || 0) - (Number(b) || 0));
       },
       fiFilteredItems() {
         const f = this.fiFilters;
@@ -1373,19 +1377,19 @@ data() {
         return [...new Set(this.fiItems.map(i => i.type))].sort();
       },
       fiCompositionOptions() {
-        return [...new Set(this.fiItems.map(i => i.composition))].sort();
+        return this.mdMerge('composition', this.fiItems.map(i => i.composition));
       },
       fiWidthOptions() {
-        return [...new Set(this.fiItems.map(i => i.width))].sort();
+        return this.mdMerge('width', this.fiItems.map(i => i.width));
       },
       fiStructureOptions() {
-        return [...new Set(this.fiItems.map(i => i.structure))].sort();
+        return this.mdMerge('structure', this.fiItems.map(i => i.structure));
       },
       fiFinishingOptions() {
-        return [...new Set(this.fiItems.map(i => i.finishing))].sort();
+        return this.mdMerge('finishing', this.fiItems.map(i => i.finishing));
       },
       fiWeightOptions() {
-        return [...new Set(this.fiItems.map(i => i.weight))].sort((a, b) => Number(a) - Number(b));
+        return this.mdMerge('weight', this.fiItems.map(i => i.weight)).sort((a, b) => (Number(a) || 0) - (Number(b) || 0));
       },
       fiFilteredItems() {
         const f = this.fiFilters;
@@ -1790,6 +1794,7 @@ data() {
       this.loadOrders();
       this.loadLowStock();
       this.loadRoles();   // โหลดบทบาท+สิทธิ์จาก MySQL
+      this.loadMasterData();  // โหลดข้อมูลผ้า (master data) สำหรับ dropdown ในฟอร์มผ้า
       // ถ้าหน้าที่ค้างไว้เกินสิทธิ์ → กลับแดชบอร์ด
       this.$nextTick(() => { if (!this.canAccess(this.currentPage)) this.currentPage = 'dashboard'; });
       // ตัวอย่างการอัพเดทสถิติ
@@ -3787,6 +3792,23 @@ data() {
         } catch (e) {
           console.log('ไม่สามารถโหลดข้อมูลสมาชิก');
         }
+      },
+      // โหลด "ข้อมูลผ้า" (master data) ทั้ง 5 หมวด สำหรับ dropdown ในฟอร์มผ้า
+      async loadMasterData() {
+        const cats = ['structure', 'composition', 'width', 'finishing', 'weight'];
+        try {
+          for (const cat of cats) {
+            const res = await fetch(API + `/api/master-data/${cat}`, { headers: { Authorization: 'Bearer ' + this.token } });
+            if (res.status === 401) return;
+            const data = await res.json();
+            if (data.ok) this.md[cat] = (data.items || []).map(x => x.name);
+          }
+        } catch (e) { /* ใช้ค่า distinct จากตารางผ้าแทน */ }
+      },
+      // รวมตัวเลือกจาก master_data + ค่าที่มีอยู่จริงในตารางผ้า (กันค่าเก่าหาย) เรียงไม่ซ้ำ
+      mdMerge(cat, values) {
+        const set = new Set([...(this.md[cat] || []), ...values.filter(v => v != null && v !== '')]);
+        return [...set].sort((a, b) => String(a).localeCompare(String(b), 'th'));
       },
       // รายชื่อบทบาทที่เลือกได้ (พรีเซ็ต + บทบาทที่สร้างในหน้าสิทธิ์)
       roleOptions() {
