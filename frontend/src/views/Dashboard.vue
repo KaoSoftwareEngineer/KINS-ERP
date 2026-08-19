@@ -725,6 +725,8 @@ data() {
         frShadeSearch: '',
         frShadeLoading: false,
         frShadeKeySeq: 1,
+        frShadeGroups: [],
+        frShadeGroupSel: '',
         fiFilters: {
           search: '', type: '', weight: '', active: '',
           skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
@@ -751,6 +753,8 @@ data() {
         frShadeSearch: '',
         frShadeLoading: false,
         frShadeKeySeq: 1,
+        frShadeGroups: [],
+        frShadeGroupSel: '',
         fiFilters: {
           search: '', type: '', weight: '', active: '',
           skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
@@ -2961,6 +2965,10 @@ data() {
       async frOpenShadeModal(entity, context) {
         this.frShadeContext = context;
         this.frShadeFabric = entity;
+        this.frShadeGroupSel = '';
+        // โหลดกลุ่มผ้าสำหรับปุ่ม "ดึงเฉดสีจากกลุ่ม" (เฉพาะเมื่อเปิดจากผ้า ไม่ใช่จากกลุ่มเอง)
+        if (context !== 'regular-group') this.frLoadShadeGroups();
+        else this.frShadeGroups = [];
         this.frShadeSearch = '';
         this.frShowShadeModal = true;
         this.frShadeLoading = true;
@@ -3535,6 +3543,10 @@ data() {
       async frOpenShadeModal(entity, context) {
         this.frShadeContext = context;
         this.frShadeFabric = entity;
+        this.frShadeGroupSel = '';
+        // โหลดกลุ่มผ้าสำหรับปุ่ม "ดึงเฉดสีจากกลุ่ม" (เฉพาะเมื่อเปิดจากผ้า ไม่ใช่จากกลุ่มเอง)
+        if (context !== 'regular-group') this.frLoadShadeGroups();
+        else this.frShadeGroups = [];
         this.frShadeSearch = '';
         this.frShowShadeModal = true;
         this.frShadeLoading = true;
@@ -3823,6 +3835,33 @@ data() {
       },
       frgOpenShades(item) {
         this.frOpenShadeModal({ id: item.id, sku: '', name: item.name, apiPath: `${this.frgApiBase}/${item.id}/shades` }, 'regular-group');
+      },
+      // โหลดรายการกลุ่มผ้า (พร้อมเฉดสี) สำหรับปุ่ม "ดึงเฉดสีจากกลุ่ม"
+      async frLoadShadeGroups() {
+        const base = this.frShadeContext === 'irregular' ? '/api/fabric-irregular-group' : '/api/fabric-regular-group';
+        try {
+          const res = await fetch(API + base, { headers: { Authorization: 'Bearer ' + this.token } });
+          if (res.status === 401) return;
+          const data = await res.json();
+          this.frShadeGroups = data.ok ? (data.items || []) : [];
+        } catch (e) { this.frShadeGroups = []; }
+      },
+      // ดึงเฉดสีของกลุ่มที่เลือก มาต่อท้ายรายการเฉดสีของผ้า (ไม่ซ้ำชื่อเดิม)
+      frPullShadesFromGroup() {
+        const g = this.frShadeGroups.find(x => String(x.id) === String(this.frShadeGroupSel));
+        if (!g) { this.fbFail('กรุณาเลือกกลุ่มผ้าก่อน'); return; }
+        const existing = new Set(this.frShadeRows.map(r => (r.name || '').trim()).filter(Boolean));
+        let added = 0;
+        (g.shades || []).forEach(s => {
+          const nm = (s.name || '').trim();
+          if (!nm || existing.has(nm)) return;
+          const row = this.frNewShadeRow();
+          row.name = nm; row.fabric_cost = s.fabric_cost || 0; row.dye_cost = s.dye_cost || 0;
+          this.frShadeRows.push(row);
+          existing.add(nm); added += 1;
+        });
+        if (added > 0) this.fbDone(`ดึงเฉดสีมา ${added} รายการ`);
+        else this.fbFail('ไม่มีเฉดสีใหม่ให้ดึง (อาจมีอยู่แล้ว)');
       },
       // ---- แก้ไข/ลบบัญชีผู้ใช้ ----
       usOpenEdit(user) {

@@ -22,6 +22,16 @@
         </button>
       </div>
 
+      <!-- ดึงเฉดสีจากกลุ่มผ้า (เฉพาะตอนเปิดจากผ้า ไม่ใช่จากกลุ่มเอง) -->
+      <div class="fr-shade-pull" v-if="dash.frShadeContext !== 'regular-group'">
+        <span class="fr-shade-pull-label">📥 ดึงเฉดสีจากกลุ่ม:</span>
+        <select v-model="dash.frShadeGroupSel" class="fr-shade-pull-select">
+          <option value="">— เลือกกลุ่มผ้า —</option>
+          <option v-for="g in dash.frShadeGroups" :key="g.id" :value="g.id">{{ g.name }} ({{ g.colors || (g.shades ? g.shades.length : 0) }} สี)</option>
+        </select>
+        <button class="fr-btn-util fr-btn-search" @click="dash.frPullShadesFromGroup" :disabled="!dash.frShadeGroupSel">ดึงมาใส่</button>
+      </div>
+
       <div class="fr-shade-table">
         <div class="fr-shade-row fr-shade-row-head">
           <span>ชื่อ</span>
@@ -62,3 +72,18 @@ export default {
   inject: ['dash'],
 };
 </script>
+
+<style scoped>
+.fr-shade-pull {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; margin-bottom: 10px;
+  background: var(--brand-soft); border: 1px solid var(--field-border); border-radius: 8px;
+}
+.fr-shade-pull-label { font-size: 13px; font-weight: 600; color: var(--brand-2); }
+.fr-shade-pull-select {
+  flex: 1; min-width: 180px; height: 34px; padding: 0 10px;
+  border: 1px solid var(--field-border); border-radius: 7px; font-size: 13px;
+  background: var(--surface); color: var(--text); font-family: inherit;
+}
+.fr-shade-pull .fr-btn-util { padding: 6px 16px; }
+</style>
