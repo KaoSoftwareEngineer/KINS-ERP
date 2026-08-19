@@ -9,6 +9,7 @@ import FabricRegularGroupPage from './dashboard/FabricRegularGroupPage.vue';
 import FabricIrregularPage from './dashboard/FabricIrregularPage.vue';
 import FabricRawPage from './dashboard/FabricRawPage.vue';
 import PartnersPage from './dashboard/PartnersPage.vue';
+import EmployeePage from './dashboard/EmployeePage.vue';
 import CustomersPage from './dashboard/CustomersPage.vue';
 import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
@@ -50,6 +51,7 @@ export default {
     FabricIrregularPage,
     FabricRawPage,
     PartnersPage,
+    EmployeePage,
     CustomersPage,
     GoodsReceivePage,
     ZoneRackPage,
@@ -4545,6 +4547,9 @@ data() {
 
       <!-- ============ คู่ค้า ============ -->
       <PartnersPage v-else-if="currentPage === 'partners'" />
+
+      <!-- ============ ข้อมูลพนักงาน (ดึงจากบัญชีผู้ใช้ แยกตามตำแหน่ง) ============ -->
+      <EmployeePage v-else-if="currentPage === 'employee-info'" />
 
       <!-- ============ ลูกค้า (ข้อมูลร้านค้า) ============ -->
       <CustomersPage v-else-if="currentPage === 'customers'" />
