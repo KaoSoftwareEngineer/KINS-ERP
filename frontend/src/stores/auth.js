@@ -18,12 +18,15 @@ export const useAuthStore = defineStore('auth', {
     // สิทธิ์เมนูของผู้ใช้ปัจจุบัน (null = ไม่จำกัด/เห็นทุกเมนู)
     myAllowedKeys(state) {
       const role = (state.currentUser && state.currentUser.role) || '';
-      if (!role) return null;
-      // ผู้ดูแลระบบ / ผู้บริหาร (CEO) → เห็นทุกเมนูเสมอ (สิทธิ์เต็ม)
+      // ไม่มีบทบาท = จำกัด (เห็นแค่แดชบอร์ด/ตั้งค่า) — ไม่ให้สิทธิ์เต็มโดยปริยาย
+      if (!role) return new Set();
+      // เฉพาะ "ผู้ดูแลระบบ (Admin)" เท่านั้นที่เต็มสิทธิ์แบบตายตัว
+      // บทบาทอื่น (รวม CEO/ผู้บริหาร) ต้องตั้งสิทธิ์เองในหน้า "สิทธิ์การเข้าใช้งาน"
       const r = role.toLowerCase();
-      if (r.includes('admin') || r.includes('ผู้ดูแล') || r.includes('ceo') || r.includes('ผู้บริหาร')) return null;
+      if (r.includes('admin') || r.includes('ผู้ดูแล')) return null;
       const keys = state.rolePerms[role];
-      if (!keys || keys.length === 0) return null;
+      // ยังไม่ได้ตั้งสิทธิ์บทบาทนี้ = จำกัด (ไม่ใช่เต็มสิทธิ์) / ตั้งเป็น [] = ไม่มีสิทธิ์เมนูใดเลย
+      if (!keys) return new Set();
       return new Set(keys);
     },
   },

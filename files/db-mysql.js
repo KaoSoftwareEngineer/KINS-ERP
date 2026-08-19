@@ -65,6 +65,30 @@ async function initTables() {
       updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  // seed สิทธิ์เต็มให้บทบาท "CEO / ผู้บริหาร" (ถ้ายังไม่มี) — กันผู้บริหารโดนล็อกเมนูตัวเอง
+  // หลังจากเปลี่ยนนโยบายเป็น "เฉพาะ Admin เต็มสิทธิ์ตายตัว" (ลด/แก้สิทธิ์ได้ผ่านหน้าสิทธิ์)
+  {
+    const FULL_PERMS = [
+      'user-permissions','users','report-stock','report-vat-stock','report-po','report-dye-order',
+      'report-sales-contract','report-order','report-sales','report-tax-invoice','report-profit-loss',
+      'report-customer-account','report-partner-account','report-annual-summary','report-reorder-point','report-others',
+      'pay-partner','deduct-partner-account','credit-note-partner','billing-customer','receive-payment-customer',
+      'deduct-customer-account','credit-note-customer','order-receive','order-fulfill','invoice-open','invoice-return',
+      'sales-contract','receive-fabric-finished','receive-fabric-raw','receive-fabric-dyed','move-stock','move-fabric-raw',
+      'move-shelf','barcode','stock-history','vat-product-group','vat-receive','vat-stock-cut','vat-invoice',
+      'vat-stock-cut-from-invoice','po-fabric-finished','po-fabric-raw','po-dye-order','fabric-regular','fabric-regular-group',
+      'fabric-irregular','fabric-irregular-group','fabric-raw','customers','partners','fabric-info','employee-info',
+      'note-info','zone-rack','act.add','act.edit','act.delete','act.approve','act.cancel','act.export',
+      'act.viewBuyPrice','act.viewSellPrice','act.viewTotal',
+    ];
+    const [allRoles] = await pool.query('SELECT name, permissions FROM roles');
+    if (!allRoles.some(r => r.name === 'CEO / ผู้บริหาร')) {
+      const adminRole = allRoles.find(r => /Admin|ผู้ดูแล/i.test(r.name));
+      const perms = adminRole && adminRole.permissions ? adminRole.permissions : JSON.stringify(FULL_PERMS);
+      await pool.query('INSERT INTO roles (name, permissions) VALUES (?, ?)', ['CEO / ผู้บริหาร', perms]);
+      console.log('  ➕ seed สิทธิ์เต็มให้บทบาท "CEO / ผู้บริหาร"');
+    }
+  }
 
   // ---- ข้อมูลผ้า (master data): โครงสร้าง/ส่วนประกอบ/หน้ากว้าง/Finishing/น้ำหนัก ----
   await pool.query(`
