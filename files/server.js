@@ -435,6 +435,33 @@ app.delete('/api/fabric-raw/:id', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  ข้อมูลผ้า (master data): structure/composition/width/finishing/weight
+// ============================================================
+app.get('/api/master-data/:category', auth, wrap(async (req, res) => {
+  const [items] = await mysqlPool.query('SELECT * FROM master_data WHERE category = ? ORDER BY name ASC', [req.params.category]);
+  res.json({ ok: true, total: items.length, items });
+}));
+app.post('/api/master-data', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const category = (b.category || '').trim();
+  const name = (b.name || '').trim();
+  if (!category || !name) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อ' });
+  const [info] = await mysqlPool.query('INSERT INTO master_data (category, name, active) VALUES (?, ?, ?)', [category, name, b.active === false ? 0 : 1]);
+  res.json({ ok: true, message: 'บันทึกแล้ว', id: info.insertId });
+}));
+app.put('/api/master-data/:id', auth, wrap(async (req, res) => {
+  const name = (req.body.name || '').trim();
+  if (!name) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อ' });
+  await mysqlPool.query('UPDATE master_data SET name = ?, active = ? WHERE id = ?', [name, req.body.active === false ? 0 : 1, req.params.id]);
+  res.json({ ok: true, message: 'บันทึกแล้ว' });
+}));
+app.delete('/api/master-data/:id', auth, wrap(async (req, res) => {
+  const [info] = await mysqlPool.query('DELETE FROM master_data WHERE id = ?', [req.params.id]);
+  if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบข้อมูล' });
+  res.json({ ok: true, message: 'ลบแล้ว' });
+}));
+
+// ============================================================
 //  โรงงาน / โรงย้อม (factories)
 // ============================================================
 app.get('/api/factories', auth, wrap(async (req, res) => {

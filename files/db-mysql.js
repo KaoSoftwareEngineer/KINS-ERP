@@ -66,6 +66,34 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- ข้อมูลผ้า (master data): โครงสร้าง/ส่วนประกอบ/หน้ากว้าง/Finishing/น้ำหนัก ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS master_data (
+      id         INT AUTO_INCREMENT PRIMARY KEY,
+      category   VARCHAR(32) NOT NULL,
+      name       VARCHAR(255) NOT NULL,
+      active     TINYINT DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_md_cat (category)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  // seed จากค่า distinct ที่มีจริงในตารางผ้า (ครั้งแรกเท่านั้น ต่อ category)
+  const mdMap = { structure: 'structure', composition: 'composition', width: 'width', finishing: 'finishing', weight: 'weight' };
+  for (const [cat, col] of Object.entries(mdMap)) {
+    const [[{ c }]] = await pool.query('SELECT COUNT(*) AS c FROM master_data WHERE category = ?', [cat]);
+    if (c === 0) {
+      await pool.query(
+        `INSERT INTO master_data (category, name)
+         SELECT DISTINCT ?, TRIM(v) FROM (
+           SELECT \`${col}\` AS v FROM fabrics WHERE \`${col}\` IS NOT NULL AND TRIM(\`${col}\`) <> ''
+           UNION
+           SELECT \`${col}\` AS v FROM fabric_irregular WHERE \`${col}\` IS NOT NULL AND TRIM(\`${col}\`) <> ''
+         ) t ORDER BY v ASC`,
+        [cat]
+      );
+    }
+  }
+
   // ---- ผ้าดิบ (fabric_raw / greige) ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS fabric_raw (

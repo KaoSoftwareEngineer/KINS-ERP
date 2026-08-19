@@ -687,6 +687,34 @@ INSERT INTO `goods_receipts` VALUES (1,'GRN2608-0001','2026-08-12','ซื้อ
 UNLOCK TABLES;
 
 --
+-- Table structure for table `master_data`
+--
+
+DROP TABLE IF EXISTS `master_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `master_data` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `category` varchar(32) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_md_cat` (`category`)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `master_data`
+--
+
+LOCK TABLES `master_data` WRITE;
+/*!40000 ALTER TABLE `master_data` DISABLE KEYS */;
+INSERT INTO `master_data` VALUES (1,'structure','130*52 / CM40*P150/2 / 48F*2',1,'2026-08-19 10:46:11'),(2,'structure','130*80 / CM40*P100 / 36F',1,'2026-08-19 10:46:11'),(3,'structure','134*102 / CM45*P100 /36F',1,'2026-08-19 10:46:11'),(4,'structure','136*80 / CM40*P100D / 36F',1,'2026-08-19 10:46:11'),(5,'structure','136*96 / CM40*P100D / 36F',1,'2026-08-19 10:46:11'),(6,'structure','140*100 / CM40*P100 / 36F',1,'2026-08-19 10:46:11'),(7,'structure','140*100 / CM40*P100D / 36F',1,'2026-08-19 10:46:11'),(8,'structure','140*100 / TC45*P100D / 36F',1,'2026-08-19 10:46:11'),(9,'structure','140*100 / Twill 3/1',1,'2026-08-19 10:46:11'),(10,'structure','144*94/TC45*P100 D /36F',1,'2026-08-19 10:46:11'),(11,'structure','148*94 / TC45*P100D / 36F',1,'2026-08-19 10:46:11'),(12,'structure','148*95 / TC45*P100D / 36F',1,'2026-08-19 10:46:11'),(13,'structure','154*95 / TC45*P100D/36F',1,'2026-08-19 10:46:11'),(14,'structure','156*92 / TC45*P100 / 36F',1,'2026-08-19 10:46:11'),(15,'structure','156*94 / CM40*P100D / 36F',1,'2026-08-19 10:46:11'),(16,'structure','90*70 / TC45+TC20 * TC45',1,'2026-08-19 10:46:11'),(17,'structure','Cotton 100%',1,'2026-08-19 10:46:11'),(18,'structure','Lace (ผ้าลูกไม้)',1,'2026-08-19 10:46:11'),(19,'structure','Oxford Weave',1,'2026-08-19 10:46:11'),(20,'structure','Plain (ผ้าทอลาย)',1,'2026-08-19 10:46:11'),(21,'structure','Poplin (ผ้าป็อปลิน)',1,'2026-08-19 10:46:11'),(22,'structure','Satin (ผ้าซาติน)',1,'2026-08-19 10:46:11'),(23,'structure','Twill (ผ้าทอสอง)',1,'2026-08-19 10:46:11'),(32,'composition','-',1,'2026-08-19 10:46:11'),(33,'composition','100% Cotton',1,'2026-08-19 10:46:11'),(34,'composition','Cotton 100%',1,'2026-08-19 10:46:11'),(35,'composition','Cotton 80% / Poly 20%',1,'2026-08-19 10:46:11'),(36,'composition','Cotton 98% / Spandex 2%',1,'2026-08-19 10:46:11'),(37,'composition','Cotton- 23% & Polyester - 77% Herringbone',1,'2026-08-19 10:46:11'),(38,'composition','Cotton- 65% & Polyester - 35% Dobby Check',1,'2026-08-19 10:46:11'),(39,'composition','Cotton- 65% & Polyester - 35% Plain check',1,'2026-08-19 10:46:11'),(40,'composition','Cotton- 65% & Polyester - 35% Twill 2*2 R Check',1,'2026-08-19 10:46:11'),(41,'composition','Cotton- 65% & Polyester - 35% Twill 3*1 R Check',1,'2026-08-19 10:46:11'),(42,'composition','Cotton- 65% & Polyester - 35% Twill 3*1 R Stripe',1,'2026-08-19 10:46:11'),(43,'composition','CVC 60/40',1,'2026-08-19 10:46:11'),(44,'composition','Linen 100%',1,'2026-08-19 10:46:11'),(45,'composition','Nylon 100%',1,'2026-08-19 10:46:11'),(46,'composition','Polyester - 20% & Cotton- 80% Plain Stripe',1,'2026-08-19 10:46:11'),(47,'composition','Polyester - 35% & Cotton- 65% Twill 3*1 R Stripe',1,'2026-08-19 10:46:11'),(48,'composition','Polyester - 36% & Cotton- 64% Herringbone',1,'2026-08-19 10:46:11'),(49,'composition','Polyester - 65% & Cotton- 35% Seersucker Stipre',1,'2026-08-19 10:46:11'),(50,'composition','Polyester - 77% & Cotton- 23% Dobby',1,'2026-08-19 10:46:11'),(51,'composition','Polyester - 77% & Cotton- 23% Twill 2*2 L Check',1,'2026-08-19 10:46:11'),(52,'composition','Polyester - 77% & Cotton- 23% Twill 2*2 R',1,'2026-08-19 10:46:11'),(53,'composition','Polyester - 77% & Cotton- 23% Twill 2*2 R Stripe',1,'2026-08-19 10:46:11'),(54,'composition','Polyester - 78% & Cotton- 22% Dobby Check',1,'2026-08-19 10:46:11'),(55,'composition','Polyester 100%',1,'2026-08-19 10:46:11'),(56,'composition','Silk 100%',1,'2026-08-19 10:46:11'),(57,'composition','TC 65/35',1,'2026-08-19 10:46:11'),(63,'width','44\"',1,'2026-08-19 10:46:11'),(64,'width','58',1,'2026-08-19 10:46:11'),(65,'width','58\"',1,'2026-08-19 10:46:11'),(66,'width','60\"',1,'2026-08-19 10:46:11'),(70,'finishing','Brushed',1,'2026-08-19 10:46:11'),(71,'finishing','High Gloss',1,'2026-08-19 10:46:11'),(72,'finishing','Liquid Ammonia',1,'2026-08-19 10:46:11'),(73,'finishing','Mercerized',1,'2026-08-19 10:46:11'),(74,'finishing','Natural',1,'2026-08-19 10:46:11'),(75,'finishing','Peach Finish',1,'2026-08-19 10:46:11'),(76,'finishing','SE Finish',1,'2026-08-19 10:46:11'),(77,'finishing','Seersucker',1,'2026-08-19 10:46:11'),(78,'finishing','Silk Touch',1,'2026-08-19 10:46:11'),(79,'finishing','Soft Finish',1,'2026-08-19 10:46:11'),(80,'finishing','SS Finish',1,'2026-08-19 10:46:11'),(81,'finishing','Standard',1,'2026-08-19 10:46:11'),(82,'finishing','Stone Wash',1,'2026-08-19 10:46:11'),(83,'finishing','Water Repellent',1,'2026-08-19 10:46:11'),(85,'weight','110',1,'2026-08-19 10:46:11'),(86,'weight','115',1,'2026-08-19 10:46:11'),(87,'weight','130',1,'2026-08-19 10:46:11'),(88,'weight','145',1,'2026-08-19 10:46:11'),(89,'weight','150',1,'2026-08-19 10:46:11'),(90,'weight','160',1,'2026-08-19 10:46:11'),(91,'weight','175',1,'2026-08-19 10:46:11'),(92,'weight','190',1,'2026-08-19 10:46:11'),(93,'weight','200',1,'2026-08-19 10:46:11'),(94,'weight','210',1,'2026-08-19 10:46:11'),(95,'weight','260',1,'2026-08-19 10:46:11'),(96,'weight','320',1,'2026-08-19 10:46:11'),(97,'weight','60',1,'2026-08-19 10:46:11'),(98,'weight','70',1,'2026-08-19 10:46:11'),(99,'weight','90',1,'2026-08-19 10:46:11');
+/*!40000 ALTER TABLE `master_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `order_items`
 --
 
@@ -1098,4 +1126,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-19 10:12:59
+-- Dump completed on 2026-08-19 10:46:12

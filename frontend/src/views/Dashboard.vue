@@ -10,6 +10,7 @@ import FabricIrregularPage from './dashboard/FabricIrregularPage.vue';
 import FabricRawPage from './dashboard/FabricRawPage.vue';
 import PartnersPage from './dashboard/PartnersPage.vue';
 import EmployeePage from './dashboard/EmployeePage.vue';
+import MasterDataPage from './dashboard/MasterDataPage.vue';
 import CustomersPage from './dashboard/CustomersPage.vue';
 import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
@@ -52,6 +53,7 @@ export default {
     FabricRawPage,
     PartnersPage,
     EmployeePage,
+    MasterDataPage,
     CustomersPage,
     GoodsReceivePage,
     ZoneRackPage,
@@ -4550,6 +4552,9 @@ data() {
 
       <!-- ============ ข้อมูลพนักงาน (ดึงจากบัญชีผู้ใช้ แยกตามตำแหน่ง) ============ -->
       <EmployeePage v-else-if="currentPage === 'employee-info'" />
+
+      <!-- ============ ข้อมูลผ้า: โครงสร้าง/ส่วนประกอบ/หน้ากว้าง/Finishing/น้ำหนัก (component เดียว) ============ -->
+      <MasterDataPage v-else-if="['fabric-info-structure','fabric-info-composition','fabric-info-width','fabric-info-finishing','fabric-info-weight'].includes(currentPage)" />
 
       <!-- ============ ลูกค้า (ข้อมูลร้านค้า) ============ -->
       <CustomersPage v-else-if="currentPage === 'customers'" />
