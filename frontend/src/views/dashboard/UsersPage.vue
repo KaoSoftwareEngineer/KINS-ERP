@@ -54,50 +54,38 @@
     </div>
   </div>
 
-  <!-- โมดัลแก้ไขบัญชีผู้ใช้ -->
-  <transition name="us-fade">
-    <div v-if="dash.usModalShow" class="us-overlay" @click.self="dash.usCloseModal()">
-      <div class="us-modal">
-        <div class="us-modal-head">
-          <span>แก้ไขบัญชีผู้ใช้</span>
-          <button class="us-x" @click="dash.usCloseModal()">✕</button>
-        </div>
-        <div class="us-modal-body">
-          <label class="us-lbl">ชื่อ - นามสกุล</label>
-          <input class="us-input" v-model="dash.usEditItem.name" placeholder="ชื่อ - นามสกุล" />
-          <label class="us-lbl">อีเมล</label>
-          <input class="us-input" type="email" v-model="dash.usEditItem.email" placeholder="email@example.com" />
-          <label class="us-lbl">เบอร์มือถือ</label>
-          <input class="us-input" v-model="dash.usEditItem.phone" placeholder="0812345678" />
-          <div class="us-row2">
-            <div>
-              <label class="us-lbl">เพศ</label>
-              <select class="us-input" v-model="dash.usEditItem.gender">
-                <option value="">— เลือก —</option>
-                <option value="male">ชาย</option>
-                <option value="female">หญิง</option>
-              </select>
-            </div>
-            <div>
-              <label class="us-lbl">อายุ</label>
-              <input class="us-input" type="number" min="1" max="120" v-model="dash.usEditItem.age" placeholder="อายุ" />
-            </div>
+  <!-- โมดัลแก้ไขบัญชีผู้ใช้ (ERP มาตรฐานกลาง) -->
+  <div v-if="dash.usModalShow" class="erp-overlay" @click.self="dash.usCloseModal()">
+    <div class="erp-modal" style="width: 680px;">
+      <div class="erp-modal-head">
+        <span><span class="erp-head-ic">👤</span> แก้ไขบัญชีผู้ใช้</span>
+        <button class="erp-x" @click="dash.usCloseModal()">✕</button>
+      </div>
+      <div class="erp-modal-body">
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลส่วนตัว</div>
+        <div class="erp-grid">
+          <div class="erp-field erp-col-2"><label>ชื่อ - นามสกุล</label><input v-model="dash.usEditItem.name" placeholder="ชื่อ - นามสกุล" /></div>
+          <div class="erp-field"><label>อีเมล</label><input type="email" v-model="dash.usEditItem.email" placeholder="email@example.com" /></div>
+          <div class="erp-field"><label>เบอร์มือถือ</label><input v-model="dash.usEditItem.phone" placeholder="0812345678" /></div>
+          <div class="erp-field"><label>เพศ</label>
+            <select v-model="dash.usEditItem.gender"><option value="">— เลือก —</option><option value="male">ชาย</option><option value="female">หญิง</option></select>
           </div>
-          <label class="us-lbl">ตำแหน่ง / บทบาท</label>
-          <select class="us-input" v-model="dash.usEditItem.role">
-            <option value="">— ยังไม่กำหนด —</option>
-            <option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option>
-          </select>
-          <label class="us-lbl">รหัสผ่านใหม่ <span class="us-hint">(เว้นว่างถ้าไม่เปลี่ยน)</span></label>
-          <input class="us-input" type="password" v-model="dash.usEditItem.password" placeholder="••••••••" />
+          <div class="erp-field"><label>อายุ</label><input type="number" min="1" max="120" v-model="dash.usEditItem.age" placeholder="อายุ" /></div>
         </div>
-        <div class="us-modal-foot">
-          <button class="us-btn-cancel" @click="dash.usCloseModal()">ยกเลิก</button>
-          <button class="us-btn-save" @click="dash.usSaveUser()">💾 บันทึก</button>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>สิทธิ์ / ความปลอดภัย</div>
+        <div class="erp-grid">
+          <div class="erp-field"><label>ตำแหน่ง / บทบาท</label>
+            <select v-model="dash.usEditItem.role"><option value="">— ยังไม่กำหนด —</option><option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option></select>
+          </div>
+          <div class="erp-field"><label>รหัสผ่านใหม่ <span class="us-hint">(เว้นว่างถ้าไม่เปลี่ยน)</span></label><input type="password" v-model="dash.usEditItem.password" placeholder="••••••••" /></div>
         </div>
       </div>
+      <div class="erp-modal-foot">
+        <button class="erp-btn erp-btn-cancel" @click="dash.usCloseModal()">ยกเลิก</button>
+        <button class="erp-btn erp-btn-save" @click="dash.usSaveUser()">💾 บันทึก</button>
+      </div>
     </div>
-  </transition>
+  </div>
 </div>
 </template>
 

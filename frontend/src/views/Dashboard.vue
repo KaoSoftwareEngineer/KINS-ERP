@@ -6121,6 +6121,46 @@ data() {
   .fr-btn-save svg { width: 16px; height: 16px; }
   .fr-modal-footer { gap: 12px; }
 
+  /* ============================================================
+     ERP Modal — มาตรฐานกลางสำหรับ modal เพิ่ม/แก้ไข ทุกหน้า
+     ใช้: .erp-overlay > .erp-modal > (erp-modal-head / erp-modal-body / erp-modal-foot)
+          ในเนื้อหาใช้ .erp-sec-title + .erp-grid > .erp-field (.erp-col-2 = เต็มแถว)
+     ============================================================ */
+  .erp-overlay {
+    position: fixed; inset: 0; z-index: 3400; display: flex; align-items: center; justify-content: center;
+    background: rgba(15,23,42,0.5); padding: 20px;
+    font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
+  }
+  .erp-modal { background: var(--surface); border-radius: 14px; width: 860px; max-width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
+  .erp-modal-head { background: #3c4453; color: #fff; padding: 15px 24px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+  .erp-head-ic { margin-right: 6px; }
+  .erp-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+  .erp-x:hover { background: rgba(255,255,255,.3); }
+  .erp-modal-body { padding: 22px 30px; overflow-y: auto; }
+  .erp-sec-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
+  .erp-sec-title:not(:first-child) { margin-top: 22px; }
+  .erp-sec-bar { width: 4px; height: 16px; border-radius: 2px; background: #3c4453; display: inline-block; }
+  .erp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
+  .erp-col-2 { grid-column: span 2; }
+  .erp-field { display: flex; flex-direction: column; gap: 5px; }
+  .erp-field > label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .erp-req { color: #a82a3a; }
+  .erp-field input, .erp-field select, .erp-field textarea {
+    height: 38px; padding: 0 12px; border: 1px solid var(--field-border); border-radius: 9px;
+    font-size: 13.5px; font-family: inherit; background: var(--surface); color: var(--text);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .erp-field textarea { height: auto; padding: 9px 12px; resize: vertical; }
+  .erp-field input:focus, .erp-field select:focus, .erp-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+  .erp-field input.erp-err { border-color: #a82a3a; box-shadow: 0 0 0 3px rgba(168,42,58,.12); }
+  .erp-modal-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 14px 24px; border-top: 1px solid var(--field-border); background: var(--field); }
+  .erp-btn { padding: 10px 26px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .erp-btn-cancel { background: #e2e8f0; color: #334155; }
+  .erp-btn-cancel:hover { background: #cbd5e1; }
+  .erp-btn-save { background: #1a9c54; color: #fff; }
+  .erp-btn-save:hover { background: #158045; }
+  @media (max-width: 560px) { .erp-grid { grid-template-columns: 1fr; } .erp-col-2 { grid-column: span 1; } }
+
   .fr-color-badge {
     display: inline-flex;
     align-items: center;

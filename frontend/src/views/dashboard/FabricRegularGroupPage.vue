@@ -81,36 +81,32 @@
     <button class="fr-btn-util" :disabled="dash.frgPage === dash.frgTotalPages" @click="dash.frgNextPage()">ถัดไป ›</button>
   </div>
 
-  <!-- โมดัลเพิ่ม/แก้ไข -->
-  <transition name="frg-fade">
-    <div v-if="dash.frgShowAddModal" class="frg-overlay" @click.self="dash.frgCloseAddModal()">
-      <div class="frg-modal">
-        <div class="frg-modal-head">
-          <span>{{ dash.frgModalMode === 'edit' ? 'แก้ไข' : 'เพิ่ม' }} {{ dash.frgPageTitle }}</span>
-          <button class="frg-x" @click="dash.frgCloseAddModal()">✕</button>
-        </div>
-        <div class="frg-modal-body">
-          <label class="frg-lbl">ชื่อ <span class="frg-req">*</span></label>
-          <input class="frg-input" v-model="dash.frgNewItem.name" placeholder="ชื่อกลุ่มผ้า" />
-          <label class="frg-lbl">หน้ากว้าง</label>
-          <select class="frg-input" v-model="dash.frgNewItem.width">
-            <option value="">— เลือก —</option>
-            <option v-for="w in dash.frgWidthChoices" :key="w" :value="w">{{ w }}</option>
-          </select>
-          <label class="frg-lbl">น้ำหนัก</label>
-          <select class="frg-input" v-model="dash.frgNewItem.weight">
-            <option value="">— เลือก —</option>
-            <option v-for="w in dash.frgWeightChoices" :key="w" :value="w">{{ w }}</option>
-          </select>
-          <label class="frg-lbl">ราคาขายปลีก</label>
-          <input class="frg-input" type="number" v-model="dash.frgNewItem.retail_price" placeholder="0.00" />
-        </div>
-        <div class="frg-modal-foot">
-          <button class="frg-btn-save" @click="dash.frgSaveAdd()">💾 บันทึก</button>
+  <!-- โมดัลเพิ่ม/แก้ไข (ERP มาตรฐานกลาง) -->
+  <div v-if="dash.frgShowAddModal" class="erp-overlay" @click.self="dash.frgCloseAddModal()">
+    <div class="erp-modal" style="width: 560px;">
+      <div class="erp-modal-head">
+        <span><span class="erp-head-ic">🏷️</span> {{ dash.frgModalMode === 'edit' ? 'แก้ไข' : 'เพิ่ม' }} {{ dash.frgPageTitle }}</span>
+        <button class="erp-x" @click="dash.frgCloseAddModal()">✕</button>
+      </div>
+      <div class="erp-modal-body">
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลกลุ่มผ้า</div>
+        <div class="erp-grid">
+          <div class="erp-field erp-col-2"><label>ชื่อ <span class="erp-req">*</span></label><input v-model="dash.frgNewItem.name" placeholder="ชื่อกลุ่มผ้า" /></div>
+          <div class="erp-field"><label>หน้ากว้าง</label>
+            <select v-model="dash.frgNewItem.width"><option value="">— เลือก —</option><option v-for="w in dash.frgWidthChoices" :key="w" :value="w">{{ w }}</option></select>
+          </div>
+          <div class="erp-field"><label>น้ำหนัก</label>
+            <select v-model="dash.frgNewItem.weight"><option value="">— เลือก —</option><option v-for="w in dash.frgWeightChoices" :key="w" :value="w">{{ w }}</option></select>
+          </div>
+          <div class="erp-field erp-col-2"><label>ราคาขายปลีก</label><input type="number" v-model="dash.frgNewItem.retail_price" placeholder="0.00" /></div>
         </div>
       </div>
+      <div class="erp-modal-foot">
+        <button class="erp-btn erp-btn-cancel" @click="dash.frgCloseAddModal()">ยกเลิก</button>
+        <button class="erp-btn erp-btn-save" @click="dash.frgSaveAdd()">💾 บันทึก</button>
+      </div>
     </div>
-  </transition>
+  </div>
 </div>
 </template>
 

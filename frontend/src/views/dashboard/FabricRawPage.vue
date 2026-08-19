@@ -107,27 +107,36 @@
     <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
   </div>
 
-  <!-- โมดัลเพิ่ม/แก้ไข -->
-  <div class="fr-modal-overlay" v-if="showModal" @click.self="showModal = false">
-    <div class="fr-modal">
-      <div class="fr-modal-header">
-        <h3>{{ editingId ? 'แก้ไข' : 'เพิ่ม' }} ผ้าดิบ</h3>
-        <button class="fr-modal-close" @click="showModal = false">✕</button>
+  <!-- โมดัลเพิ่ม/แก้ไข (ERP มาตรฐานกลาง) -->
+  <div class="erp-overlay" v-if="showModal" @click.self="showModal = false">
+    <div class="erp-modal">
+      <div class="erp-modal-head">
+        <span><span class="erp-head-ic">🧻</span> {{ editingId ? 'แก้ไขผ้าดิบ' : 'เพิ่มผ้าดิบใหม่' }}</span>
+        <button class="erp-x" @click="showModal = false">✕</button>
       </div>
-      <div class="fr-modal-body">
-        <div class="fr-form-row"><label>ประเภท</label><input type="text" v-model="form.type" placeholder="เช่น Greige" /></div>
-        <div class="fr-form-row"><label>รหัสสินค้า <span class="fr-required">*</span></label><input type="text" v-model="form.sku" placeholder="เช่น G001" /></div>
-        <div class="fr-form-row"><label>ชื่อ</label><input type="text" v-model="form.name" placeholder="ชื่อผ้าดิบ" /></div>
-        <div class="fr-form-row"><label>โครงสร้างผ้า</label><input type="text" v-model="form.structure" placeholder="เช่น Cotton 100%" /></div>
-        <div class="fr-form-row"><label>ส่วนประกอบ</label><input type="text" v-model="form.composition" /></div>
-        <div class="fr-form-row"><label>หน้ากว้าง</label><input type="text" v-model="form.width" /></div>
-        <div class="fr-form-row"><label>หน่วย</label><input type="text" v-model="form.unit" placeholder="หลา" /></div>
-        <div class="fr-form-row"><label>Shrinkage (%)</label><input type="number" v-model.number="form.shrinkage" /></div>
-        <div class="fr-form-row"><label>Allowance (%)</label><input type="number" v-model.number="form.allowance" /></div>
-        <div class="fr-form-row"><label>Active</label><input type="checkbox" class="fr-active-checkbox" v-model="form.active" /></div>
+      <div class="erp-modal-body">
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลผ้าดิบ</div>
+        <div class="erp-grid">
+          <div class="erp-field"><label>ประเภท</label><input type="text" v-model="form.type" placeholder="เช่น Greige" /></div>
+          <div class="erp-field"><label>รหัสสินค้า <span class="erp-req">*</span></label><input type="text" v-model="form.sku" placeholder="เช่น G001" /></div>
+          <div class="erp-field erp-col-2"><label>ชื่อ</label><input type="text" v-model="form.name" placeholder="ชื่อผ้าดิบ" /></div>
+          <div class="erp-field"><label>โครงสร้างผ้า</label><input type="text" v-model="form.structure" placeholder="เช่น Cotton 100%" /></div>
+          <div class="erp-field"><label>ส่วนประกอบ</label><input type="text" v-model="form.composition" /></div>
+          <div class="erp-field"><label>หน้ากว้าง</label><input type="text" v-model="form.width" /></div>
+          <div class="erp-field"><label>หน่วย</label><input type="text" v-model="form.unit" placeholder="หลา" /></div>
+        </div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ค่าเผื่อ / สถานะ</div>
+        <div class="erp-grid">
+          <div class="erp-field"><label>Shrinkage (%)</label><input type="number" v-model.number="form.shrinkage" /></div>
+          <div class="erp-field"><label>Allowance (%)</label><input type="number" v-model.number="form.allowance" /></div>
+          <div class="erp-field"><label>สถานะ</label>
+            <select v-model="form.active"><option :value="true">Active</option><option :value="false">Inactive</option></select>
+          </div>
+        </div>
       </div>
-      <div class="fr-modal-footer">
-        <button class="fr-btn-save" @click="save">💾 บันทึก</button>
+      <div class="erp-modal-foot">
+        <button class="erp-btn erp-btn-cancel" @click="showModal = false">ยกเลิก</button>
+        <button class="erp-btn erp-btn-save" @click="save">💾 บันทึก</button>
       </div>
     </div>
   </div>
