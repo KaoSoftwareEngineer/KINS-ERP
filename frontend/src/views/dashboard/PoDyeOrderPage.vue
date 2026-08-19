@@ -242,7 +242,7 @@ export default {
 
 <style scoped>
 .dy-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-.po-titlebar { background: #3c4453; color: #fff; font-weight: 700; padding: 14px 20px; font-size: 15px; letter-spacing: .2px; }
+.po-titlebar { background: transparent; color: var(--text); font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 .po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 20px; background: transparent; border: none; border-bottom: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
 .po-field { display: flex; align-items: center; gap: 8px; }
