@@ -31,6 +31,7 @@
   </div>
 
   <!-- ตาราง -->
+  <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
   <div class="fr-table-scroll">
     <table class="fr-table">
       <thead>
@@ -38,10 +39,10 @@
           <th class="fr-th-check"><input type="checkbox" :checked="dash.frgAllSelectedOnPage" @change="dash.frgToggleSelectAll()" /></th>
           <th style="width:48px;">ที่</th>
           <th class="fr-th-sort" @click="dash.frgSort(0)">ชื่อ <span class="fr-sort-icon">{{ dash.frgSortIcon(0) }}</span></th>
-          <th class="fr-th-sort" @click="dash.frgSort(1)">หน้ากว้าง <span class="fr-sort-icon">{{ dash.frgSortIcon(1) }}</span></th>
-          <th class="fr-th-sort" @click="dash.frgSort(2)">น้ำหนัก <span class="fr-sort-icon">{{ dash.frgSortIcon(2) }}</span></th>
-          <th class="fr-th-sort" @click="dash.frgSort(3)">ราคาขายปลีก <span class="fr-sort-icon">{{ dash.frgSortIcon(3) }}</span></th>
-          <th class="fr-th-sort" @click="dash.frgSort(4)">จำนวนเฉดสี <span class="fr-sort-icon">{{ dash.frgSortIcon(4) }}</span></th>
+          <th class="fr-th-sort" style="width:140px;" @click="dash.frgSort(1)">หน้ากว้าง <span class="fr-sort-icon">{{ dash.frgSortIcon(1) }}</span></th>
+          <th class="fr-th-sort" style="width:140px;" @click="dash.frgSort(2)">น้ำหนัก <span class="fr-sort-icon">{{ dash.frgSortIcon(2) }}</span></th>
+          <th class="fr-th-sort" style="width:150px;" @click="dash.frgSort(3)">ราคาขายปลีก <span class="fr-sort-icon">{{ dash.frgSortIcon(3) }}</span></th>
+          <th class="fr-th-sort" style="width:130px;" @click="dash.frgSort(4)">จำนวนเฉดสี <span class="fr-sort-icon">{{ dash.frgSortIcon(4) }}</span></th>
           <th style="width:130px;">จัดการ</th>
         </tr>
       </thead>
@@ -65,6 +66,7 @@
         </tr>
       </tbody>
     </table>
+  </div>
   </div>
 
   <!-- เลขหน้า -->
