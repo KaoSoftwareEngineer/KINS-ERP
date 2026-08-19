@@ -1,6 +1,6 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">เปิดใบสั่งซื้อ ผ้าสำเร็จ</div>
+  <div class="po-titlebar">🧾 เปิดใบสั่งซื้อ — ผ้าสำเร็จ</div>
 
   <!-- ส่วนหัว -->
   <div class="po-head">
@@ -246,9 +246,9 @@ export default {
 </script>
 
 <style scoped>
-.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; }
-.po-titlebar { background: #1e3a8a; color: #fff; font-weight: 700; padding: 8px 16px; border-radius: 6px 6px 0 0; }
-.po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 16px; background: var(--field); border: 1px solid var(--field-border); }
+.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-titlebar { background: #3c4453; color: #fff; font-weight: 700; padding: 14px 20px; font-size: 15px; letter-spacing: .2px; }
+.po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 20px; background: transparent; border: none; border-bottom: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
 .po-head-col-wide { flex: 1; min-width: 220px; }
 .po-field { display: flex; align-items: flex-start; gap: 8px; }
@@ -297,6 +297,6 @@ export default {
 .po-btn:hover { background: #dde1ea; border-color: #c7cede; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; border-color: #158045; }
-.po-btn-po { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
-.po-btn-po:hover { background: #172b6b; }
+.po-btn-po { background: #3c4453; color: #fff; border-color: #3c4453; }
+.po-btn-po:hover { background: #2d333f; }
 </style>

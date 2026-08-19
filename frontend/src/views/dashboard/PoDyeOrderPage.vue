@@ -1,6 +1,6 @@
 <template>
 <div class="dy-page">
-  <div class="po-titlebar">สั่งย้อม</div>
+  <div class="po-titlebar">🎨 เปิดใบสั่งซื้อ — สั่งย้อม</div>
 
   <!-- ส่วนหัว -->
   <div class="po-head">
@@ -241,9 +241,9 @@ export default {
 </script>
 
 <style scoped>
-.dy-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; }
-.po-titlebar { background: #1e3a8a; color: #fff; font-weight: 700; padding: 8px 16px; border-radius: 6px 6px 0 0; }
-.po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 16px; background: var(--field); border: 1px solid var(--field-border); }
+.dy-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-titlebar { background: #3c4453; color: #fff; font-weight: 700; padding: 14px 20px; font-size: 15px; letter-spacing: .2px; }
+.po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 20px; background: transparent; border: none; border-bottom: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
 .po-field { display: flex; align-items: center; gap: 8px; }
 .po-field > label { min-width: 96px; text-align: right; color: var(--muted); font-size: 12.5px; }
@@ -306,11 +306,11 @@ export default {
 .dy-drawer-wrap { position: fixed; inset: 0; z-index: 3300; }
 .dy-drawer-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.4); }
 .dy-drawer { position: absolute; top: 0; right: 0; height: 100%; width: 560px; max-width: 92vw; background: var(--surface); box-shadow: -8px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
-.dy-drawer-head { background: #1e3a8a; color: #fff; padding: 13px 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.dy-drawer-head { background: #3c4453; color: #fff; padding: 13px 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
 .dy-x { background: none; border: none; color: #fff; font-size: 17px; cursor: pointer; }
 .dy-drawer-search { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--field-border); }
 .dy-drawer-search input, .dy-drawer-search select { padding: 7px 10px; border: 1px solid var(--field-border); border-radius: 6px; background: var(--surface); color: var(--text); }
-.dy-btn-search { padding: 7px 14px; border: 1px solid #1e3a8a; background: #1e3a8a; color: #fff; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.dy-btn-search { padding: 7px 14px; border: 1px solid #3c4453; background: #3c4453; color: #fff; border-radius: 6px; cursor: pointer; font-family: inherit; }
 .dy-drawer-list { flex: 1; overflow-y: auto; padding: 8px 16px; }
 .dy-drawer-list table { width: 100%; border-collapse: collapse; }
 .dy-drawer-list th { text-align: left; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--field-border); padding: 6px; }
