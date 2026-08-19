@@ -3954,6 +3954,10 @@ data() {
           if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
           const data = await res.json();
           if (data.ok) {
+            // ถ้าแก้ข้อมูลของ "ตัวเอง" → อัปเดตโปรไฟล์ (ชื่อ/เบอร์/ตำแหน่ง/เพศ/อายุ) ทันที
+            if (this.currentUser && String(u.id) === String(this.currentUser.id)) {
+              this.currentUser = { ...this.currentUser, name: u.name.trim(), email: u.email.trim(), phone: u.phone.trim(), role: u.role, gender: u.gender, age: u.age };
+            }
             this.usModalShow = false;
             await this.loadMembers();
             this.fbDone('บันทึกแล้ว');
