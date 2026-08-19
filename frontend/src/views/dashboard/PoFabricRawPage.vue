@@ -55,7 +55,13 @@
           <td><input type="number" v-model.number="row.unit_price" class="po-num" /></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
           <td><input v-model="row.for_sku" placeholder="ผ้ารหัส" /></td>
-          <td><input v-model="row.color" placeholder="รหัสสี" /></td>
+          <td>
+            <select v-if="row.shadeOptions && row.shadeOptions.length" v-model="row.color">
+              <option value="">— เลือกสี —</option>
+              <option v-for="s in row.shadeOptions" :key="s" :value="s">{{ s }}</option>
+            </select>
+            <input v-else v-model="row.color" placeholder="รหัสสี" />
+          </td>
           <td class="po-row-actions">
             <button class="po-ic po-add" title="เพิ่มแถว" @click="addRow(idx)">＋</button>
             <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">－</button>
@@ -118,7 +124,7 @@ export default {
   },
   async mounted() { await this.loadNextNo(); this.loadFabrics(); },
   methods: {
-    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', name: '', structure: '', composition: '', width: '', qty: null, unit_price: null, for_sku: '', color: '' }; },
+    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', name: '', structure: '', composition: '', width: '', qty: null, unit_price: null, for_sku: '', color: '', shadeOptions: [] }; },
     lineTotal(r) { return (Number(r.qty) || 0) * (Number(r.unit_price) || 0); },
     addRow(idx) { this.items.splice(idx + 1, 0, this.newRow()); },
     removeRow(idx) { if (this.items.length > 1) this.items.splice(idx, 1); },
@@ -129,10 +135,16 @@ export default {
       try { const res = await fetch('/api/fabrics', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.fabrics = d.fabrics || []; } catch (e) {}
       try { const r2 = await fetch('/api/partners', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d2 = await r2.json(); if (d2.ok && d2.items.length) this.vendorOptions = d2.items.map(p => p.name); } catch (e) {}
     },
-    lookupSku(row) {
+    async lookupSku(row) {
       if (!row.sku) return;
       const f = this.fabrics.find(x => (x.sku || '').toLowerCase() === row.sku.trim().toLowerCase());
-      if (f) { row.name = f.name || ''; row.structure = f.structure || ''; row.composition = f.composition || ''; row.width = f.width || ''; }
+      if (!f) return;
+      row.name = f.name || ''; row.structure = f.structure || ''; row.composition = f.composition || ''; row.width = f.width || '';
+      try {
+        const res = await fetch(`/api/fabrics/${f.id}/shades`, { headers: { Authorization: 'Bearer ' + this.dash.token } });
+        const d = await res.json();
+        row.shadeOptions = (d.shades || []).map(s => s.name);
+      } catch (e) { row.shadeOptions = []; }
     },
     async save() {
       if (!this.items.some(r => (r.sku || '').trim())) { this.dash.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ'); return; }
@@ -173,8 +185,8 @@ export default {
 .po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; letter-spacing: .3px; border-right: 1px solid rgba(255,255,255,.18); }
 .po-item-table th:last-child { border-right: none; }
 .po-item-table td { padding: 5px 6px; border-bottom: 1px solid var(--field-border); }
-.po-item-table input { width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12.5px; font-family: inherit; background: var(--surface); color: var(--text); transition: border-color .2s, box-shadow .2s; }
-.po-item-table input:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+.po-item-table input, .po-item-table select { width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12.5px; font-family: inherit; background: var(--surface); color: var(--text); transition: border-color .2s, box-shadow .2s; }
+.po-item-table input:focus, .po-item-table select:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-num { text-align: right; }
 .po-ro-cell { background: var(--field); }
 .po-no { text-align: center; color: var(--muted); }

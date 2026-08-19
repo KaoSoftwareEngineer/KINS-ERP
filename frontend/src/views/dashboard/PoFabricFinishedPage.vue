@@ -47,7 +47,13 @@
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
           <td><input v-model="row.sku" @blur="lookupSku(row)" placeholder="รหัส" /></td>
-          <td><input v-model="row.color" placeholder="รหัสสี" /></td>
+          <td>
+            <select v-if="row.shadeOptions && row.shadeOptions.length" v-model="row.color">
+              <option value="">— เลือกสี —</option>
+              <option v-for="s in row.shadeOptions" :key="s" :value="s">{{ s }}</option>
+            </select>
+            <input v-else v-model="row.color" placeholder="รหัสสี" />
+          </td>
           <td><input v-model="row.name" class="po-ro-cell" placeholder="ชื่อ" /></td>
           <td><input v-model="row.width" class="po-ro-cell" placeholder="หน้ากว้าง" /></td>
           <td><input type="number" v-model.number="row.qty" @input="calc" class="po-num" /></td>
@@ -128,7 +134,7 @@ export default {
     this.loadFabrics();
   },
   methods: {
-    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', color: '', name: '', width: '', qty: null, unit_price: null, ref: '' }; },
+    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', color: '', name: '', width: '', qty: null, unit_price: null, ref: '', shadeOptions: [] }; },
     lineTotal(r) { return (Number(r.qty) || 0) * (Number(r.unit_price) || 0); },
     calc() { /* คำนวณผ่าน computed */ },
     addRow(idx) { this.items.splice(idx + 1, 0, this.newRow()); },
@@ -152,10 +158,17 @@ export default {
         if (d2.ok && d2.items.length) this.vendorOptions = d2.items.map(p => p.name);
       } catch (e) {}
     },
-    lookupSku(row) {
+    async lookupSku(row) {
       if (!row.sku) return;
       const f = this.fabrics.find(x => (x.sku || '').toLowerCase() === row.sku.trim().toLowerCase());
-      if (f) { row.name = f.name || ''; row.width = f.width || ''; if (!row.unit_price) row.unit_price = null; }
+      if (!f) return;
+      row.name = f.name || ''; row.width = f.width || '';
+      // โหลดเฉดสีของผ้านี้มาเป็นตัวเลือกรหัสสี
+      try {
+        const res = await fetch(`/api/fabrics/${f.id}/shades`, { headers: { Authorization: 'Bearer ' + this.dash.token } });
+        const d = await res.json();
+        row.shadeOptions = (d.shades || []).map(s => s.name);
+      } catch (e) { row.shadeOptions = []; }
     },
     fbInfo() { this.dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)'); },
     async save() {
@@ -261,8 +274,8 @@ export default {
 .po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; letter-spacing: .3px; border-right: 1px solid rgba(255,255,255,.18); }
 .po-item-table th:last-child { border-right: none; }
 .po-item-table td { padding: 5px 6px; border-bottom: 1px solid var(--field-border); }
-.po-item-table input { width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12.5px; font-family: inherit; background: var(--surface); color: var(--text); transition: border-color .2s, box-shadow .2s; }
-.po-item-table input:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+.po-item-table input, .po-item-table select { width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12.5px; font-family: inherit; background: var(--surface); color: var(--text); transition: border-color .2s, box-shadow .2s; }
+.po-item-table input:focus, .po-item-table select:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-num { text-align: right; }
 .po-ro-cell { background: var(--field); }
 .po-no { text-align: center; color: var(--muted); }
