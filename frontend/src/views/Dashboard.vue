@@ -5847,11 +5847,11 @@ data() {
   .table-scroll-y table thead th { position: sticky; top: 0; z-index: 1; }
   .fr-table { width: 100%; border-collapse: collapse; table-layout: auto; }
   .fr-table thead th {
-    background: #3c4453; color: #fff; font-size: 12px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: .4px; padding: 12px 14px; text-align: left; white-space: nowrap;
+    background: #3c4453; color: #fff; font-size: 11.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .3px; padding: 8px 12px; text-align: left; white-space: nowrap;
   }
   .fr-table tbody td {
-    padding: 11px 14px; font-size: 13px; color: var(--text);
+    padding: 7px 12px; font-size: 12.5px; color: var(--text);
     border-bottom: 1px solid var(--field-border); white-space: nowrap;
   }
   /* ===== เส้นแบ่งแนวตั้งระหว่างคอลัมน์ (ทุกตาราง) ===== */
