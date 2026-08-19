@@ -320,4 +320,7 @@ export default {
 .dy-drawer-foot { padding: 12px 16px; border-top: 1px solid var(--field-border); text-align: right; }
 .dy-slide-enter-active, .dy-slide-leave-active { transition: opacity 0.2s; }
 .dy-slide-enter-from, .dy-slide-leave-to { opacity: 0; }
+/* ช่องกรอกที่ยังว่าง — ใส่พื้นเทาอ่อนให้มองเห็นชัด (ไม่ใช่ขาวกลืนพื้น) */
+.dy-page input:not([type="checkbox"]), .dy-page select, .dy-page textarea { background: var(--field); }
+.dy-page input:focus, .dy-page select:focus, .dy-page textarea:focus { background: var(--surface); }
 </style>

@@ -206,4 +206,7 @@ export default {
 .po-btn:hover { background: #dde1ea; border-color: #c7cede; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; border-color: #158045; }
+/* ช่องกรอกที่ยังว่าง — ใส่พื้นเทาอ่อนให้มองเห็นชัด (ไม่ใช่ขาวกลืนพื้น) */
+.po-page input:not([type="checkbox"]), .po-page select, .po-page textarea { background: var(--field); }
+.po-page input:focus, .po-page select:focus, .po-page textarea:focus { background: var(--surface); }
 </style>
