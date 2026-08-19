@@ -37,6 +37,7 @@ import ShadeModal from './dashboard/ShadeModal.vue';
 import FeedbackModal from './dashboard/FeedbackModal.vue';
 import PermissionModal from './dashboard/PermissionModal.vue';
 import { useAuthStore } from '../stores/auth.js';
+import { useUiStore } from '../stores/ui.js';
 
 const API = '';
 
@@ -1793,6 +1794,7 @@ data() {
       this.loadMembers();
       this.loadOrders();
       this.loadLowStock();
+      this.loadMe();      // โหลด role ตัวเองล่าสุด (โปรไฟล์/สิทธิ์)
       this.loadRoles();   // โหลดบทบาท+สิทธิ์จาก MySQL
       this.loadMasterData();  // โหลดข้อมูลผ้า (master data) สำหรับ dropdown ในฟอร์มผ้า
       // ถ้าหน้าที่ค้างไว้เกินสิทธิ์ → กลับแดชบอร์ด
@@ -3793,6 +3795,15 @@ data() {
           console.log('ไม่สามารถโหลดข้อมูลสมาชิก');
         }
       },
+      // โหลดข้อมูลผู้ใช้ปัจจุบัน (รวม role) ให้สดเสมอ — โปรไฟล์/สิทธิ์อัปเดตตามตำแหน่งล่าสุด
+      async loadMe() {
+        try {
+          const res = await fetch(API + '/api/me', { headers: { Authorization: 'Bearer ' + this.token } });
+          if (res.status === 401) return;
+          const data = await res.json();
+          if (data.ok && data.user) this.currentUser = { ...this.currentUser, ...data.user };
+        } catch (e) { /* ใช้ค่าจาก localStorage ต่อไป */ }
+      },
       // โหลด "ข้อมูลผ้า" (master data) ทั้ง 5 หมวด สำหรับ dropdown ในฟอร์มผ้า
       async loadMasterData() {
         const cats = ['structure', 'composition', 'width', 'finishing', 'weight'];
@@ -3986,6 +3997,10 @@ data() {
           const data = await res.json();
           if (data.ok) {
             user.role = role;
+            // ถ้าเปลี่ยนตำแหน่งของ "ตัวเอง" → อัปเดตโปรไฟล์ + สิทธิ์ทันที
+            if (this.currentUser && String(user.id) === String(this.currentUser.id)) {
+              this.currentUser = { ...this.currentUser, role };
+            }
             this.fbDone('บันทึกแล้ว');
           } else {
             this.fbFail(data.message || 'บันทึกบทบาทไม่สำเร็จ');

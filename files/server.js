@@ -114,7 +114,7 @@ app.post('/api/login', async (req, res) => {
       ok: true,
       message: 'เข้าสู่ระบบสำเร็จ',
       token,
-      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar },
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role || '' },
     });
   } catch (err) {
     console.error(err);
@@ -191,7 +191,7 @@ const wrap = (fn) => (req, res) => fn(req, res).catch((err) => {
 // ------------------------------------------------------------
 app.get('/api/me', auth, async (req, res) => {
   const [rows] = await mysqlPool.query(
-    'SELECT id, name, email, phone, avatar, created_at FROM users WHERE id = ?',
+    'SELECT id, name, email, phone, avatar, role, gender, age, created_at FROM users WHERE id = ?',
     [req.userId]
   );
   res.json({ ok: true, user: rows[0] });
