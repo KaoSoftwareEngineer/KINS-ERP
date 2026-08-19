@@ -716,6 +716,34 @@ INSERT INTO `master_data` VALUES (100,'composition','Cotton- 53% & Polyester - 4
 UNLOCK TABLES;
 
 --
+-- Table structure for table `note_info`
+--
+
+DROP TABLE IF EXISTS `note_info`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `note_info` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `note_type` varchar(64) DEFAULT '',
+  `description` text DEFAULT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `note_info`
+--
+
+LOCK TABLES `note_info` WRITE;
+/*!40000 ALTER TABLE `note_info` DISABLE KEYS */;
+INSERT INTO `note_info` VALUES (1,'สั่งผ้าสำเร็จ','Description',1,'2026-08-19 11:10:50','2026-08-19 11:10:50');
+/*!40000 ALTER TABLE `note_info` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `order_items`
 --
 
@@ -1127,4 +1155,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-19 11:04:32
+-- Dump completed on 2026-08-19 11:10:53

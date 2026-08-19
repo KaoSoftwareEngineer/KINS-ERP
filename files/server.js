@@ -435,6 +435,33 @@ app.delete('/api/fabric-raw/:id', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  ข้อมูลหมายเหตุ (note_info)
+// ============================================================
+app.get('/api/note-info', auth, wrap(async (req, res) => {
+  const [items] = await mysqlPool.query('SELECT * FROM note_info ORDER BY id DESC');
+  res.json({ ok: true, total: items.length, items });
+}));
+app.post('/api/note-info', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const description = (b.description || '').trim();
+  if (!description) return res.status(400).json({ ok: false, message: 'กรุณากรอกหมายเหตุ' });
+  const [info] = await mysqlPool.query('INSERT INTO note_info (note_type, description, active) VALUES (?, ?, ?)', [b.note_type || '', description, b.active === false ? 0 : 1]);
+  res.json({ ok: true, message: 'บันทึกแล้ว', id: info.insertId });
+}));
+app.put('/api/note-info/:id', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const description = (b.description || '').trim();
+  if (!description) return res.status(400).json({ ok: false, message: 'กรุณากรอกหมายเหตุ' });
+  await mysqlPool.query('UPDATE note_info SET note_type = ?, description = ?, active = ? WHERE id = ?', [b.note_type || '', description, b.active === false ? 0 : 1, req.params.id]);
+  res.json({ ok: true, message: 'บันทึกแล้ว' });
+}));
+app.delete('/api/note-info/:id', auth, wrap(async (req, res) => {
+  const [info] = await mysqlPool.query('DELETE FROM note_info WHERE id = ?', [req.params.id]);
+  if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบข้อมูล' });
+  res.json({ ok: true, message: 'ลบแล้ว' });
+}));
+
+// ============================================================
 //  ข้อมูลผ้า (master data): structure/composition/width/finishing/weight
 // ============================================================
 app.get('/api/master-data/:category', auth, wrap(async (req, res) => {

@@ -96,6 +96,22 @@ async function initTables() {
     }
   }
 
+  // ---- ข้อมูลหมายเหตุ (note_info) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS note_info (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      note_type   VARCHAR(64) DEFAULT '',
+      description TEXT,
+      active      TINYINT DEFAULT 1,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  const [[{ nic }]] = await pool.query('SELECT COUNT(*) AS nic FROM note_info');
+  if (nic === 0) {
+    await pool.query(`INSERT INTO note_info (note_type, description) VALUES ('สั่งผ้าสำเร็จ', 'Description')`);
+  }
+
   // ---- ผ้าดิบ (fabric_raw / greige) ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS fabric_raw (

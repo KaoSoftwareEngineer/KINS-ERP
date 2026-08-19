@@ -11,6 +11,7 @@ import FabricRawPage from './dashboard/FabricRawPage.vue';
 import PartnersPage from './dashboard/PartnersPage.vue';
 import EmployeePage from './dashboard/EmployeePage.vue';
 import MasterDataPage from './dashboard/MasterDataPage.vue';
+import NoteInfoPage from './dashboard/NoteInfoPage.vue';
 import CustomersPage from './dashboard/CustomersPage.vue';
 import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
@@ -54,6 +55,7 @@ export default {
     PartnersPage,
     EmployeePage,
     MasterDataPage,
+    NoteInfoPage,
     CustomersPage,
     GoodsReceivePage,
     ZoneRackPage,
@@ -4521,7 +4523,7 @@ data() {
     <!-- ============ MAIN CONTENT ============ -->
     <main class="main main-fit">
       <TopNavbar />
-      <div class="main-content" :class="{ 'fr-tight': ['fabric-regular','fabric-irregular','fabric-regular-group','fabric-irregular-group','fabric-raw','customers','partners','employee-info','fabric-info-structure','fabric-info-composition','fabric-info-width','fabric-info-finishing','fabric-info-weight','order-receive','order-fulfill','zone-rack'].includes(currentPage) }">
+      <div class="main-content" :class="{ 'fr-tight': ['fabric-regular','fabric-irregular','fabric-regular-group','fabric-irregular-group','fabric-raw','customers','partners','employee-info','fabric-info-structure','fabric-info-composition','fabric-info-width','fabric-info-finishing','fabric-info-weight','note-info','order-receive','order-fulfill','zone-rack'].includes(currentPage) }">
       <!-- breadcrumb ย้ายขึ้นไปอยู่ใน TopNavbar (ระนาบเดียวกับแถบขวา) -->
       <!-- ============ DASHBOARD PAGE ============ -->
       <DashboardHome v-if="currentPage === 'dashboard'" />
@@ -4555,6 +4557,9 @@ data() {
 
       <!-- ============ ข้อมูลผ้า: โครงสร้าง/ส่วนประกอบ/หน้ากว้าง/Finishing/น้ำหนัก (component เดียว) ============ -->
       <MasterDataPage v-else-if="['fabric-info-structure','fabric-info-composition','fabric-info-width','fabric-info-finishing','fabric-info-weight'].includes(currentPage)" />
+
+      <!-- ============ ข้อมูลหมายเหตุ ============ -->
+      <NoteInfoPage v-else-if="currentPage === 'note-info'" />
 
       <!-- ============ ลูกค้า (ข้อมูลร้านค้า) ============ -->
       <CustomersPage v-else-if="currentPage === 'customers'" />
