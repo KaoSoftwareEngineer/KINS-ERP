@@ -10,7 +10,7 @@
     </div>
     <div class="po-head-col">
       <div class="po-field"><label>โรงงาน</label>
-        <select v-model="form.factory"><option value="">— เลือก —</option><option>D Finest</option><option v-for="f in factoryOptions" :key="f" :value="f">{{ f }}</option></select>
+        <select v-model="form.factory"><option value="">— เลือก —</option><option v-for="f in factoryOptions" :key="f" :value="f">{{ f }}</option></select>
       </div>
     </div>
     <div class="po-head-col">
@@ -204,6 +204,7 @@ export default {
     },
     async loadFabrics() {
       try { const res = await fetch('/api/fabrics', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.fabrics = d.fabrics || []; } catch (e) {}
+      try { const r2 = await fetch('/api/factories', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d2 = await r2.json(); if (d2.ok) this.factoryOptions = (d2.items || []).map(f => f.name); } catch (e) {}
     },
     openDrawer() { this.drawerOpen = true; },
     selectRaw(f) {

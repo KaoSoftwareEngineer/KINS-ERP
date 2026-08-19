@@ -465,6 +465,39 @@ INSERT INTO `fabrics` VALUES (1,'100S01','100S-44\"','','','','44\"','','','ห�
 UNLOCK TABLES;
 
 --
+-- Table structure for table `factories`
+--
+
+DROP TABLE IF EXISTS `factories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `factories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(32) DEFAULT '',
+  `name` varchar(255) NOT NULL,
+  `type` varchar(64) DEFAULT '',
+  `phone` varchar(32) DEFAULT '',
+  `address` text DEFAULT NULL,
+  `contact` varchar(255) DEFAULT '',
+  `note` text DEFAULT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `factories`
+--
+
+LOCK TABLES `factories` WRITE;
+/*!40000 ALTER TABLE `factories` DISABLE KEYS */;
+INSERT INTO `factories` VALUES (1,'F-001','D Finest','โรงย้อม','02-391-5737',NULL,'คุณเก่า',NULL,1,'2026-08-19 09:45:25','2026-08-19 09:45:25'),(2,'F-002','โรงย้อมรุ่งเรือง','โรงย้อม','02-888-9999',NULL,'คุณมานะ',NULL,1,'2026-08-19 09:45:25','2026-08-19 09:45:25'),(3,'F-003','โรงย้อมสยามคัลเลอร์','โรงย้อม','02-111-2222',NULL,'คุณศักดิ์',NULL,1,'2026-08-19 09:45:25','2026-08-19 09:45:25'),(4,'F-004','โรงทอไทยเท็กซ์ไทล์','โรงทอ','02-666-7777',NULL,'คุณวิชัย',NULL,1,'2026-08-19 09:45:25','2026-08-19 09:45:25');
+/*!40000 ALTER TABLE `factories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `goods_issue_items`
 --
 
@@ -1023,4 +1056,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-18 17:49:10
+-- Dump completed on 2026-08-19  9:45:27

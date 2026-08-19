@@ -95,6 +95,32 @@ async function initTables() {
     console.log('  ➕ ใส่ข้อมูลคู่ค้าตัวอย่าง 5 ราย');
   }
 
+  // ---- โรงงาน / โรงย้อม (factories) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS factories (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      code        VARCHAR(32) DEFAULT '',
+      name        VARCHAR(255) NOT NULL,
+      type        VARCHAR(64) DEFAULT '',
+      phone       VARCHAR(32) DEFAULT '',
+      address     TEXT,
+      contact     VARCHAR(255) DEFAULT '',
+      note        TEXT,
+      active      TINYINT DEFAULT 1,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  const [[{ fc }]] = await pool.query('SELECT COUNT(*) AS fc FROM factories');
+  if (fc === 0) {
+    await pool.query(`INSERT INTO factories (code, name, type, phone, contact) VALUES
+      ('F-001', 'D Finest', 'โรงย้อม', '02-391-5737', 'คุณเก่า'),
+      ('F-002', 'โรงย้อมรุ่งเรือง', 'โรงย้อม', '02-888-9999', 'คุณมานะ'),
+      ('F-003', 'โรงย้อมสยามคัลเลอร์', 'โรงย้อม', '02-111-2222', 'คุณศักดิ์'),
+      ('F-004', 'โรงทอไทยเท็กซ์ไทล์', 'โรงทอ', '02-666-7777', 'คุณวิชัย')`);
+    console.log('  ➕ ใส่ข้อมูลโรงงานตัวอย่าง 4 ราย');
+  }
+
   // ---- ใบสั่งซื้อ (purchase_orders) — ผ้าสำเร็จ/ผ้าดิบ/สั่งย้อม ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS purchase_orders (

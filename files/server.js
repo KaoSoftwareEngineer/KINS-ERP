@@ -399,6 +399,38 @@ app.delete('/api/partners/:id', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  โรงงาน / โรงย้อม (factories)
+// ============================================================
+app.get('/api/factories', auth, wrap(async (req, res) => {
+  const [items] = await mysqlPool.query('SELECT * FROM factories ORDER BY name ASC');
+  res.json({ ok: true, total: items.length, items });
+}));
+app.post('/api/factories', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อโรงงาน' });
+  const [info] = await mysqlPool.query(
+    `INSERT INTO factories (code, name, type, phone, address, contact, note, active)
+     VALUES (:code, :name, :type, :phone, :address, :contact, :note, :active)`,
+    { code: b.code || '', name: b.name.trim(), type: b.type || '', phone: b.phone || '', address: b.address || '', contact: b.contact || '', note: b.note || '', active: b.active === false ? 0 : 1 }
+  );
+  res.json({ ok: true, message: 'บันทึกโรงงานแล้ว', id: info.insertId });
+}));
+app.put('/api/factories/:id', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อโรงงาน' });
+  await mysqlPool.query(
+    `UPDATE factories SET code=:code, name=:name, type=:type, phone=:phone, address=:address, contact=:contact, note=:note, active=:active WHERE id=:id`,
+    { id: req.params.id, code: b.code || '', name: b.name.trim(), type: b.type || '', phone: b.phone || '', address: b.address || '', contact: b.contact || '', note: b.note || '', active: b.active === false ? 0 : 1 }
+  );
+  res.json({ ok: true, message: 'บันทึกแล้ว' });
+}));
+app.delete('/api/factories/:id', auth, wrap(async (req, res) => {
+  const [info] = await mysqlPool.query('DELETE FROM factories WHERE id = ?', [req.params.id]);
+  if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบโรงงาน' });
+  res.json({ ok: true, message: 'ลบโรงงานแล้ว' });
+}));
+
+// ============================================================
 //  ใบสั่งซื้อ (purchase_orders) — ผ้าสำเร็จ/ผ้าดิบ/สั่งย้อม
 // ============================================================
 async function makePoNo() {
