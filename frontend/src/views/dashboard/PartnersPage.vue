@@ -93,32 +93,46 @@
     <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
   </div>
 
-  <!-- โมดัลเพิ่ม/แก้ไข -->
-  <div class="fr-modal-overlay" v-if="showModal" @click.self="showModal = false">
-    <div class="fr-modal">
-      <div class="fr-modal-header">
-        <h3>{{ editingId ? 'แก้ไข' : 'เพิ่ม' }} คู่ค้า</h3>
-        <button class="fr-modal-close" @click="showModal = false">✕</button>
+  <!-- โมดัลเพิ่ม/แก้ไข (เลย์เอาต์ ERP 2 คอลัมน์) -->
+  <div class="ptn-overlay" v-if="showModal" @click.self="showModal = false">
+    <div class="ptn-modal">
+      <div class="ptn-modal-head">
+        <span><span class="ptn-head-ic">🤝</span> {{ editingId ? 'แก้ไขข้อมูลคู่ค้า' : 'เพิ่มคู่ค้าใหม่' }}</span>
+        <button class="ptn-x" @click="showModal = false">✕</button>
       </div>
-      <div class="fr-modal-body">
-        <div class="fr-form-row"><label>ชื่อบริษัท <span class="fr-required">*</span></label><input type="text" v-model="form.name" placeholder="ชื่อบริษัท" /></div>
-        <div class="fr-form-row"><label>ชื่อที่ออกเช็ค</label><input type="text" v-model="form.check_name" /></div>
-        <div class="fr-form-row"><label>ผู้ประสานงาน</label><input type="text" v-model="form.contact" /></div>
-        <div class="fr-form-row"><label>ที่อยู่</label><input type="text" v-model="form.address" /></div>
-        <div class="fr-form-row"><label>ประเทศ</label>
-          <select v-model="form.country"><option value="">— เลือก —</option><option v-for="c in countryChoices" :key="c" :value="c">{{ c }}</option></select>
+      <div class="ptn-modal-body">
+        <!-- ข้อมูลบริษัท -->
+        <div class="ptn-sec-title"><span class="ptn-sec-bar"></span>ข้อมูลบริษัท</div>
+        <div class="ptn-grid">
+          <div class="ptn-field ptn-col-2">
+            <label>ชื่อบริษัท <span class="ptn-req">*</span></label>
+            <input type="text" v-model="form.name" placeholder="กรอกชื่อบริษัท" :class="{ 'ptn-err': triedSave && !form.name.trim() }" />
+          </div>
+          <div class="ptn-field"><label>ชื่อที่ออกเช็ค</label><input type="text" v-model="form.check_name" placeholder="ชื่อสำหรับออกเช็ค" /></div>
+          <div class="ptn-field"><label>กลุ่มคู่ค้า</label>
+            <select v-model="form.pgroup"><option value="">— เลือกกลุ่ม —</option><option v-for="g in groupChoices" :key="g" :value="g">{{ g }}</option></select>
+          </div>
+          <div class="ptn-field"><label>เงื่อนไขบัญชี</label>
+            <select v-model="form.account_term"><option value="">— เลือกเงื่อนไข —</option><option v-for="t in termChoices" :key="t" :value="t">{{ t }}</option></select>
+          </div>
+          <div class="ptn-field"><label>ประเทศ</label>
+            <select v-model="form.country"><option value="">— เลือกประเทศ —</option><option v-for="c in countryChoices" :key="c" :value="c">{{ c }}</option></select>
+          </div>
         </div>
-        <div class="fr-form-row"><label>เบอร์โทร</label><input type="text" v-model="form.phone" /></div>
-        <div class="fr-form-row"><label>อีเมล</label><input type="email" v-model="form.email" /></div>
-        <div class="fr-form-row"><label>กลุ่มคู่ค้า</label>
-          <select v-model="form.pgroup"><option value="">— เลือก —</option><option v-for="g in groupChoices" :key="g" :value="g">{{ g }}</option></select>
-        </div>
-        <div class="fr-form-row"><label>เงื่อนไขบัญชี</label>
-          <select v-model="form.account_term"><option value="">— เลือก —</option><option v-for="t in termChoices" :key="t" :value="t">{{ t }}</option></select>
+
+        <!-- ข้อมูลติดต่อ -->
+        <div class="ptn-sec-title"><span class="ptn-sec-bar"></span>ข้อมูลติดต่อ</div>
+        <div class="ptn-grid">
+          <div class="ptn-field"><label>ผู้ประสานงาน</label><input type="text" v-model="form.contact" placeholder="ชื่อผู้ติดต่อ" /></div>
+          <div class="ptn-field"><label>เบอร์โทร</label><input type="tel" v-model="form.phone" placeholder="0xxxxxxxxx" /></div>
+          <div class="ptn-field"><label>อีเมล</label><input type="email" v-model="form.email" placeholder="email@example.com" /></div>
+          <div class="ptn-field"><!-- ช่องว่างสมดุลกริด --></div>
+          <div class="ptn-field ptn-col-2"><label>ที่อยู่</label><textarea v-model="form.address" rows="2" placeholder="ที่อยู่บริษัท / คู่ค้า"></textarea></div>
         </div>
       </div>
-      <div class="fr-modal-footer">
-        <button class="fr-btn-save" @click="save">💾 บันทึก</button>
+      <div class="ptn-modal-foot">
+        <button class="ptn-btn ptn-btn-cancel" @click="showModal = false">ยกเลิก</button>
+        <button class="ptn-btn ptn-btn-save" @click="save">💾 บันทึก</button>
       </div>
     </div>
   </div>
@@ -135,7 +149,7 @@ export default {
       filters: { search: '', pgroup: '', account_term: '' },
       sortCol: '', sortDir: 'asc',
       page: 1, pageSize: 15, selected: [],
-      showModal: false, editingId: null,
+      showModal: false, editingId: null, triedSave: false,
       form: this.blankForm(),
       countryChoices: ['Thailand', 'Japan', 'China', 'Korea', 'Vietnam', 'India', 'Taiwan'],
       groupChoices: ['อื่นๆ', 'โรงทอ', 'โรงย้อม', 'ผู้ผลิตเส้นด้าย', 'ตัวแทนจำหน่าย'],
@@ -179,9 +193,10 @@ export default {
     sortIcon(col) { return this.sortCol !== col ? '↕' : (this.sortDir === 'asc' ? '▲' : '▼'); },
     toggleSelectAll() { if (this.allSelectedOnPage) this.selected = this.selected.filter(id => !this.pagedRows.some(r => r.id === id)); else { const add = this.pagedRows.map(r => r.id).filter(id => !this.selected.includes(id)); this.selected = [...this.selected, ...add]; } },
     toggleSelectRow(item) { const i = this.selected.indexOf(item.id); if (i === -1) this.selected.push(item.id); else this.selected.splice(i, 1); },
-    openAdd() { this.editingId = null; this.form = this.blankForm(); this.showModal = true; },
-    openEdit(item) { this.editingId = item.id; this.form = { name: item.name, check_name: item.check_name, contact: item.contact, address: item.address, country: item.country, phone: item.phone, email: item.email, pgroup: item.pgroup, account_term: item.account_term }; this.showModal = true; },
+    openAdd() { this.editingId = null; this.triedSave = false; this.form = this.blankForm(); this.showModal = true; },
+    openEdit(item) { this.editingId = item.id; this.triedSave = false; this.form = { name: item.name, check_name: item.check_name, contact: item.contact, address: item.address, country: item.country, phone: item.phone, email: item.email, pgroup: item.pgroup, account_term: item.account_term }; this.showModal = true; },
     async save() {
+      this.triedSave = true;
       if (!this.form.name || !this.form.name.trim()) { this.dash.fbFail('กรุณากรอกชื่อบริษัท'); return; }
       this.dash.fbLoading('กำลังบันทึก...');
       try {
@@ -221,4 +236,44 @@ export default {
 .ptn-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 13px; }
 .ptn-edit:hover { background: #eef2ff; border-color: #c7d2fe; }
 .ptn-del:hover { background: #fef2f2; border-color: #fecaca; }
+
+/* ===== โมดัล ERP 2 คอลัมน์ ===== */
+.ptn-overlay {
+  position: fixed; inset: 0; z-index: 3400; display: flex; align-items: center; justify-content: center;
+  background: rgba(15,23,42,0.5); padding: 20px;
+  font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
+}
+.ptn-modal { background: var(--surface); border-radius: 14px; width: 680px; max-width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
+.ptn-modal-head {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2f4fd6 100%); color: #fff;
+  padding: 15px 22px; font-size: 16px; font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ptn-head-ic { margin-right: 6px; }
+.ptn-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+.ptn-x:hover { background: rgba(255,255,255,.3); }
+.ptn-modal-body { padding: 20px 24px; overflow-y: auto; }
+.ptn-sec-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
+.ptn-sec-title:not(:first-child) { margin-top: 22px; }
+.ptn-sec-bar { width: 4px; height: 16px; border-radius: 2px; background: #1e3a8a; display: inline-block; }
+.ptn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.ptn-col-2 { grid-column: span 2; }
+.ptn-field { display: flex; flex-direction: column; gap: 5px; }
+.ptn-field > label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.ptn-req { color: #a82a3a; }
+.ptn-field input, .ptn-field select, .ptn-field textarea {
+  height: 38px; padding: 0 12px; border: 1px solid var(--field-border); border-radius: 9px;
+  font-size: 13.5px; font-family: inherit; background: var(--surface); color: var(--text);
+  transition: border-color .2s, box-shadow .2s;
+}
+.ptn-field textarea { height: auto; padding: 9px 12px; resize: vertical; }
+.ptn-field input:focus, .ptn-field select:focus, .ptn-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+.ptn-field input.ptn-err { border-color: #a82a3a; box-shadow: 0 0 0 3px rgba(168,42,58,.12); }
+.ptn-modal-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 14px 24px; border-top: 1px solid var(--field-border); background: var(--field); }
+.ptn-btn { padding: 10px 26px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.ptn-btn-cancel { background: #e2e8f0; color: #334155; }
+.ptn-btn-cancel:hover { background: #cbd5e1; }
+.ptn-btn-save { background: #1a9c54; color: #fff; }
+.ptn-btn-save:hover { background: #158045; }
+@media (max-width: 560px) { .ptn-grid { grid-template-columns: 1fr; } .ptn-col-2 { grid-column: span 1; } }
 </style>
