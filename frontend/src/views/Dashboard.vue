@@ -5245,7 +5245,7 @@ data() {
     transition: opacity .15s;
   }
   .dash-bar-curr { background: var(--pink); }
-  .dash-bar-prev { background: #f5883a; }
+  .dash-bar-prev { background: #3b82f6; }
   .dash-bar-group:hover .dash-bar { opacity: .8; }
   .dash-bar-label {
     margin-top: 6px;
@@ -5271,7 +5271,7 @@ data() {
   .dash-legend-item { display: inline-flex; align-items: center; gap: 6px; }
   .dash-legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
   .dash-legend-curr { background: var(--pink); }
-  .dash-legend-prev { background: #f5883a; }
+  .dash-legend-prev { background: #3b82f6; }
 
   /* ============ จัดออร์เดอร์ (Order Fulfillment) ============ */
   .of-page { display: flex; flex-direction: column; gap: 16px; }
