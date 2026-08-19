@@ -202,14 +202,15 @@ export default {
 }
 .set-topbar-title h1 { font-size: 24px; font-weight: 700; color: var(--text); }
 .set-subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.set-import-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.set-import-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .set-import-btn {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 16px; border-radius: 9px; border: 1px solid var(--field-border);
-  background: var(--surface); color: var(--text); font-size: 13px; font-weight: 600;
-  cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s;
+  padding: 10px 18px; border-radius: 9px; border: 1px solid #1a9c54;
+  background: #1a9c54; color: #fff; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: background .15s, box-shadow .15s;
+  box-shadow: 0 2px 6px rgba(26,156,84,.25);
 }
-.set-import-btn:hover { border-color: #2F65F6; background: rgba(47,101,246,.06); color: #2F65F6; }
+.set-import-btn:hover { background: #158045; border-color: #158045; box-shadow: 0 3px 10px rgba(26,156,84,.35); }
 .set-import-ic { font-size: 15px; }
 
 /* ============ กริดการ์ด ============ */
