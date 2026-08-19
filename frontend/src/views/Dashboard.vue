@@ -86,16 +86,12 @@ export default {
     return { dash: this };
   },
   setup() {
-    // แหล่งความจริงเดียวของ user/token/สิทธิ์ (แยกออกจาก Dashboard)
-    return { auth: useAuthStore() };
+    // แยก store: auth (user/token/สิทธิ์) + ui (กล่องแจ้งผล feedback)
+    return { auth: useAuthStore(), ui: useUiStore() };
   },
 data() {
       return {
-        // ===== กล่องแจ้งผลกลาง (spinner / ติ๊กถูก / กากบาท) =====
-        fb: { show: false, type: 'loading', text: '' },
-        fbTimer: null,
-        // ===== กล่องยืนยัน (แทน confirm) =====
-        fbAskState: { show: false, title: '', message: '', okText: 'ยืนยัน', cancelText: 'ยกเลิก', danger: false, resolve: null },
+        // fb / fbAskState ย้ายไปที่ ui store (เป็น computed proxy ด้านล่าง)
         // ===== โมดัลสิทธิ์การเข้าใช้งาน =====
         pmShow: false,
         pmEditing: false,
@@ -1120,6 +1116,9 @@ data() {
       },
     },
     computed: {
+      // ---- proxy ไปที่ ui store (กล่องแจ้งผล) ----
+      fb() { return this.ui.fb; },
+      fbAskState() { return this.ui.fbAskState; },
       // ---- proxy ไปที่ auth store (แหล่งความจริงเดียว) ----
       token: {
         get() { return this.auth.token; },
@@ -1817,38 +1816,14 @@ data() {
       //  fbFail(text)     : กากบาทแดง + ปิดเองใน 2 วิ
       //  fbAsk(...)       : กล่องยืนยัน คืนค่า Promise<boolean>
       // ===================================================================
-      fbLoading(text = 'กำลังบันทึก...') {
-        if (this.fbTimer) { clearTimeout(this.fbTimer); this.fbTimer = null; }
-        this.fb = { show: true, type: 'loading', text };
-      },
-      fbDone(text = 'บันทึกแล้ว') {
-        if (this.fbTimer) clearTimeout(this.fbTimer);
-        this.fb = { show: true, type: 'success', text };
-        this.fbTimer = setTimeout(() => this.fbHide(), 1300);
-      },
-      fbFail(text = 'เกิดข้อผิดพลาด') {
-        if (this.fbTimer) clearTimeout(this.fbTimer);
-        this.fb = { show: true, type: 'error', text };
-        this.fbTimer = setTimeout(() => this.fbHide(), 2200);
-      },
-      fbHide() {
-        if (this.fbTimer) { clearTimeout(this.fbTimer); this.fbTimer = null; }
-        this.fb = { ...this.fb, show: false };
-      },
-      // กล่องยืนยัน — คืน Promise<boolean> ใช้แทน confirm()
-      fbAsk({ title = 'ยืนยันการทำรายการ?', message = '', okText = 'ยืนยัน', cancelText = 'ยกเลิก', danger = false } = {}) {
-        return new Promise((resolve) => {
-          this.fbAskState = { show: true, title, message, okText, cancelText, danger, resolve };
-        });
-      },
-      fbAskDelete(message = 'ต้องการลบรายการนี้ใช่หรือไม่?') {
-        return this.fbAsk({ title: 'ยืนยันการลบ', message, okText: 'ลบข้อมูล', cancelText: 'ยกเลิก', danger: true });
-      },
-      fbAnswer(v) {
-        const r = this.fbAskState.resolve;
-        this.fbAskState = { ...this.fbAskState, show: false, resolve: null };
-        if (r) r(v);
-      },
+      // กล่องแจ้งผล — delegate ไป ui store
+      fbLoading(text) { return this.ui.fbLoading(text); },
+      fbDone(text) { return this.ui.fbDone(text); },
+      fbFail(text) { return this.ui.fbFail(text); },
+      fbHide() { return this.ui.fbHide(); },
+      fbAsk(opt) { return this.ui.fbAsk(opt); },
+      fbAskDelete(message) { return this.ui.fbAskDelete(message); },
+      fbAnswer(v) { return this.ui.fbAnswer(v); },
       // ===================================================================
       //  โมดัลสิทธิ์การเข้าใช้งาน (เพิ่ม/แก้ไขบทบาท + ต้นไม้สิทธิ์)
       // ===================================================================
