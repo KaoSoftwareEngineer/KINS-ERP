@@ -15,8 +15,8 @@
         <input type="text" v-model="dash.frgFilters.search" placeholder="ค้นหาชื่อกลุ่มผ้า" @keyup.enter="dash.frgPage = 1" />
       </div>
       <div class="fr-filter-actions">
-        <button class="fr-btn-search" @click="dash.frgPage = 1">🔍 ค้นหา</button>
-        <button class="fr-btn-reset" @click="dash.frgResetFilters()">↺ รีเซ็ต</button>
+        <button class="fr-btn-util fr-btn-search" @click="dash.frgPage = 1">🔍 ค้นหา</button>
+        <button class="fr-btn-util fr-btn-reset" @click="dash.frgResetFilters()">↺ รีเซ็ต</button>
       </div>
     </div>
   </div>
@@ -61,7 +61,7 @@
           </td>
         </tr>
         <tr v-if="dash.frgPagedRows.length === 0">
-          <td colspan="8" style="text-align:center; padding:24px; color:#94a3b8;">ยังไม่มีข้อมูลกลุ่มผ้าประจำ</td>
+          <td colspan="8" style="text-align:center; padding:24px; color:#94a3b8;">ยังไม่มีข้อมูล{{ dash.frgPageTitle }} — กด "+ เพิ่ม{{ dash.frgPageTitle }}" เพื่อเพิ่มรายการ</td>
         </tr>
       </tbody>
     </table>

@@ -189,7 +189,7 @@ CREATE TABLE `fabric_irregular_group` (
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -198,6 +198,7 @@ CREATE TABLE `fabric_irregular_group` (
 
 LOCK TABLES `fabric_irregular_group` WRITE;
 /*!40000 ALTER TABLE `fabric_irregular_group` DISABLE KEYS */;
+INSERT INTO `fabric_irregular_group` VALUES (1,'ผ้าซาตินพิมพ์ลาย','44\"','บาง',160,'2026-08-19 09:48:07','2026-08-19 09:48:07'),(2,'ผ้าลูกไม้','36\"','บาง',240,'2026-08-19 09:48:07','2026-08-19 09:48:07'),(3,'ผ้าชีฟองพิมพ์ลาย','58','บาง',140,'2026-08-19 09:48:07','2026-08-19 09:48:07');
 /*!40000 ALTER TABLE `fabric_irregular_group` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -309,7 +310,7 @@ CREATE TABLE `fabric_regular_group` (
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -318,6 +319,7 @@ CREATE TABLE `fabric_regular_group` (
 
 LOCK TABLES `fabric_regular_group` WRITE;
 /*!40000 ALTER TABLE `fabric_regular_group` DISABLE KEYS */;
+INSERT INTO `fabric_regular_group` VALUES (1,'ผ้าคอตตอน 100%','58','ปานกลาง',130,'2026-08-19 09:48:07','2026-08-19 09:48:07'),(2,'ผ้า TC (คอตตอนผสม)','44\"','บาง',120,'2026-08-19 09:48:07','2026-08-19 09:48:07'),(3,'ผ้าแคนวาส','60\"','หนา',180,'2026-08-19 09:48:07','2026-08-19 09:48:07'),(4,'ผ้าเดนิม (ยีนส์)','58','หนา',220,'2026-08-19 09:48:07','2026-08-19 09:48:07');
 /*!40000 ALTER TABLE `fabric_regular_group` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1056,4 +1058,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-19  9:45:27
+-- Dump completed on 2026-08-19  9:48:11

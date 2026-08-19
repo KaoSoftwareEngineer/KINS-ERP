@@ -191,6 +191,15 @@ async function initTables() {
       INDEX idx_frg_shade_group (group_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  const [[{ rgc }]] = await pool.query('SELECT COUNT(*) AS rgc FROM fabric_regular_group');
+  if (rgc === 0) {
+    await pool.query(`INSERT INTO fabric_regular_group (name, width, weight, retail_price) VALUES
+      ('ผ้าคอตตอน 100%', '58', 'ปานกลาง', 130),
+      ('ผ้า TC (คอตตอนผสม)', '44"', 'บาง', 120),
+      ('ผ้าแคนวาส', '60"', 'หนา', 180),
+      ('ผ้าเดนิม (ยีนส์)', '58', 'หนา', 220)`);
+    console.log('  ➕ ใส่ข้อมูลกลุ่มผ้าประจำตัวอย่าง 4 กลุ่ม');
+  }
 
   // ---- กลุ่มผ้าไม่ประจำ (fabric_irregular_group) + เฉดสีของกลุ่ม ----
   await pool.query(`
@@ -214,6 +223,14 @@ async function initTables() {
       INDEX idx_fig_shade_group (group_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  const [[{ igc }]] = await pool.query('SELECT COUNT(*) AS igc FROM fabric_irregular_group');
+  if (igc === 0) {
+    await pool.query(`INSERT INTO fabric_irregular_group (name, width, weight, retail_price) VALUES
+      ('ผ้าซาตินพิมพ์ลาย', '44"', 'บาง', 160),
+      ('ผ้าลูกไม้', '36"', 'บาง', 240),
+      ('ผ้าชีฟองพิมพ์ลาย', '58', 'บาง', 140)`);
+    console.log('  ➕ ใส่ข้อมูลกลุ่มผ้าไม่ประจำตัวอย่าง 3 กลุ่ม');
+  }
 
   // ---- เซสชันล็อกอิน ----
   await pool.query(`
