@@ -279,6 +279,10 @@ app.put('/api/users/:id/role', auth, async (req, res) => {
     if (!(await requesterCanManage(req.userId))) {
       return res.status(403).json({ ok: false, message: 'ไม่มีสิทธิ์กำหนดตำแหน่ง (เฉพาะผู้บริหาร)' });
     }
+    // กันล็อกตัวเอง: เปลี่ยนตำแหน่งของ "ตัวเอง" ไม่ได้ — ให้ผู้ดูแล/ผู้บริหารคนอื่นเปลี่ยนให้
+    if (String(req.userId) === String(req.params.id)) {
+      return res.status(400).json({ ok: false, message: 'เปลี่ยนตำแหน่งของตัวเองไม่ได้ — ให้ผู้ดูแล/ผู้บริหารคนอื่นเปลี่ยนให้ (กันล็อกตัวเองออกจากเมนู)' });
+    }
     const [info] = await mysqlPool.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
     if (info.affectedRows === 0) {
       return res.status(404).json({ ok: false, message: 'ไม่พบผู้ใช้งาน' });
@@ -328,9 +332,10 @@ app.put('/api/users/:id', auth, async (req, res) => {
       return res.status(409).json({ ok: false, message: 'อีเมลนี้ถูกใช้กับบัญชีอื่นแล้ว' });
     }
 
-    // ผู้ที่ไม่ใช่ผู้บริหาร → เปลี่ยนตำแหน่งของตัวเองไม่ได้ (คงตำแหน่งเดิม)
+    // เปลี่ยนตำแหน่งของตัวเองไม่ได้ (แม้เป็นผู้บริหาร) — กันล็อกตัวเอง / ผู้ที่ไม่ใช่ผู้บริหารก็เปลี่ยน role ไม่ได้
+    // → คงตำแหน่งเดิมไว้ (ยังแก้ชื่อ/เบอร์/เพศ/อายุ/รหัสผ่านของตัวเองได้ตามปกติ)
     let roleToSet = role;
-    if (!canManage) {
+    if (!canManage || isSelf) {
       const [[cur]] = await mysqlPool.query('SELECT role FROM users WHERE id = ?', [req.params.id]);
       roleToSet = cur ? cur.role : role;
     }
