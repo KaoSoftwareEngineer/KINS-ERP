@@ -10,8 +10,21 @@ export const useUiStore = defineStore('ui', {
     fb: { show: false, type: 'loading', text: '' },
     fbTimer: null,
     fbAskState: { show: false, title: '', message: '', okText: 'ยืนยัน', cancelText: 'ยกเลิก', danger: false, resolve: null },
+    toasts: [],      // การแจ้งเตือนมุมจอ (เลื่อนเข้า/หายเอง) — { id, text, type, title }
+    _toastId: 0,
   }),
   actions: {
+    // ---- Toast แจ้งเตือนมุมจอ (ไม่บล็อกการทำงาน หายเอง) ----
+    // type: 'success' | 'error' | 'info' | 'warn'
+    toast(text, type = 'success', { title = '', duration = 3400 } = {}) {
+      const id = ++this._toastId;
+      this.toasts.push({ id, text, type, title });
+      setTimeout(() => this.dismissToast(id), duration);
+      return id;
+    },
+    dismissToast(id) {
+      this.toasts = this.toasts.filter(t => t.id !== id);
+    },
     fbLoading(text = 'กำลังบันทึก...') {
       if (this.fbTimer) { clearTimeout(this.fbTimer); this.fbTimer = null; }
       this.fb = { show: true, type: 'loading', text };

@@ -160,6 +160,7 @@ data() {
           if (data.ok) {
             localStorage.setItem('token', data.token);
             localStorage.setItem('currentUser', JSON.stringify(data.user));
+            sessionStorage.setItem('welcomeToast', (data.user && data.user.name) || 'ผู้ใช้งาน');
             this.regMsg = { type: 'success', text: '✅ เข้าสู่ระบบด้วย Google สำเร็จ' };
             setTimeout(() => this.$router.push('/dashboard'), 400);
           } else {
@@ -249,6 +250,8 @@ data() {
             // บันทึก token และ user ลง localStorage
             localStorage.setItem('token', this.token);
             localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+            // แจ้ง Dashboard ให้เด้ง toast ต้อนรับหลังเข้าสู่ระบบ
+            sessionStorage.setItem('welcomeToast', (this.currentUser && this.currentUser.name) || 'ผู้ใช้งาน');
             // redirect ไปที่ dashboard
             setTimeout(() => {
               this.$router.push('/dashboard');

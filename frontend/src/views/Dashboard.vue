@@ -35,6 +35,7 @@ import OrderSlipModal from './dashboard/OrderSlipModal.vue';
 import CustomerEditModal from './dashboard/CustomerEditModal.vue';
 import ShadeModal from './dashboard/ShadeModal.vue';
 import FeedbackModal from './dashboard/FeedbackModal.vue';
+import ToastHost from './dashboard/ToastHost.vue';
 import PermissionModal from './dashboard/PermissionModal.vue';
 import { useAuthStore } from '../stores/auth.js';
 import { useUiStore } from '../stores/ui.js';
@@ -80,6 +81,7 @@ export default {
     CustomerEditModal,
     ShadeModal,
     FeedbackModal,
+    ToastHost,
     PermissionModal,
   },
   provide() {
@@ -1791,6 +1793,14 @@ data() {
         }, 500);
         return;
       }
+      // เด้ง toast ต้อนรับถ้าเพิ่งเข้าสู่ระบบสำเร็จ (ตั้งค่าจากหน้า Login)
+      try {
+        const wt = sessionStorage.getItem('welcomeToast');
+        if (wt) {
+          sessionStorage.removeItem('welcomeToast');
+          this.$nextTick(() => this.ui.toast('ยินดีต้อนรับ, ' + wt, 'success', { title: 'เข้าสู่ระบบสำเร็จ' }));
+        }
+      } catch (e) {}
       this.loadMembers();
       this.loadOrders();
       this.loadLowStock();
@@ -4262,6 +4272,8 @@ data() {
   <div class="dashboard-page">
   <!-- ============ กล่องแจ้งผลกลาง (spinner/ติ๊กถูก/ยืนยัน) ============ -->
   <FeedbackModal />
+  <!-- ============ Toast แจ้งเตือนมุมจอ ============ -->
+  <ToastHost />
   <!-- ============ โมดัลสิทธิ์การเข้าใช้งาน ============ -->
   <PermissionModal />
 <!-- ============ MOBILE TOP BAR ============ -->
