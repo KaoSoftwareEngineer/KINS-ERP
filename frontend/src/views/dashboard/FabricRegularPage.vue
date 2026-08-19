@@ -222,9 +222,13 @@
         <div class="erp-grid">
           <div class="erp-field erp-col-2"><label>คำอธิบาย</label><input type="text" v-model="dash.frNewItem.description" placeholder="คำอธิบายเพิ่มเติม" /></div>
           <div class="erp-field"><label>จำนวนวันที่ใช้ผลิต</label><input type="number" min="0" v-model="dash.frNewItem.productionDays" placeholder="0" /></div>
+          <div class="erp-field"><label>สถานะ</label>
+            <select v-model="dash.frNewItem.active"><option :value="true">Active</option><option :value="false">Inactive</option></select>
+          </div>
           <div class="erp-field"><label>สินค้าทดแทน</label>
             <select v-model="dash.frNewItem.substitute"><option value="no">ไม่มี</option><option value="yes">มี</option></select>
           </div>
+          <div class="erp-field"></div>
           <div class="erp-field erp-col-2"><label>รูป</label>
             <div class="fr-file-input">
               <span class="fr-file-name">{{ dash.frNewItem.imageName || 'ยังไม่ได้เลือกไฟล์' }}</span>
@@ -233,9 +237,6 @@
               </button>
               <input ref="frFileInput" type="file" accept="image/*" class="fr-file-hidden" @change="dash.frHandleFileChange" />
             </div>
-          </div>
-          <div class="erp-field"><label>สถานะ</label>
-            <select v-model="dash.frNewItem.active"><option :value="true">Active</option><option :value="false">Inactive</option></select>
           </div>
         </div>
       </fieldset>
