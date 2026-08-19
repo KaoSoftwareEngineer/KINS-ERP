@@ -150,6 +150,11 @@ export default {
 </script>
 
 <style scoped>
+/* จำกัดความกว้างตาราง (มีแค่ช่องชื่อ) ไม่ให้ยืดเต็มจอ + แถวแน่นเหมือนรูป */
+.fr-table-section { max-width: 820px; }
+.fr-summary-row { max-width: 820px; }
+:deep(.fr-table thead th) { padding: 6px 12px; font-size: 11px; }
+:deep(.fr-table tbody td) { padding: 5px 12px; font-size: 12px; }
 .md-actions { display: flex; gap: 5px; }
 .md-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 13px; }
 .md-edit:hover { background: #eef2ff; border-color: #c7d2fe; }
