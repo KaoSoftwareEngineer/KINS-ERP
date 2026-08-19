@@ -46,10 +46,12 @@
           </td>
           <td><span class="badge success">✓ {{ dash.t[dash.lang].normal }}</span></td>
           <td>{{ user.created_at }}</td>
-          <td class="us-actions">
-            <button v-if="dash.usCanManage || isSelf(user)" class="us-btn us-edit" @click="dash.usOpenEdit(user)">✏️ แก้ไข</button>
-            <button v-if="dash.usCanManage && !isSelf(user)" class="us-btn us-del" @click="dash.usDeleteUser(user)">🗑️ ลบ</button>
-            <span v-if="!dash.usCanManage && !isSelf(user)" class="us-locked" title="แก้ไขได้เฉพาะบัญชีของตัวเอง">🔒</span>
+          <td>
+            <div class="fr-action-group">
+              <button v-if="dash.usCanManage || isSelf(user)" class="fr-action-btn edit" title="แก้ไข" @click="dash.usOpenEdit(user)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+              <button v-if="dash.usCanManage && !isSelf(user)" class="fr-action-btn delete" title="ลบ" @click="dash.usDeleteUser(user)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+              <span v-if="!dash.usCanManage && !isSelf(user)" class="us-locked" title="แก้ไขได้เฉพาะบัญชีของตัวเอง">🔒</span>
+            </div>
           </td>
         </tr>
       </tbody>

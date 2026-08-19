@@ -43,9 +43,11 @@
             <td>{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="fr-td-wrap">{{ item.name }}</td>
             <td v-if="meta.extra" style="text-align:right;">{{ item[meta.extra.field] != null ? Number(item[meta.extra.field]).toFixed(2) : '' }}</td>
-            <td class="md-actions">
-              <button class="md-ic md-edit" title="แก้ไข" @click="openEdit(item)">✏️</button>
-              <button class="md-ic md-del" title="ลบ" @click="deleteItem(item)">🗑️</button>
+            <td>
+              <div class="fr-action-group">
+                <button class="fr-action-btn edit" title="แก้ไข" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                <button class="fr-action-btn delete" title="ลบ" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+              </div>
             </td>
           </tr>
           <tr v-if="loading"><td :colspan="meta.extra ? 4 : 3" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>

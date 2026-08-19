@@ -73,9 +73,11 @@
             <td>{{ item.email || '' }}</td>
             <td>{{ item.pgroup || '' }}</td>
             <td>{{ item.account_term || '' }}</td>
-            <td class="ptn-actions">
-              <button class="ptn-ic ptn-edit" title="แก้ไข" @click="openEdit(item)">✏️</button>
-              <button class="ptn-ic ptn-del" title="ลบ" @click="deleteItem(item)">🗑️</button>
+            <td>
+              <div class="fr-action-group">
+                <button class="fr-action-btn edit" title="แก้ไข" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                <button class="fr-action-btn delete" title="ลบ" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+              </div>
             </td>
           </tr>
           <tr v-if="loading" class="fr-empty-row"><td colspan="12" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>
