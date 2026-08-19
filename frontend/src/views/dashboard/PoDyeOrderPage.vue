@@ -294,7 +294,7 @@ export default {
 .dy-ex-col-wide select { padding: 5px 8px; border: 1px solid var(--field-border); border-radius: 5px; background: var(--surface); color: var(--text); }
 .dy-ex-col-wide textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--field-border); border-radius: 6px; font-family: inherit; font-size: 12.5px; background: var(--surface); color: var(--text); resize: vertical; }
 
-.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--field-border); }
+.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
 .po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
 .po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
