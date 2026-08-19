@@ -10,14 +10,16 @@
     </div>
   </div>
 
-  <!-- ===== ส่วนที่ 1: บทบาทและสิทธิ์ (ตั้งค่าได้) ===== -->
-  <div class="fr-summary fr-summary-row" style="margin-top: 14px;">
-    <span>พบ {{ dash.genCurrentTable.rows.length }} บทบาท</span>
-    <button v-if="dash.genSelected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="dash.genBulkDeleteRows">🗑️ ลบที่เลือก ({{ dash.genSelected.length }})</button>
-  </div>
+  <!-- ===== ส่วนที่ 1: บทบาทและสิทธิ์ (การ์ดเดียวครอบหัวข้อ+ตาราง+แบ่งหน้า) ===== -->
+  <div class="section perm-card" style="margin-top: 14px;">
+    <div class="section-header">
+      <h2>📋 {{ dash.t[dash.lang].totalItems }} {{ dash.genCurrentTable.rows.length }} {{ dash.t[dash.lang].rolesUnit }}</h2>
+      <div class="fr-summary-actions">
+        <button v-if="dash.genSelected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="dash.genBulkDeleteRows">🗑️ ลบที่เลือก ({{ dash.genSelected.length }})</button>
+      </div>
+    </div>
 
-  <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
-    <div class="fr-table-scroll">
+    <div class="perm-table-wrap">
       <table class="fr-table">
         <thead>
           <tr>
@@ -44,30 +46,28 @@
         </tbody>
       </table>
     </div>
+
+    <div class="xl-pagination" v-if="dash.genCurrentTable.rows.length > 0" style="margin-top: 14px;">
+      <select v-model.number="dash.genPageSize" class="fr-page-size-select">
+        <option :value="10">10 / หน้า</option>
+        <option :value="20">20 / หน้า</option>
+        <option :value="50">50 / หน้า</option>
+      </select>
+      <button class="fr-btn-util" :disabled="dash.genPage === 1" @click="dash.genPrevPage">‹ ก่อนหน้า</button>
+      <span>หน้า {{ dash.genPage }} / {{ dash.genTotalPages }}</span>
+      <button class="fr-btn-util" :disabled="dash.genPage === dash.genTotalPages" @click="dash.genNextPage">ถัดไป ›</button>
+    </div>
   </div>
 
-  <div class="xl-pagination" v-if="dash.genCurrentTable.rows.length > 0">
-    <select v-model.number="dash.genPageSize" class="fr-page-size-select">
-      <option :value="10">10 / หน้า</option>
-      <option :value="20">20 / หน้า</option>
-      <option :value="50">50 / หน้า</option>
-    </select>
-    <button class="fr-btn-util" :disabled="dash.genPage === 1" @click="dash.genPrevPage">‹ ก่อนหน้า</button>
-    <span>หน้า {{ dash.genPage }} / {{ dash.genTotalPages }}</span>
-    <button class="fr-btn-util" :disabled="dash.genPage === dash.genTotalPages" @click="dash.genNextPage">ถัดไป ›</button>
-  </div>
+  <!-- ===== ส่วนที่ 2: สิทธิ์การเข้าถึงต่อบัญชี (การ์ดเดียวครอบทั้งหมด) ===== -->
+  <div class="section perm-card" style="margin-top: 20px;">
+    <div class="section-header">
+      <h2>👥 สิทธิ์การเข้าถึงต่อบัญชี — {{ accounts.length }} บัญชี</h2>
+      <input class="acct-search" v-model="acctSearch" placeholder="ค้นหาชื่อ / อีเมล / ตำแหน่ง" />
+    </div>
+    <p class="acct-note">สิทธิ์ของแต่ละบัญชีมาจาก "บทบาท/ตำแหน่ง" ที่กำหนดไว้ — ปรับสิทธิ์ได้ที่ตารางบทบาทด้านบน หรือเปลี่ยนตำแหน่งบัญชีที่หน้า "บัญชีผู้ใช้งาน"</p>
 
-  <!-- ===== ส่วนที่ 2: สิทธิ์การเข้าถึงต่อบัญชี (ทุกบัญชีผู้ใช้) ===== -->
-  <div class="acct-heading">
-    <h2>👥 สิทธิ์การเข้าถึงต่อบัญชี</h2>
-    <input class="acct-search" v-model="acctSearch" placeholder="ค้นหาชื่อ / อีเมล / ตำแหน่ง" />
-  </div>
-  <p class="acct-note">สิทธิ์ของแต่ละบัญชีมาจาก "บทบาท/ตำแหน่ง" ที่กำหนดไว้ — ปรับสิทธิ์ได้ที่ตารางบทบาทด้านบน หรือเปลี่ยนตำแหน่งบัญชีที่หน้า "บัญชีผู้ใช้งาน"</p>
-
-  <div class="fr-summary fr-summary-row"><span>พบ {{ accounts.length }} บัญชี</span></div>
-
-  <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
-    <div class="fr-table-scroll">
+    <div class="perm-table-wrap">
       <table class="fr-table">
         <thead>
           <tr>
@@ -106,8 +106,8 @@
         </tbody>
       </table>
     </div>
+    <p class="acct-footnote">* บัญชีที่ถูกจำกัดยังเข้าถึง "แดชบอร์ด" และ "ตั้งค่า" ได้เสมอ (เมนูพื้นฐาน)</p>
   </div>
-  <p class="acct-footnote">* บัญชีที่ถูกจำกัดยังเข้าถึง "แดชบอร์ด" และ "ตั้งค่า" ได้เสมอ (เมนูพื้นฐาน)</p>
 </div>
 </template>
 
@@ -169,19 +169,28 @@ export default {
 </script>
 
 <style scoped>
-.acct-heading {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px; margin: 30px 2px 6px;
+/* การ์ดครอบทั้งส่วน (หัวข้อ + ตาราง + แบ่งหน้า) */
+.perm-card { padding: 18px 20px 16px; }
+.perm-card .section-header { margin-bottom: 14px; }
+
+/* กรอบตารางในการ์ด — หัวตารางเข้มธีมผ้าประจำ + มุมโค้ง */
+.perm-table-wrap {
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+  overflow: hidden;
+  overflow-x: auto;
 }
-.acct-heading h2 { font-size: 18px; font-weight: 700; color: var(--text); }
+.perm-table-wrap .fr-table { border: none; }
+.perm-table-wrap .fr-table tbody tr:last-child td { border-bottom: none; }
+
 .acct-search {
   padding: 7px 12px; border: 1px solid var(--field-border); border-radius: 8px;
   font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text);
   min-width: 240px; outline: none;
 }
 .acct-search:focus { border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
-.acct-note { font-size: 12.5px; color: var(--muted); margin: 0 2px 10px; line-height: 1.5; }
-.acct-footnote { font-size: 11.5px; color: var(--muted); margin: 10px 2px 0; }
+.acct-note { font-size: 12.5px; color: var(--muted); margin: -6px 2px 14px; line-height: 1.5; }
+.acct-footnote { font-size: 11.5px; color: var(--muted); margin: 12px 2px 0; }
 
 .acct-name { font-weight: 600; color: var(--text); }
 .acct-email { font-size: 12px; color: var(--muted); margin-top: 2px; }
