@@ -1,79 +1,98 @@
 <template>
 <div>
-  <div class="header flex-wrap" style="margin-bottom: 24px;">
-    <h1>⚙️ {{ dash.t[dash.lang].settingsTitle }}</h1>
-    <div class="header-actions">
-      <button class="btn-small btn-primary" @click="dash.xlTogglePanel">➕ เพิ่มข้อมูลผ้า Database (Excel)</button>
-      <button class="btn-small btn-primary" @click="dash.cmTogglePanel">➕ เพิ่มลูกค้า Database (Excel)</button>
+  <!-- ===== หัวหน้า ===== -->
+  <div class="set-topbar">
+    <div class="set-topbar-title">
+      <h1>⚙️ {{ dash.t[dash.lang].settingsTitle }}</h1>
+      <p class="set-subtitle">จัดการบัญชี ความปลอดภัย และนำเข้าข้อมูลของระบบ</p>
+    </div>
+    <div class="set-import-actions">
+      <button class="set-import-btn" @click="dash.xlTogglePanel"><span class="set-import-ic">📊</span> นำเข้าข้อมูลผ้า (Excel)</button>
+      <button class="set-import-btn" @click="dash.cmTogglePanel"><span class="set-import-ic">👥</span> นำเข้าข้อมูลลูกค้า (Excel)</button>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-header">
-      <h2>{{ dash.t[dash.lang].accountInfo }}</h2>
-      <button v-if="!dash.settingsEditOpen" class="btn-small btn-primary" @click="dash.settingsOpenEdit">{{ dash.t[dash.lang].editProfile }}</button>
-    </div>
-    <p v-if="dash.settingsEditMsg.text" class="xl-import-message" :class="{ 'is-error': dash.settingsEditMsg.type === 'error' }">{{ dash.settingsEditMsg.text }}</p>
-
-    <!-- ---- การ์ดบัญชีเดียว: โหมดดู / โหมดแก้ไข ใช้พื้นที่รูปเดียวกัน ---- -->
-    <div style="display: flex; align-items: center; gap: 16px; margin: 12px 4px 20px;">
-      <img v-if="(dash.settingsEditOpen ? dash.settingsEditForm.avatar : dash.currentUser.avatar)"
-           :src="dash.settingsEditOpen ? dash.settingsEditForm.avatar : dash.currentUser.avatar" alt=""
-           style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" />
-      <div v-else style="width: 56px; height: 56px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; flex-shrink: 0;">
-        {{ ((dash.settingsEditOpen ? dash.settingsEditForm.name : dash.currentUser.name) || 'U').trim().charAt(0).toUpperCase() }}
+  <div class="set-grid">
+    <!-- ===== การ์ดบัญชี ===== -->
+    <div class="section set-card set-card-wide">
+      <div class="set-card-head">
+        <h2><span class="set-ic">👤</span> {{ dash.t[dash.lang].accountInfo }}</h2>
+        <button v-if="!dash.settingsEditOpen" class="btn-small btn-primary" @click="dash.settingsOpenEdit">✏️ {{ dash.t[dash.lang].editProfile }}</button>
       </div>
+      <p v-if="dash.settingsEditMsg.text" class="set-msg" :class="{ 'is-error': dash.settingsEditMsg.type === 'error' }">{{ dash.settingsEditMsg.text }}</p>
 
-      <div v-if="!dash.settingsEditOpen">
-        <p style="margin-bottom: 6px; color: var(--muted);">{{ dash.t[dash.lang].nameLabel }}: <strong style="color: var(--text);">{{ dash.currentUser.name }}</strong></p>
-        <p style="margin-bottom: 6px; color: var(--muted);">{{ dash.t[dash.lang].emailLabel }}: <strong style="color: var(--text);">{{ dash.currentUser.email }}</strong></p>
-        <p style="color: var(--muted);">เบอร์โทร: <strong style="color: var(--text);">{{ dash.currentUser.phone || '-' }}</strong></p>
-      </div>
-      <div v-else class="fr-field-group">
-        <label>เปลี่ยนรูปโปรไฟล์</label>
-        <input type="file" accept="image/*" @change="dash.settingsHandleAvatarFile" />
-      </div>
-    </div>
-
-    <!-- ---- ฟอร์มแก้ไข (ชื่อ/เบอร์โทร) ---- -->
-    <div v-if="dash.settingsEditOpen" style="padding: 0 4px;">
-      <div class="grid grid-cols-1 sm:grid-cols-2" style="gap: 14px; max-width: 480px;">
-        <div class="fr-field-group">
-          <label>ชื่อ-นามสกุล</label>
-          <input type="text" v-model="dash.settingsEditForm.name" placeholder="ชื่อ-นามสกุล" />
+      <!-- โหมดดู -->
+      <div v-if="!dash.settingsEditOpen" class="set-profile">
+        <div class="set-avatar">
+          <img v-if="dash.currentUser.avatar" :src="dash.currentUser.avatar" referrerpolicy="no-referrer" alt="" />
+          <span v-else>{{ (dash.currentUser.name || 'U').trim().charAt(0).toUpperCase() }}</span>
         </div>
-        <div class="fr-field-group">
-          <label>เบอร์โทร</label>
-          <input type="tel" v-model="dash.settingsEditForm.phone" placeholder="0812345678" />
+        <div class="set-profile-body">
+          <div class="set-profile-name">{{ dash.currentUser.name || '-' }}</div>
+          <span class="set-role-badge">{{ dash.currentUser.role || 'ผู้ใช้งาน' }}</span>
+          <div class="set-info-grid">
+            <div class="set-info"><span class="set-info-lbl">อีเมล</span><span class="set-info-val">{{ dash.currentUser.email || '-' }}</span></div>
+            <div class="set-info"><span class="set-info-lbl">เบอร์โทร</span><span class="set-info-val">{{ dash.currentUser.phone || '-' }}</span></div>
+          </div>
         </div>
       </div>
-      <div style="display: flex; gap: 10px; margin-top: 16px;">
-        <button class="btn-small btn-primary" :disabled="dash.settingsEditSaving" @click="dash.settingsSaveProfile">
-          {{ dash.settingsEditSaving ? 'กำลังบันทึก...' : '💾 บันทึก' }}
-        </button>
-        <button class="btn-small" @click="dash.settingsCloseEdit">ยกเลิก</button>
+
+      <!-- โหมดแก้ไข -->
+      <div v-else class="set-edit">
+        <div class="set-avatar-edit">
+          <div class="set-avatar">
+            <img v-if="dash.settingsEditForm.avatar" :src="dash.settingsEditForm.avatar" alt="" />
+            <span v-else>{{ (dash.settingsEditForm.name || 'U').trim().charAt(0).toUpperCase() }}</span>
+          </div>
+          <label class="set-upload-btn">
+            <input type="file" accept="image/*" @change="dash.settingsHandleAvatarFile" hidden />
+            📷 เปลี่ยนรูปโปรไฟล์
+          </label>
+        </div>
+        <div class="set-form-grid">
+          <div class="fr-field-group">
+            <label>ชื่อ-นามสกุล</label>
+            <input type="text" v-model="dash.settingsEditForm.name" placeholder="ชื่อ-นามสกุล" />
+          </div>
+          <div class="fr-field-group">
+            <label>เบอร์โทร</label>
+            <input type="tel" v-model="dash.settingsEditForm.phone" placeholder="0812345678" />
+          </div>
+        </div>
+        <div class="set-edit-actions">
+          <button class="btn-small btn-primary" :disabled="dash.settingsEditSaving" @click="dash.settingsSaveProfile">
+            {{ dash.settingsEditSaving ? 'กำลังบันทึก...' : '💾 บันทึก' }}
+          </button>
+          <button class="btn-small" @click="dash.settingsCloseEdit">ยกเลิก</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="section">
-    <div class="section-header">
-      <h2>{{ dash.t[dash.lang].security }}</h2>
-    </div>
-    <p style="margin-bottom: 16px; color: var(--muted);">{{ dash.t[dash.lang].accountNormal }}</p>
-    <button class="btn-small">{{ dash.t[dash.lang].changePassword }}</button>
-  </div>
-
-  <div class="section">
-    <div class="section-header">
-      <h2>{{ dash.t[dash.lang].notifications }}</h2>
-    </div>
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-      <div>
-        <div style="font-weight: 600; color: var(--text);">{{ dash.t[dash.lang].emailNotifications }}</div>
-        <div style="font-size: 13px; color: var(--muted);">{{ dash.t[dash.lang].emailNotificationsDesc }}</div>
+    <!-- ===== ความปลอดภัย ===== -->
+    <div class="section set-card">
+      <div class="set-card-head"><h2><span class="set-ic">🔒</span> {{ dash.t[dash.lang].security }}</h2></div>
+      <div class="set-row">
+        <div class="set-row-info">
+          <div class="set-row-title">รหัสผ่าน</div>
+          <div class="set-row-desc">{{ dash.t[dash.lang].accountNormal }}</div>
+        </div>
+        <button class="btn-small">{{ dash.t[dash.lang].changePassword }}</button>
       </div>
-      <input type="checkbox" checked />
+    </div>
+
+    <!-- ===== การแจ้งเตือน ===== -->
+    <div class="section set-card">
+      <div class="set-card-head"><h2><span class="set-ic">🔔</span> {{ dash.t[dash.lang].notifications }}</h2></div>
+      <div class="set-row">
+        <div class="set-row-info">
+          <div class="set-row-title">{{ dash.t[dash.lang].emailNotifications }}</div>
+          <div class="set-row-desc">{{ dash.t[dash.lang].emailNotificationsDesc }}</div>
+        </div>
+        <label class="set-switch">
+          <input type="checkbox" v-model="emailNotif" />
+          <span class="set-switch-slider"></span>
+        </label>
+      </div>
     </div>
   </div>
 
@@ -158,7 +177,7 @@ export default {
   name: 'SettingsPage',
   inject: ['dash'],
   data() {
-    return { dragXl: false, dragCm: false };
+    return { dragXl: false, dragCm: false, emailNotif: true };
   },
   methods: {
     onDropXl(e) {
@@ -176,7 +195,96 @@ export default {
 </script>
 
 <style scoped>
-/* โมดัลนำเข้า (เหลือแค่เลือกไฟล์ ไม่มีตาราง) — ขนาดพอดี */
+/* ============ หัวหน้า ============ */
+.set-topbar {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 14px; margin: 14px 0 20px;
+}
+.set-topbar-title h1 { font-size: 24px; font-weight: 700; color: var(--text); }
+.set-subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.set-import-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.set-import-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 9px; border: 1px solid var(--field-border);
+  background: var(--surface); color: var(--text); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s;
+}
+.set-import-btn:hover { border-color: #2F65F6; background: rgba(47,101,246,.06); color: #2F65F6; }
+.set-import-ic { font-size: 15px; }
+
+/* ============ กริดการ์ด ============ */
+.set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.set-card-wide { grid-column: 1 / -1; }
+.set-card { padding: 20px 22px; }
+
+.set-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.set-card-head h2 { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.set-ic { font-size: 17px; }
+
+.set-msg { font-size: 13px; color: var(--ok); margin-bottom: 12px; }
+.set-msg.is-error { color: var(--danger); }
+
+/* ---- โปรไฟล์ (โหมดดู) ---- */
+.set-profile { display: flex; align-items: center; gap: 20px; }
+.set-avatar {
+  width: 76px; height: 76px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+  background: var(--brand); color: #fff; display: grid; place-items: center;
+  font-size: 28px; font-weight: 700; box-shadow: 0 4px 12px rgba(47,101,246,.25);
+}
+.set-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.set-profile-body { flex: 1; min-width: 0; }
+.set-profile-name { font-size: 19px; font-weight: 700; color: var(--text); }
+.set-role-badge {
+  display: inline-block; margin-top: 5px; padding: 3px 12px; border-radius: 20px;
+  background: rgba(124,58,237,.12); color: #7c3aed; font-size: 12.5px; font-weight: 600;
+}
+.set-info-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px;
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--field-border);
+}
+.set-info { display: flex; flex-direction: column; gap: 2px; }
+.set-info-lbl { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.set-info-val { font-size: 14px; color: var(--text); font-weight: 600; word-break: break-word; }
+
+/* ---- โปรไฟล์ (โหมดแก้ไข) ---- */
+.set-avatar-edit { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.set-upload-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--field-border);
+  background: var(--field); color: var(--text); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s;
+}
+.set-upload-btn:hover { border-color: #2F65F6; color: #2F65F6; background: rgba(47,101,246,.06); }
+.set-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 560px; }
+.set-edit-actions { display: flex; gap: 10px; margin-top: 18px; }
+
+/* ---- แถวความปลอดภัย / แจ้งเตือน ---- */
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.set-row-info { min-width: 0; }
+.set-row-title { font-weight: 600; color: var(--text); font-size: 14px; }
+.set-row-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+
+/* ---- toggle switch ---- */
+.set-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; cursor: pointer; }
+.set-switch input { opacity: 0; width: 0; height: 0; }
+.set-switch-slider {
+  position: absolute; inset: 0; border-radius: 24px; background: var(--field-border);
+  transition: background .2s;
+}
+.set-switch-slider::before {
+  content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.set-switch input:checked + .set-switch-slider { background: #17a06a; }
+.set-switch input:checked + .set-switch-slider::before { transform: translateX(20px); }
+
+@media (max-width: 760px) {
+  .set-grid { grid-template-columns: 1fr; }
+  .set-profile { flex-direction: column; align-items: flex-start; }
+  .set-form-grid { grid-template-columns: 1fr; }
+}
+
+/* ============ โมดัลนำเข้า (เหลือแค่เลือกไฟล์ ไม่มีตาราง) — ขนาดพอดี ============ */
 .erp-modal-wide { width: 600px; max-width: 96vw; }
 
 /* หัวขั้นตอน + เลขลำดับ */
