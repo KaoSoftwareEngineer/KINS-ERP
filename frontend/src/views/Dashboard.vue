@@ -110,6 +110,7 @@ data() {
         nestedFlyoutPos: { top: 0, left: 0 },
         // ===== แก้ไขบัญชีผู้ใช้ =====
         usModalShow: false,
+        usCanManage: false,  // ตัวเราจัดการบัญชีคนอื่นได้ไหม (ตามตำแหน่ง)
         usEditItem: { id: null, name: '', email: '', phone: '', role: '', gender: '', age: '', password: '' },
         // ข้อมูลผ้า (master data) สำหรับ dropdown ในฟอร์มผ้าประจำ/ไม่ประจำ
         md: { structure: [], composition: [], width: [], finishing: [], weight: [] },
@@ -3791,6 +3792,7 @@ data() {
           if (res.status === 401) { this.sessionExpired(); return; }
           const data = await res.json();
           this.members = data.users || [];
+          this.usCanManage = !!data.canManage;
         } catch (e) {
           console.log('ไม่สามารถโหลดข้อมูลสมาชิก');
         }

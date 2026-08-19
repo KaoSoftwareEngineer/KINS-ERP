@@ -3,6 +3,7 @@
   <div class="header flex-wrap">
     <h1>{{ dash.t[dash.lang].membersList }}</h1>
     <div class="header-actions">
+      <span v-if="!dash.usCanManage" class="us-perm-note">🔒 คุณแก้ไขได้เฉพาะบัญชีของตัวเอง (จัดการบัญชีอื่นได้เฉพาะผู้บริหาร)</span>
       <button class="btn-small fr-btn-search">{{ dash.t[dash.lang].search }}</button>
     </div>
   </div>
@@ -37,16 +38,18 @@
           <td>{{ user.gender === 'male' ? 'ชาย' : user.gender === 'female' ? 'หญิง' : '-' }}</td>
           <td>{{ user.age || '-' }}</td>
           <td>
-            <select class="pm-role-select" :value="user.role || ''" @change="dash.setUserRole(user, $event.target.value)">
+            <select v-if="dash.usCanManage" class="pm-role-select" :value="user.role || ''" @change="dash.setUserRole(user, $event.target.value)">
               <option value="">— ยังไม่กำหนด —</option>
               <option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option>
             </select>
+            <span v-else class="us-role-text">{{ user.role || '— ยังไม่กำหนด —' }}</span>
           </td>
           <td><span class="badge success">✓ {{ dash.t[dash.lang].normal }}</span></td>
           <td>{{ user.created_at }}</td>
           <td class="us-actions">
-            <button class="us-btn us-edit" @click="dash.usOpenEdit(user)">✏️ แก้ไข</button>
-            <button class="us-btn us-del" @click="dash.usDeleteUser(user)">🗑️ ลบ</button>
+            <button v-if="dash.usCanManage || isSelf(user)" class="us-btn us-edit" @click="dash.usOpenEdit(user)">✏️ แก้ไข</button>
+            <button v-if="dash.usCanManage && !isSelf(user)" class="us-btn us-del" @click="dash.usDeleteUser(user)">🗑️ ลบ</button>
+            <span v-if="!dash.usCanManage && !isSelf(user)" class="us-locked" title="แก้ไขได้เฉพาะบัญชีของตัวเอง">🔒</span>
           </td>
         </tr>
       </tbody>
@@ -74,8 +77,8 @@
         </div>
         <div class="erp-sec-title"><span class="erp-sec-bar"></span>สิทธิ์ / ความปลอดภัย</div>
         <div class="erp-grid">
-          <div class="erp-field"><label>ตำแหน่ง / บทบาท</label>
-            <select v-model="dash.usEditItem.role"><option value="">— ยังไม่กำหนด —</option><option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option></select>
+          <div class="erp-field"><label>ตำแหน่ง / บทบาท <span v-if="!dash.usCanManage" class="us-hint">(เฉพาะผู้บริหารเปลี่ยนได้)</span></label>
+            <select v-model="dash.usEditItem.role" :disabled="!dash.usCanManage"><option value="">— ยังไม่กำหนด —</option><option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option></select>
           </div>
           <div class="erp-field"><label>รหัสผ่านใหม่ <span class="us-hint">(เว้นว่างถ้าไม่เปลี่ยน)</span></label><input type="password" v-model="dash.usEditItem.password" placeholder="••••••••" /></div>
         </div>
@@ -93,6 +96,9 @@
 export default {
   name: 'UsersPage',
   inject: ['dash'],
+  methods: {
+    isSelf(user) { return this.dash.currentUser && String(user.id) === String(this.dash.currentUser.id); },
+  },
 };
 </script>
 
@@ -119,6 +125,9 @@ export default {
 .us-edit:hover { background: #e0e7ff; }
 .us-del { background: #fef2f2; color: #a82a3a; border-color: #fecaca; }
 .us-del:hover { background: #fee2e2; }
+.us-role-text { font-size: 13px; color: var(--text); }
+.us-locked { font-size: 14px; opacity: .5; }
+.us-perm-note { font-size: 12px; color: #a82a3a; margin-right: 8px; }
 
 /* โมดัลแก้ไข */
 .us-overlay {

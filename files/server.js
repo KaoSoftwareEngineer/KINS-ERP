@@ -186,6 +186,21 @@ const wrap = (fn) => (req, res) => fn(req, res).catch((err) => {
   res.status(500).json({ ok: false, message: 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ' });
 });
 
+// ---- สิทธิ์จัดการบัญชีผู้อื่น (ตามตำแหน่ง) ----
+//  ผู้จัดการ = ตำแหน่งระดับบริหาร (CEO/ผู้บริหาร/ผู้ดูแลระบบ/admin)
+function isManagerRole(role) {
+  const r = (role || '').toLowerCase();
+  return r.includes('ceo') || r.includes('ผู้บริหาร') || r.includes('ผู้ดูแล') || r.includes('admin') || r.includes('manager');
+}
+// คืน true ถ้าผู้เรียกจัดการบัญชีคนอื่นได้ (เป็นผู้จัดการ หรือระบบยังไม่มีผู้จัดการเลย = bootstrap)
+async function requesterCanManage(userId) {
+  const [[me]] = await mysqlPool.query('SELECT role FROM users WHERE id = ?', [userId]);
+  if (me && isManagerRole(me.role)) return true;
+  const [rows] = await mysqlPool.query('SELECT role FROM users');
+  const anyManager = rows.some(u => isManagerRole(u.role));
+  return !anyManager; // ยังไม่มีผู้จัดการในระบบ → ให้ทุกคนจัดการได้ (กันล็อกเอาต์)
+}
+
 // ------------------------------------------------------------
 //  ข้อมูลผู้ใช้ปัจจุบัน (สำหรับหน้าแดชบอร์ด)
 // ------------------------------------------------------------
@@ -233,7 +248,8 @@ app.get('/api/users', auth, async (req, res) => {
   const [users] = await mysqlPool.query(
     'SELECT id, name, email, phone, avatar, role, gender, age, created_at FROM users ORDER BY id DESC'
   );
-  res.json({ ok: true, total: users.length, users });
+  const canManage = await requesterCanManage(req.userId);
+  res.json({ ok: true, total: users.length, users, canManage, meId: req.userId });
 });
 
 // ------------------------------------------------------------
@@ -242,6 +258,9 @@ app.get('/api/users', auth, async (req, res) => {
 app.put('/api/users/:id/role', auth, async (req, res) => {
   const role = (req.body.role || '').trim();
   try {
+    if (!(await requesterCanManage(req.userId))) {
+      return res.status(403).json({ ok: false, message: 'ไม่มีสิทธิ์กำหนดตำแหน่ง (เฉพาะผู้บริหาร)' });
+    }
     const [info] = await mysqlPool.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
     if (info.affectedRows === 0) {
       return res.status(404).json({ ok: false, message: 'ไม่พบผู้ใช้งาน' });
@@ -279,14 +298,27 @@ app.put('/api/users/:id', auth, async (req, res) => {
   }
 
   try {
+    const canManage = await requesterCanManage(req.userId);
+    const isSelf = String(req.userId) === String(req.params.id);
+    // แก้บัญชีคนอื่นได้เฉพาะผู้บริหาร
+    if (!canManage && !isSelf) {
+      return res.status(403).json({ ok: false, message: 'แก้ไขได้เฉพาะบัญชีของตัวเอง' });
+    }
     // กันอีเมลซ้ำกับบัญชีอื่น
     const [dup] = await mysqlPool.query('SELECT id FROM users WHERE email = ? AND id <> ?', [email, req.params.id]);
     if (dup.length > 0) {
       return res.status(409).json({ ok: false, message: 'อีเมลนี้ถูกใช้กับบัญชีอื่นแล้ว' });
     }
 
+    // ผู้ที่ไม่ใช่ผู้บริหาร → เปลี่ยนตำแหน่งของตัวเองไม่ได้ (คงตำแหน่งเดิม)
+    let roleToSet = role;
+    if (!canManage) {
+      const [[cur]] = await mysqlPool.query('SELECT role FROM users WHERE id = ?', [req.params.id]);
+      roleToSet = cur ? cur.role : role;
+    }
+
     const fields = ['name = ?', 'email = ?', 'phone = ?', 'role = ?', 'gender = ?', 'age = ?'];
-    const params = [name, email, phone, role, gender, age];
+    const params = [name, email, phone, roleToSet, gender, age];
     if (password) { fields.push('password = ?'); params.push(hashPassword(password)); }
     params.push(req.params.id);
 
@@ -294,7 +326,7 @@ app.put('/api/users/:id', auth, async (req, res) => {
     if (info.affectedRows === 0) {
       return res.status(404).json({ ok: false, message: 'ไม่พบผู้ใช้งาน' });
     }
-    res.json({ ok: true, message: 'บันทึกข้อมูลผู้ใช้แล้ว', user: { id: Number(req.params.id), name, email, phone, role, gender, age } });
+    res.json({ ok: true, message: 'บันทึกข้อมูลผู้ใช้แล้ว', user: { id: Number(req.params.id), name, email, phone, role: roleToSet, gender, age } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, message: 'บันทึกข้อมูลไม่สำเร็จ' });
@@ -306,6 +338,9 @@ app.put('/api/users/:id', auth, async (req, res) => {
 // ------------------------------------------------------------
 app.delete('/api/users/:id', auth, async (req, res) => {
   try {
+    if (!(await requesterCanManage(req.userId))) {
+      return res.status(403).json({ ok: false, message: 'ไม่มีสิทธิ์ลบบัญชีผู้อื่น (เฉพาะผู้บริหาร)' });
+    }
     if (String(req.userId) === String(req.params.id)) {
       return res.status(400).json({ ok: false, message: 'ไม่สามารถลบบัญชีที่กำลังใช้งานอยู่ได้' });
     }
