@@ -116,7 +116,15 @@
             <select v-model="form.account_term"><option value="">— เลือกเงื่อนไข —</option><option v-for="t in termChoices" :key="t" :value="t">{{ t }}</option></select>
           </div>
           <div class="ptn-field"><label>ประเทศ</label>
-            <select v-model="form.country"><option value="">— เลือกประเทศ —</option><option v-for="c in countryChoices" :key="c" :value="c">{{ c }}</option></select>
+            <select v-model="form.country">
+              <option value="">— เลือกประเทศ —</option>
+              <optgroup label="พบบ่อย">
+                <option v-for="c in commonCountries" :key="'c-'+c" :value="c">{{ c }}</option>
+              </optgroup>
+              <optgroup label="ทั้งหมด (A–Z)">
+                <option v-for="c in allCountries" :key="'a-'+c" :value="c">{{ c }}</option>
+              </optgroup>
+            </select>
           </div>
         </div>
 
@@ -151,7 +159,9 @@ export default {
       page: 1, pageSize: 15, selected: [],
       showModal: false, editingId: null, triedSave: false,
       form: this.blankForm(),
-      countryChoices: ['Thailand', 'Japan', 'China', 'Korea', 'Vietnam', 'India', 'Taiwan'],
+      // ประเทศคู่ค้าที่พบบ่อย (ขึ้นก่อน) + รายชื่อประเทศครบ
+      commonCountries: ['Thailand', 'China', 'Japan', 'South Korea', 'Taiwan', 'Vietnam', 'India', 'Hong Kong', 'Singapore', 'Indonesia', 'Malaysia', 'Bangladesh', 'Pakistan'],
+      allCountries: ['Afghanistan','Albania','Algeria','Argentina','Australia','Austria','Bangladesh','Belgium','Bhutan','Brazil','Brunei','Cambodia','Canada','Chile','China','Colombia','Czechia','Denmark','Egypt','Finland','France','Germany','Greece','Hong Kong','Hungary','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Laos','Lebanon','Malaysia','Maldives','Mexico','Mongolia','Morocco','Myanmar','Nepal','Netherlands','New Zealand','Nigeria','Norway','Oman','Pakistan','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Singapore','Slovakia','South Africa','South Korea','Spain','Sri Lanka','Sweden','Switzerland','Taiwan','Thailand','Turkey','Ukraine','United Arab Emirates','United Kingdom','United States','Vietnam'],
       groupChoices: ['อื่นๆ', 'โรงทอ', 'โรงย้อม', 'ผู้ผลิตเส้นด้าย', 'ตัวแทนจำหน่าย'],
       termChoices: ['เงินสด', '14 Days', '30 Days', '60 Days', '90 Days', '120 Days'],
     };
@@ -243,16 +253,16 @@ export default {
   background: rgba(15,23,42,0.5); padding: 20px;
   font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
 }
-.ptn-modal { background: var(--surface); border-radius: 14px; width: 680px; max-width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
+.ptn-modal { background: var(--surface); border-radius: 14px; width: 860px; max-width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
 .ptn-modal-head {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2f4fd6 100%); color: #fff;
-  padding: 15px 22px; font-size: 16px; font-weight: 700;
+  background: #3c4453; color: #fff;
+  padding: 15px 24px; font-size: 16px; font-weight: 700;
   display: flex; align-items: center; justify-content: space-between;
 }
 .ptn-head-ic { margin-right: 6px; }
 .ptn-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; font-size: 15px; cursor: pointer; }
 .ptn-x:hover { background: rgba(255,255,255,.3); }
-.ptn-modal-body { padding: 20px 24px; overflow-y: auto; }
+.ptn-modal-body { padding: 22px 30px; overflow-y: auto; }
 .ptn-sec-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
 .ptn-sec-title:not(:first-child) { margin-top: 22px; }
 .ptn-sec-bar { width: 4px; height: 16px; border-radius: 2px; background: #1e3a8a; display: inline-block; }
