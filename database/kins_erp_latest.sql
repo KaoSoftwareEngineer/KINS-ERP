@@ -295,6 +295,42 @@ INSERT INTO `fabric_master` VALUES (256,'18001','ผ้าประจำ','Avan
 UNLOCK TABLES;
 
 --
+-- Table structure for table `fabric_raw`
+--
+
+DROP TABLE IF EXISTS `fabric_raw`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fabric_raw` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` varchar(64) DEFAULT 'Greige',
+  `sku` varchar(64) NOT NULL,
+  `name` varchar(255) DEFAULT '',
+  `structure` varchar(255) DEFAULT '',
+  `composition` varchar(255) DEFAULT '',
+  `width` varchar(64) DEFAULT '',
+  `unit` varchar(32) DEFAULT 'หลา',
+  `shrinkage` double DEFAULT 0,
+  `allowance` double DEFAULT 0,
+  `image_name` varchar(255) DEFAULT '',
+  `active` tinyint(4) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fabric_raw`
+--
+
+LOCK TABLES `fabric_raw` WRITE;
+/*!40000 ALTER TABLE `fabric_raw` DISABLE KEYS */;
+INSERT INTO `fabric_raw` VALUES (1,'Greige','G001','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27'),(2,'Greige','G002','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27'),(3,'Greige','G003','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27');
+/*!40000 ALTER TABLE `fabric_raw` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `fabric_regular_group`
 --
 
@@ -1058,4 +1094,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-19  9:48:11
+-- Dump completed on 2026-08-19  9:56:31

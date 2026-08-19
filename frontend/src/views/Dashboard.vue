@@ -7,6 +7,7 @@ import SettingsPage from './dashboard/SettingsPage.vue';
 import FabricRegularPage from './dashboard/FabricRegularPage.vue';
 import FabricRegularGroupPage from './dashboard/FabricRegularGroupPage.vue';
 import FabricIrregularPage from './dashboard/FabricIrregularPage.vue';
+import FabricRawPage from './dashboard/FabricRawPage.vue';
 import CustomersPage from './dashboard/CustomersPage.vue';
 import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
@@ -46,6 +47,7 @@ export default {
     FabricRegularPage,
     FabricRegularGroupPage,
     FabricIrregularPage,
+    FabricRawPage,
     CustomersPage,
     GoodsReceivePage,
     ZoneRackPage,
@@ -4465,6 +4467,9 @@ data() {
 
       <!-- ============ ผ้าไม่ประจำ ============ -->
       <FabricIrregularPage v-else-if="currentPage === 'fabric-irregular'" />
+
+      <!-- ============ ผ้าดิบ ============ -->
+      <FabricRawPage v-else-if="currentPage === 'fabric-raw'" />
 
       <!-- ============ ลูกค้า (ข้อมูลร้านค้า) ============ -->
       <CustomersPage v-else-if="currentPage === 'customers'" />

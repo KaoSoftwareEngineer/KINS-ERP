@@ -66,6 +66,34 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- ผ้าดิบ (fabric_raw / greige) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS fabric_raw (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      type        VARCHAR(64) DEFAULT 'Greige',
+      sku         VARCHAR(64) NOT NULL,
+      name        VARCHAR(255) DEFAULT '',
+      structure   VARCHAR(255) DEFAULT '',
+      composition VARCHAR(255) DEFAULT '',
+      width       VARCHAR(64) DEFAULT '',
+      unit        VARCHAR(32) DEFAULT 'หลา',
+      shrinkage   DOUBLE DEFAULT 0,
+      allowance   DOUBLE DEFAULT 0,
+      image_name  VARCHAR(255) DEFAULT '',
+      active      TINYINT DEFAULT 1,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  const [[{ frawc }]] = await pool.query('SELECT COUNT(*) AS frawc FROM fabric_raw');
+  if (frawc === 0) {
+    await pool.query(`INSERT INTO fabric_raw (type, sku, name, structure, composition, width, unit, shrinkage, allowance) VALUES
+      ('Greige', 'G001', 'anything', 'Cotton 100%', '', '', 'หลา', 3, 5),
+      ('Greige', 'G002', 'anything', 'Cotton 100%', '', '', 'หลา', 3, 5),
+      ('Greige', 'G003', 'anything', 'Cotton 100%', '', '', 'หลา', 3, 5)`);
+    console.log('  ➕ ใส่ข้อมูลผ้าดิบตัวอย่าง 3 รายการ');
+  }
+
   // ---- คู่ค้า / ผู้ขาย (partners) ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS partners (

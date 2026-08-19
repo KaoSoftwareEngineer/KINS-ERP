@@ -399,6 +399,42 @@ app.delete('/api/partners/:id', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  ผ้าดิบ (fabric_raw / greige)
+// ============================================================
+app.get('/api/fabric-raw', auth, wrap(async (req, res) => {
+  const [items] = await mysqlPool.query('SELECT * FROM fabric_raw ORDER BY id DESC');
+  res.json({ ok: true, total: items.length, items });
+}));
+app.post('/api/fabric-raw', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const sku = (b.sku || '').trim();
+  if (!sku) return res.status(400).json({ ok: false, message: 'กรุณากรอกรหัสสินค้า' });
+  const [dup] = await mysqlPool.query('SELECT id FROM fabric_raw WHERE sku = ?', [sku]);
+  if (dup.length > 0) return res.status(409).json({ ok: false, message: 'รหัสสินค้านี้มีอยู่แล้ว' });
+  const [info] = await mysqlPool.query(
+    `INSERT INTO fabric_raw (type, sku, name, structure, composition, width, unit, shrinkage, allowance, image_name, active)
+     VALUES (:type, :sku, :name, :structure, :composition, :width, :unit, :shrinkage, :allowance, :image_name, :active)`,
+    { type: b.type || 'Greige', sku, name: b.name || '', structure: b.structure || '', composition: b.composition || '', width: b.width || '', unit: b.unit || 'หลา', shrinkage: Number(b.shrinkage) || 0, allowance: Number(b.allowance) || 0, image_name: b.image_name || '', active: b.active === false ? 0 : 1 }
+  );
+  res.json({ ok: true, message: 'บันทึกผ้าดิบแล้ว', id: info.insertId });
+}));
+app.put('/api/fabric-raw/:id', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const sku = (b.sku || '').trim();
+  if (!sku) return res.status(400).json({ ok: false, message: 'กรุณากรอกรหัสสินค้า' });
+  await mysqlPool.query(
+    `UPDATE fabric_raw SET type=:type, sku=:sku, name=:name, structure=:structure, composition=:composition, width=:width, unit=:unit, shrinkage=:shrinkage, allowance=:allowance, image_name=:image_name, active=:active WHERE id=:id`,
+    { id: req.params.id, type: b.type || 'Greige', sku, name: b.name || '', structure: b.structure || '', composition: b.composition || '', width: b.width || '', unit: b.unit || 'หลา', shrinkage: Number(b.shrinkage) || 0, allowance: Number(b.allowance) || 0, image_name: b.image_name || '', active: b.active === false ? 0 : 1 }
+  );
+  res.json({ ok: true, message: 'บันทึกแล้ว' });
+}));
+app.delete('/api/fabric-raw/:id', auth, wrap(async (req, res) => {
+  const [info] = await mysqlPool.query('DELETE FROM fabric_raw WHERE id = ?', [req.params.id]);
+  if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบผ้าดิบ' });
+  res.json({ ok: true, message: 'ลบผ้าดิบแล้ว' });
+}));
+
+// ============================================================
 //  โรงงาน / โรงย้อม (factories)
 // ============================================================
 app.get('/api/factories', auth, wrap(async (req, res) => {
