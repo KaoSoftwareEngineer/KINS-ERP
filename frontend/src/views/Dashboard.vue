@@ -603,12 +603,43 @@ data() {
           { key: 'fabric-raw', label: { th: 'ผ้าดิบ', en: 'Raw Fabric' } },
           { key: 'customers', label: { th: 'ลูกค้า', en: 'Customers' } },
           { key: 'partners', label: { th: 'คู่ค้า', en: 'Vendors' } },
-          { key: 'fabric-info', label: { th: 'ข้อมูลผ้า', en: 'Fabric Info' } },
+          { key: 'fabric-info', label: { th: 'ข้อมูลผ้า', en: 'Fabric Info' }, children: [
+              { key: 'fabric-info-structure', label: { th: 'โครงสร้างผ้า', en: 'Structure' } },
+              { key: 'fabric-info-composition', label: { th: 'ส่วนประกอบ', en: 'Composition' } },
+              { key: 'fabric-info-width', label: { th: 'หน้ากว้าง', en: 'Width' } },
+              { key: 'fabric-info-finishing', label: { th: 'Finishing', en: 'Finishing' } },
+              { key: 'fabric-info-weight', label: { th: 'น้ำหนัก', en: 'Weight' } },
+          ] },
           { key: 'employee-info', label: { th: 'ข้อมูลพนักงาน', en: 'Employee Info' } },
           { key: 'note-info', label: { th: 'ข้อมูลหมายเหตุ', en: 'Remarks' } },
           { key: 'zone-rack', label: { th: 'โซน & แร็ค', en: 'Zone & Rack' } },
         ],
         basicDataPages: {
+          'fabric-info-structure': {
+            title: 'โครงสร้างผ้า', icon: '🧵',
+            columns: ['รหัส', 'โครงสร้างผ้า', 'สถานะ'],
+            rows: [['ST-01', 'Twill', 'ใช้งาน'], ['ST-02', 'Plain', 'ใช้งาน'], ['ST-03', 'Satin', 'ใช้งาน'], ['ST-04', 'Dobby', 'ใช้งาน']],
+          },
+          'fabric-info-composition': {
+            title: 'ส่วนประกอบ', icon: '🧬',
+            columns: ['รหัส', 'ส่วนประกอบ', 'สถานะ'],
+            rows: [['CP-01', 'Cotton 100%', 'ใช้งาน'], ['CP-02', 'Polyester 100%', 'ใช้งาน'], ['CP-03', 'TC (65/35)', 'ใช้งาน'], ['CP-04', 'CVC (60/40)', 'ใช้งาน']],
+          },
+          'fabric-info-width': {
+            title: 'หน้ากว้าง', icon: '📏',
+            columns: ['รหัส', 'หน้ากว้าง', 'สถานะ'],
+            rows: [['W-01', '36"', 'ใช้งาน'], ['W-02', '44"', 'ใช้งาน'], ['W-03', '58"', 'ใช้งาน'], ['W-04', '60"', 'ใช้งาน'], ['W-05', '72"', 'ใช้งาน']],
+          },
+          'fabric-info-finishing': {
+            title: 'Finishing', icon: '✨',
+            columns: ['รหัส', 'Finishing', 'สถานะ'],
+            rows: [['FN-01', 'Seersucker', 'ใช้งาน'], ['FN-02', 'SS Finish', 'ใช้งาน'], ['FN-03', 'Peach', 'ใช้งาน'], ['FN-04', 'Mercerized', 'ใช้งาน']],
+          },
+          'fabric-info-weight': {
+            title: 'น้ำหนัก', icon: '⚖️',
+            columns: ['รหัส', 'น้ำหนัก (GSM)', 'สถานะ'],
+            rows: [['WT-01', 'บาง (< 150)', 'ใช้งาน'], ['WT-02', 'ปานกลาง (150-250)', 'ใช้งาน'], ['WT-03', 'หนา (> 250)', 'ใช้งาน']],
+          },
           'fabric-regular-group': {
             title: 'กลุ่มผ้าประจำ', icon: '🏷️',
             columns: ['รหัสกลุ่ม', 'ชื่อกลุ่ม', 'จำนวนผ้าในกลุ่ม', 'สถานะ'],
