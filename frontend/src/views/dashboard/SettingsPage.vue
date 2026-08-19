@@ -8,131 +8,6 @@
     </div>
   </div>
 
-  <!-- ---- นำเข้าข้อมูล Excel + ตารางแสดงผล ---- -->
-  <div class="section" v-if="dash.xlShowPanel">
-    <div class="section-header">
-      <h2>นำเข้าข้อมูลผ้าจากไฟล์ Excel</h2>
-    </div>
-    <div class="xl-import-row">
-      <input :key="dash.xlFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.xlHandleFile" />
-      <button class="btn-small btn-primary" :disabled="dash.xlImporting" @click="dash.xlImportFile">
-        {{ dash.xlImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
-      </button>
-    </div>
-    <p v-if="dash.xlImportMessage" class="xl-import-message" :class="{ 'is-error': dash.xlImportMessage.indexOf('⚠️') === 0 }">{{ dash.xlImportMessage }}</p>
-    <p style="font-size: 12px; color: var(--muted); margin-top: 8px;">
-      รูปแบบไฟล์: แถวแรกเป็นหัวคอลัมน์ตามลำดับ — ที่, ประเภท, รหัสสินค้า, จำนวนสี, ชื่อ, โครงสร้างผ้า, ส่วนประกอบ, หน้ากว้าง, Finishing, น้ำหนัก, หน่วย, รูป
-      (ข้อมูลจะถูกบันทึกลงตาราง "ผ้าประจำ" โดยตรง — ถ้ารหัสสินค้าซ้ำจะอัปเดตข้อมูลเดิม)
-    </p>
-
-    <div class="fr-table-scroll" style="margin-top: 18px;">
-      <table class="fr-table">
-        <thead>
-          <tr>
-            <th>รหัสสินค้า</th>
-            <th>ประเภท</th>
-            <th>ชื่อ</th>
-            <th>โครงสร้างผ้า</th>
-            <th>ส่วนประกอบ</th>
-            <th>หน้ากว้าง</th>
-            <th>Finishing</th>
-            <th>น้ำหนัก</th>
-            <th>หน่วย</th>
-            <th>จำนวนสี</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in dash.xlPagedRows" :key="row.id">
-            <td><strong>{{ row.sku }}</strong></td>
-            <td>{{ row.type }}</td>
-            <td>{{ row.name }}</td>
-            <td>{{ row.structure }}</td>
-            <td>{{ row.composition }}</td>
-            <td>{{ row.width }}</td>
-            <td>{{ row.finishing }}</td>
-            <td>{{ row.weight }}</td>
-            <td>{{ row.unit }}</td>
-            <td>{{ row.colors }}</td>
-          </tr>
-          <tr v-if="dash.xlLoading" class="fr-empty-row">
-            <td colspan="10">กำลังโหลดข้อมูล...</td>
-          </tr>
-          <tr v-else-if="dash.xlRows.length === 0" class="fr-empty-row">
-            <td colspan="10">ยังไม่มีข้อมูล — นำเข้าไฟล์ Excel เพื่อเริ่มต้น</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="xl-pagination" v-if="dash.xlRows.length > 0">
-      <button class="fr-btn-util" :disabled="dash.xlPage === 1" @click="dash.xlPrevPage">‹ ก่อนหน้า</button>
-      <span>หน้า {{ dash.xlPage }} / {{ dash.xlTotalPages }}</span>
-      <button class="fr-btn-util" :disabled="dash.xlPage === dash.xlTotalPages" @click="dash.xlNextPage">ถัดไป ›</button>
-    </div>
-  </div>
-
-  <!-- ---- นำเข้าข้อมูลลูกค้า Excel + ตารางแสดงผล ---- -->
-  <div class="section" v-if="dash.cmShowPanel">
-    <div class="section-header">
-      <h2>นำเข้าข้อมูลลูกค้าจากไฟล์ Excel</h2>
-    </div>
-    <div class="xl-import-row">
-      <input :key="dash.cmFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.cmHandleFile" />
-      <button class="btn-small btn-primary" :disabled="dash.cmImporting" @click="dash.cmImportFile">
-        {{ dash.cmImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
-      </button>
-    </div>
-    <p v-if="dash.cmImportMessage" class="xl-import-message" :class="{ 'is-error': dash.cmImportMessage.indexOf('⚠️') === 0 }">{{ dash.cmImportMessage }}</p>
-    <p style="font-size: 12px; color: var(--muted); margin-top: 8px;">
-      รูปแบบไฟล์: คอลัมน์ A = รหัสลูกค้า (เลข 4 หลักนำหน้า) + ชื่อลูกค้า เช่น "2114 Mr.Hamad", คอลัมน์ B = ที่อยู่จัดส่ง
-      ระบบจะแยกรหัสและชื่อออกจากคอลัมน์ A ให้อัตโนมัติ และแจ้งเตือนหากพบรหัสลูกค้าซ้ำ
-    </p>
-
-    <div class="fr-summary" style="padding-left: 0; margin-top: 18px;">{{ dash.t[dash.lang].foundItems }} {{ dash.cmRows.length }} {{ dash.t[dash.lang].itemsUnit }}</div>
-
-    <div class="fr-table-scroll" style="margin-top: 8px;">
-      <table class="fr-table">
-        <thead>
-          <tr>
-            <th>รหัสลูกค้า</th>
-            <th>ชื่อลูกค้า</th>
-            <th>ที่อยู่จัดส่ง</th>
-            <th>จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in dash.cmPagedRows" :key="row.id">
-            <td><strong>{{ row.customer_code }}</strong></td>
-            <td>{{ row.customer_name }}</td>
-            <td>{{ row.address }}</td>
-            <td>
-              <div class="fr-action-group">
-                <button class="fr-action-btn edit" title="แก้ไข" @click="dash.cmOpenEdit(row)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                </button>
-                <button class="fr-action-btn delete" title="ลบ" @click="dash.cmDeleteRow(row)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="dash.cmLoading" class="fr-empty-row">
-            <td colspan="4">กำลังโหลดข้อมูล...</td>
-          </tr>
-          <tr v-else-if="dash.cmRows.length === 0" class="fr-empty-row">
-            <td colspan="4">ยังไม่มีข้อมูล — นำเข้าไฟล์ Excel เพื่อเริ่มต้น</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="xl-pagination" v-if="dash.cmRows.length > 0">
-      <button class="fr-btn-util" :disabled="dash.cmPage === 1" @click="dash.cmPrevPage">‹ ก่อนหน้า</button>
-      <span>หน้า {{ dash.cmPage }} / {{ dash.cmTotalPages }}</span>
-      <button class="fr-btn-util" :disabled="dash.cmPage === dash.cmTotalPages" @click="dash.cmNextPage">ถัดไป ›</button>
-    </div>
-  </div>
-
   <div class="section">
     <div class="section-header">
       <h2>{{ dash.t[dash.lang].accountInfo }}</h2>
@@ -201,6 +76,147 @@
       <input type="checkbox" checked />
     </div>
   </div>
+
+  <!-- ============ โมดัลนำเข้าข้อมูลผ้า (Excel) ============ -->
+  <div class="erp-overlay" v-if="dash.xlShowPanel" @click.self="dash.xlTogglePanel">
+    <div class="erp-modal erp-modal-wide">
+      <div class="erp-modal-head">
+        <span><span class="erp-head-ic">📊</span> นำเข้าข้อมูลผ้าจากไฟล์ Excel</span>
+        <button class="erp-x" @click="dash.xlTogglePanel">✕</button>
+      </div>
+      <div class="erp-modal-body">
+        <div class="imp-uploader">
+          <input :key="dash.xlFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.xlHandleFile" />
+          <p class="imp-hint">
+            แถวแรกเป็นหัวคอลัมน์ตามลำดับ — ที่, ประเภท, รหัสสินค้า, จำนวนสี, ชื่อ, โครงสร้างผ้า, ส่วนประกอบ, หน้ากว้าง, Finishing, น้ำหนัก, หน่วย, รูป
+            <br>(ข้อมูลจะถูกบันทึกลงตาราง "ผ้าประจำ" โดยตรง — ถ้ารหัสสินค้าซ้ำจะอัปเดตข้อมูลเดิม)
+          </p>
+        </div>
+        <p v-if="dash.xlImportMessage" class="xl-import-message" :class="{ 'is-error': dash.xlImportMessage.indexOf('⚠️') === 0 }">{{ dash.xlImportMessage }}</p>
+
+        <div class="imp-preview-label">ตัวอย่างข้อมูล ({{ dash.xlRows.length }} รายการ)</div>
+        <div class="fr-table-scroll imp-table-scroll">
+          <table class="fr-table">
+            <thead>
+              <tr>
+                <th>รหัสสินค้า</th>
+                <th>ประเภท</th>
+                <th>ชื่อ</th>
+                <th>โครงสร้างผ้า</th>
+                <th>ส่วนประกอบ</th>
+                <th>หน้ากว้าง</th>
+                <th>Finishing</th>
+                <th>น้ำหนัก</th>
+                <th>หน่วย</th>
+                <th>จำนวนสี</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in dash.xlPagedRows" :key="row.id">
+                <td><strong>{{ row.sku }}</strong></td>
+                <td>{{ row.type }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.structure }}</td>
+                <td>{{ row.composition }}</td>
+                <td>{{ row.width }}</td>
+                <td>{{ row.finishing }}</td>
+                <td>{{ row.weight }}</td>
+                <td>{{ row.unit }}</td>
+                <td>{{ row.colors }}</td>
+              </tr>
+              <tr v-if="dash.xlLoading" class="fr-empty-row">
+                <td colspan="10">กำลังโหลดข้อมูล...</td>
+              </tr>
+              <tr v-else-if="dash.xlRows.length === 0" class="fr-empty-row">
+                <td colspan="10">ยังไม่มีข้อมูล — เลือกไฟล์ Excel แล้วกด "นำเข้าข้อมูล"</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="xl-pagination" v-if="dash.xlRows.length > 0">
+          <button class="fr-btn-util" :disabled="dash.xlPage === 1" @click="dash.xlPrevPage">‹ ก่อนหน้า</button>
+          <span>หน้า {{ dash.xlPage }} / {{ dash.xlTotalPages }}</span>
+          <button class="fr-btn-util" :disabled="dash.xlPage === dash.xlTotalPages" @click="dash.xlNextPage">ถัดไป ›</button>
+        </div>
+      </div>
+      <div class="erp-modal-foot">
+        <button class="erp-btn erp-btn-cancel" @click="dash.xlTogglePanel">ปิด</button>
+        <button class="erp-btn erp-btn-save" :disabled="dash.xlImporting" @click="dash.xlImportFile">
+          {{ dash.xlImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ โมดัลนำเข้าข้อมูลลูกค้า (Excel) ============ -->
+  <div class="erp-overlay" v-if="dash.cmShowPanel" @click.self="dash.cmTogglePanel">
+    <div class="erp-modal erp-modal-wide">
+      <div class="erp-modal-head">
+        <span><span class="erp-head-ic">👥</span> นำเข้าข้อมูลลูกค้าจากไฟล์ Excel</span>
+        <button class="erp-x" @click="dash.cmTogglePanel">✕</button>
+      </div>
+      <div class="erp-modal-body">
+        <div class="imp-uploader">
+          <input :key="dash.cmFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.cmHandleFile" />
+          <p class="imp-hint">
+            คอลัมน์ A = รหัสลูกค้า (เลข 4 หลักนำหน้า) + ชื่อลูกค้า เช่น "2114 Mr.Hamad", คอลัมน์ B = ที่อยู่จัดส่ง
+            <br>ระบบจะแยกรหัสและชื่อออกจากคอลัมน์ A ให้อัตโนมัติ และแจ้งเตือนหากพบรหัสลูกค้าซ้ำ
+          </p>
+        </div>
+        <p v-if="dash.cmImportMessage" class="xl-import-message" :class="{ 'is-error': dash.cmImportMessage.indexOf('⚠️') === 0 }">{{ dash.cmImportMessage }}</p>
+
+        <div class="imp-preview-label">ตัวอย่างข้อมูล ({{ dash.cmRows.length }} รายการ)</div>
+        <div class="fr-table-scroll imp-table-scroll">
+          <table class="fr-table">
+            <thead>
+              <tr>
+                <th>รหัสลูกค้า</th>
+                <th>ชื่อลูกค้า</th>
+                <th>ที่อยู่จัดส่ง</th>
+                <th style="width:100px;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in dash.cmPagedRows" :key="row.id">
+                <td><strong>{{ row.customer_code }}</strong></td>
+                <td>{{ row.customer_name }}</td>
+                <td>{{ row.address }}</td>
+                <td>
+                  <div class="fr-action-group">
+                    <button class="fr-action-btn edit" title="แก้ไข" @click="dash.cmOpenEdit(row)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                    <button class="fr-action-btn delete" title="ลบ" @click="dash.cmDeleteRow(row)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="dash.cmLoading" class="fr-empty-row">
+                <td colspan="4">กำลังโหลดข้อมูล...</td>
+              </tr>
+              <tr v-else-if="dash.cmRows.length === 0" class="fr-empty-row">
+                <td colspan="4">ยังไม่มีข้อมูล — เลือกไฟล์ Excel แล้วกด "นำเข้าข้อมูล"</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="xl-pagination" v-if="dash.cmRows.length > 0">
+          <button class="fr-btn-util" :disabled="dash.cmPage === 1" @click="dash.cmPrevPage">‹ ก่อนหน้า</button>
+          <span>หน้า {{ dash.cmPage }} / {{ dash.cmTotalPages }}</span>
+          <button class="fr-btn-util" :disabled="dash.cmPage === dash.cmTotalPages" @click="dash.cmNextPage">ถัดไป ›</button>
+        </div>
+      </div>
+      <div class="erp-modal-foot">
+        <button class="erp-btn erp-btn-cancel" @click="dash.cmTogglePanel">ปิด</button>
+        <button class="erp-btn erp-btn-save" :disabled="dash.cmImporting" @click="dash.cmImportFile">
+          {{ dash.cmImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 </template>
 
@@ -210,3 +226,24 @@ export default {
   inject: ['dash'],
 };
 </script>
+
+<style scoped>
+/* โมดัลนำเข้าให้กว้างพอสำหรับตารางหลายคอลัมน์ */
+.erp-modal-wide { width: 1040px; max-width: 96vw; }
+
+/* กล่องเลือกไฟล์ */
+.imp-uploader {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 16px; border: 1px dashed var(--field-border); border-radius: 10px;
+  background: var(--field); margin-bottom: 4px;
+}
+.imp-uploader input[type="file"] { font-size: 13px; }
+.imp-hint { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0; }
+
+.imp-preview-label {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  margin: 18px 0 8px;
+}
+/* จำกัดความสูงตาราง preview ให้เลื่อนในกรอบ ไม่ดันโมดัลยาว */
+.imp-table-scroll { max-height: 340px; overflow: auto; }
+</style>
