@@ -8,25 +8,25 @@
     </div>
   </div>
 
-  <div class="section">
+  <div class="section usr-card">
     <div class="section-header">
-      <h2>{{ dash.t[dash.lang].totalMembers }} {{ dash.members.length }} {{ dash.lang === 'th' ? 'คน' : 'People' }}</h2>
+      <h2>👥 {{ dash.t[dash.lang].totalMembers }} {{ dash.members.length }} {{ dash.lang === 'th' ? 'คน' : 'People' }}</h2>
       <button class="btn-small">{{ dash.t[dash.lang].filter }}</button>
     </div>
-    <div class="overflow-x-auto table-scroll-y">
-    <table>
+    <div class="usr-table-wrap">
+    <table class="fr-table">
       <thead>
         <tr>
-          <th>#</th>
+          <th style="width:52px;">#</th>
           <th>{{ dash.t[dash.lang].completeName }}</th>
           <th>{{ dash.t[dash.lang].email }}</th>
           <th>เบอร์มือถือ</th>
           <th>เพศ</th>
           <th>อายุ</th>
-          <th>ตำแหน่ง / บทบาท</th>
+          <th style="min-width:170px;">ตำแหน่ง / บทบาท</th>
           <th>{{ dash.t[dash.lang].status }}</th>
           <th>{{ dash.t[dash.lang].registeredDate }}</th>
-          <th>จัดการ</th>
+          <th style="width:90px;">จัดการ</th>
         </tr>
       </thead>
       <tbody>
@@ -119,6 +119,16 @@ export default {
 <style scoped>
 /* เว้นระยะหัวหน้าจากขอบบน + ย่อปุ่มค้นหาให้พอดี */
 .header { margin-top: 14px; align-items: center; }
+
+/* การ์ดครอบตาราง + ธีมหัวเข้ม (เหมือนหน้าสิทธิ์การเข้าใช้งาน) */
+.usr-card { padding: 18px 20px 16px; }
+.usr-card .section-header { margin-bottom: 14px; }
+.usr-table-wrap {
+  border: 1px solid var(--field-border); border-radius: 10px;
+  overflow: hidden; overflow-x: auto;
+}
+.usr-table-wrap .fr-table { border: none; }
+.usr-table-wrap .fr-table tbody tr:last-child td { border-bottom: none; }
 .header-actions .fr-btn-search {
   padding: 6px 16px; font-size: 13px; line-height: 1.2;
 }
