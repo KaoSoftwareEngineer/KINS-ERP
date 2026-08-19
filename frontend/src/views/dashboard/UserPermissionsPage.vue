@@ -182,9 +182,6 @@ export default {
 }
 .perm-table-wrap .fr-table { border: none; }
 .perm-table-wrap .fr-table tbody tr:last-child td { border-bottom: none; }
-/* แถวโปร่ง เต็มขนาดแบบตอนแรก (ไม่บีบ) */
-.perm-table-wrap .fr-table thead th { padding: 14px 16px; font-size: 13px; }
-.perm-table-wrap .fr-table tbody td { padding: 15px 16px; font-size: 13.5px; }
 
 .acct-search {
   padding: 7px 12px; border: 1px solid var(--field-border); border-radius: 8px;
