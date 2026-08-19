@@ -85,16 +85,27 @@
         <button class="erp-x" @click="dash.xlTogglePanel">✕</button>
       </div>
       <div class="erp-modal-body">
-        <div class="imp-uploader">
-          <input :key="dash.xlFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.xlHandleFile" />
-          <p class="imp-hint">
-            แถวแรกเป็นหัวคอลัมน์ตามลำดับ — ที่, ประเภท, รหัสสินค้า, จำนวนสี, ชื่อ, โครงสร้างผ้า, ส่วนประกอบ, หน้ากว้าง, Finishing, น้ำหนัก, หน่วย, รูป
-            <br>(ข้อมูลจะถูกบันทึกลงตาราง "ผ้าประจำ" โดยตรง — ถ้ารหัสสินค้าซ้ำจะอัปเดตข้อมูลเดิม)
-          </p>
-        </div>
+        <div class="imp-step-title"><span class="imp-step-no">1</span> เลือกไฟล์ Excel ที่จะนำเข้า</div>
+        <label class="imp-dropzone" :class="{ dragging: dragXl, 'has-file': dash.xlFile }"
+               @dragover.prevent="dragXl = true" @dragleave.prevent="dragXl = false" @drop.prevent="onDropXl">
+          <input :key="dash.xlFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.xlHandleFile" hidden />
+          <div class="imp-dz-icon">{{ dash.xlFile ? '📗' : '📁' }}</div>
+          <div v-if="!dash.xlFile" class="imp-dz-text">
+            <span class="imp-dz-main"><strong>คลิกเพื่อเลือกไฟล์</strong> หรือ ลากไฟล์มาวางที่นี่</span>
+            <span class="imp-dz-sub">รองรับไฟล์ .xlsx, .xls, .csv</span>
+          </div>
+          <div v-else class="imp-dz-text">
+            <span class="imp-dz-main imp-dz-file">✓ {{ dash.xlFile.name }}</span>
+            <span class="imp-dz-sub">คลิกเพื่อเปลี่ยนไฟล์ — แล้วกดปุ่ม "นำเข้าข้อมูล" ด้านล่าง</span>
+          </div>
+        </label>
+        <p class="imp-hint">
+          รูปแบบไฟล์: แถวแรกเป็นหัวคอลัมน์ตามลำดับ — ที่, ประเภท, รหัสสินค้า, จำนวนสี, ชื่อ, โครงสร้างผ้า, ส่วนประกอบ, หน้ากว้าง, Finishing, น้ำหนัก, หน่วย, รูป
+          (รหัสสินค้าซ้ำ = อัปเดตข้อมูลเดิม)
+        </p>
         <p v-if="dash.xlImportMessage" class="xl-import-message" :class="{ 'is-error': dash.xlImportMessage.indexOf('⚠️') === 0 }">{{ dash.xlImportMessage }}</p>
 
-        <div class="imp-preview-label">ตัวอย่างข้อมูล ({{ dash.xlRows.length }} รายการ)</div>
+        <div class="imp-preview-label"><span class="imp-step-no">2</span> ข้อมูลผ้าที่มีในระบบตอนนี้ ({{ dash.xlRows.length }} รายการ) <span class="imp-preview-note">— ไฟล์ที่นำเข้าจะเพิ่ม/อัปเดตลงในนี้</span></div>
         <div class="fr-table-scroll imp-table-scroll">
           <table class="fr-table">
             <thead>
@@ -157,16 +168,27 @@
         <button class="erp-x" @click="dash.cmTogglePanel">✕</button>
       </div>
       <div class="erp-modal-body">
-        <div class="imp-uploader">
-          <input :key="dash.cmFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.cmHandleFile" />
-          <p class="imp-hint">
-            คอลัมน์ A = รหัสลูกค้า (เลข 4 หลักนำหน้า) + ชื่อลูกค้า เช่น "2114 Mr.Hamad", คอลัมน์ B = ที่อยู่จัดส่ง
-            <br>ระบบจะแยกรหัสและชื่อออกจากคอลัมน์ A ให้อัตโนมัติ และแจ้งเตือนหากพบรหัสลูกค้าซ้ำ
-          </p>
-        </div>
+        <div class="imp-step-title"><span class="imp-step-no">1</span> เลือกไฟล์ Excel ที่จะนำเข้า</div>
+        <label class="imp-dropzone" :class="{ dragging: dragCm, 'has-file': dash.cmFile }"
+               @dragover.prevent="dragCm = true" @dragleave.prevent="dragCm = false" @drop.prevent="onDropCm">
+          <input :key="dash.cmFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.cmHandleFile" hidden />
+          <div class="imp-dz-icon">{{ dash.cmFile ? '📗' : '📁' }}</div>
+          <div v-if="!dash.cmFile" class="imp-dz-text">
+            <span class="imp-dz-main"><strong>คลิกเพื่อเลือกไฟล์</strong> หรือ ลากไฟล์มาวางที่นี่</span>
+            <span class="imp-dz-sub">รองรับไฟล์ .xlsx, .xls, .csv</span>
+          </div>
+          <div v-else class="imp-dz-text">
+            <span class="imp-dz-main imp-dz-file">✓ {{ dash.cmFile.name }}</span>
+            <span class="imp-dz-sub">คลิกเพื่อเปลี่ยนไฟล์ — แล้วกดปุ่ม "นำเข้าข้อมูล" ด้านล่าง</span>
+          </div>
+        </label>
+        <p class="imp-hint">
+          คอลัมน์ A = รหัสลูกค้า (เลข 4 หลักนำหน้า) + ชื่อลูกค้า เช่น "2114 Mr.Hamad", คอลัมน์ B = ที่อยู่จัดส่ง
+          — ระบบจะแยกรหัสและชื่อให้อัตโนมัติ และแจ้งเตือนหากพบรหัสลูกค้าซ้ำ
+        </p>
         <p v-if="dash.cmImportMessage" class="xl-import-message" :class="{ 'is-error': dash.cmImportMessage.indexOf('⚠️') === 0 }">{{ dash.cmImportMessage }}</p>
 
-        <div class="imp-preview-label">ตัวอย่างข้อมูล ({{ dash.cmRows.length }} รายการ)</div>
+        <div class="imp-preview-label"><span class="imp-step-no">2</span> ข้อมูลลูกค้าที่มีในระบบตอนนี้ ({{ dash.cmRows.length }} รายการ) <span class="imp-preview-note">— ไฟล์ที่นำเข้าจะเพิ่ม/อัปเดตลงในนี้</span></div>
         <div class="fr-table-scroll imp-table-scroll">
           <table class="fr-table">
             <thead>
@@ -224,6 +246,21 @@
 export default {
   name: 'SettingsPage',
   inject: ['dash'],
+  data() {
+    return { dragXl: false, dragCm: false };
+  },
+  methods: {
+    onDropXl(e) {
+      this.dragXl = false;
+      const f = e.dataTransfer && e.dataTransfer.files[0];
+      if (f) this.dash.xlFile = f;
+    },
+    onDropCm(e) {
+      this.dragCm = false;
+      const f = e.dataTransfer && e.dataTransfer.files[0];
+      if (f) this.dash.cmFile = f;
+    },
+  },
 };
 </script>
 
@@ -231,19 +268,37 @@ export default {
 /* โมดัลนำเข้าให้กว้างพอสำหรับตารางหลายคอลัมน์ */
 .erp-modal-wide { width: 1040px; max-width: 96vw; }
 
-/* กล่องเลือกไฟล์ */
-.imp-uploader {
-  display: flex; flex-direction: column; gap: 10px;
-  padding: 16px; border: 1px dashed var(--field-border); border-radius: 10px;
-  background: var(--field); margin-bottom: 4px;
+/* หัวขั้นตอน + เลขลำดับ */
+.imp-step-title { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.imp-step-no {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; flex-shrink: 0;
+  border-radius: 50%; background: #2F65F6; color: #fff; font-size: 12px; font-weight: 700;
 }
-.imp-uploader input[type="file"] { font-size: 13px; }
-.imp-hint { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0; }
+
+/* dropzone ลาก-วางไฟล์ */
+.imp-dropzone {
+  display: flex; align-items: center; gap: 16px;
+  padding: 22px 24px; border: 2px dashed var(--field-border); border-radius: 12px;
+  background: var(--field); cursor: pointer; transition: border-color .18s, background .18s;
+}
+.imp-dropzone:hover { border-color: #2F65F6; background: rgba(47,101,246,.05); }
+.imp-dropzone.dragging { border-color: #2F65F6; background: rgba(47,101,246,.1); }
+.imp-dropzone.has-file { border-style: solid; border-color: #17a06a; background: rgba(23,160,106,.07); }
+.imp-dz-icon { font-size: 34px; line-height: 1; flex-shrink: 0; }
+.imp-dz-text { display: flex; flex-direction: column; gap: 3px; }
+.imp-dz-main { font-size: 14.5px; color: var(--text); }
+.imp-dz-main strong { color: #2F65F6; }
+.imp-dz-file { color: #17a06a; font-weight: 700; word-break: break-all; }
+.imp-dz-sub { font-size: 12px; color: var(--muted); }
+
+.imp-hint { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 10px 2px 0; }
 
 .imp-preview-label {
-  font-size: 13px; font-weight: 600; color: var(--text);
-  margin: 18px 0 8px;
+  font-size: 13.5px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 22px 0 8px;
 }
+.imp-preview-note { font-size: 12px; font-weight: 400; color: var(--muted); }
 /* จำกัดความสูงตาราง preview ให้เลื่อนในกรอบ ไม่ดันโมดัลยาว */
-.imp-table-scroll { max-height: 340px; overflow: auto; }
+.imp-table-scroll { max-height: 300px; overflow: auto; }
 </style>
