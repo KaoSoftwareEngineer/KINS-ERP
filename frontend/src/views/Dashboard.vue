@@ -5963,16 +5963,20 @@ data() {
   .fr-img-btn svg { width: 15px; height: 15px; }
   .fr-action-group { display: flex; gap: 6px; }
   .fr-action-btn {
-    width: 28px; height: 28px; display: grid; place-items: center;
+    width: 30px; height: 30px; display: grid; place-items: center;
     border-radius: 7px; border: 1px solid var(--field-border); background: var(--surface);
-    cursor: pointer; color: var(--muted);
-    transition: background .2s, color .2s, border-color .2s;
+    cursor: pointer; color: var(--muted); font-size: 15px; line-height: 1; padding: 0;
+    transition: background .18s, border-color .18s, box-shadow .18s;
   }
-  .fr-action-btn svg { width: 14px; height: 14px; }
-  .fr-action-btn.edit:hover { background: rgba(47,101,246,.1); color: #2F65F6; border-color: #2F65F6; }
-  .fr-action-btn.delete { background: rgba(229,72,77,.1); color: var(--danger); border-color: rgba(229,72,77,.25); }
-  .fr-action-btn.delete:hover { background: rgba(229,72,77,.2); color: var(--danger); border-color: var(--danger); }
-  .fr-action-btn.view:hover { background: rgba(23,160,106,.1); color: var(--ok); border-color: var(--ok); }
+  /* แสดงเป็น emoji ในกล่องมน (ซ่อน svg เดิม) — ใช้ทุกหน้าเหมือนกัน */
+  .fr-action-btn svg { display: none; }
+  .fr-action-btn.edit::before { content: "\270F\FE0F"; }
+  .fr-action-btn.delete::before { content: "\1F5D1\FE0F"; }
+  .fr-action-btn.view::before { content: "\2630"; font-size: 14px; color: var(--muted); }
+  .fr-action-btn:hover { border-color: #cbd5e1; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .fr-action-btn.edit:hover { background: #fff7ed; border-color: #fdba74; }
+  .fr-action-btn.delete:hover { background: #fef2f2; border-color: #fecaca; }
+  .fr-action-btn.view:hover { background: #eef2ff; border-color: #c7d2fe; }
   .fr-empty-row td { text-align: center; padding: 36px; color: var(--muted); }
 
   /* ============ ผ้าไม่ประจำ (fi-) ============ */
