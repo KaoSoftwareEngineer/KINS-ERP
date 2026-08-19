@@ -302,7 +302,7 @@ data() {
       <form v-if="view === 'login'" @submit.prevent="login">
         <h2>{{ t[lang].signIn }}</h2>
         <div class="msg" :class="loginMsg.type">{{ loginMsg.text }}</div>
-        <input class="field" type="email" v-model="loginData.email" :placeholder="t[lang].email" required />
+        <input class="field" type="text" v-model="loginData.email" :placeholder="t[lang].email + ' / ชื่อผู้ใช้'" required />
         <input class="field" type="password" v-model="loginData.password" :placeholder="t[lang].password" required />
         <div class="row">
           <label><input type="checkbox" v-model="loginData.remember" /> {{ t[lang].rememberMe }}</label>

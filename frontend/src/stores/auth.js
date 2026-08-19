@@ -19,6 +19,9 @@ export const useAuthStore = defineStore('auth', {
     myAllowedKeys(state) {
       const role = (state.currentUser && state.currentUser.role) || '';
       if (!role) return null;
+      // ผู้ดูแลระบบ / ผู้บริหาร (CEO) → เห็นทุกเมนูเสมอ (สิทธิ์เต็ม)
+      const r = role.toLowerCase();
+      if (r.includes('admin') || r.includes('ผู้ดูแล') || r.includes('ceo') || r.includes('ผู้บริหาร')) return null;
       const keys = state.rolePerms[role];
       if (!keys || keys.length === 0) return null;
       return new Set(keys);
