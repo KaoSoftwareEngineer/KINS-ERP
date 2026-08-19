@@ -4521,7 +4521,7 @@ data() {
     <!-- ============ MAIN CONTENT ============ -->
     <main class="main main-fit">
       <TopNavbar />
-      <div class="main-content" :class="{ 'fr-tight': currentPage === 'fabric-regular' || currentPage === 'fabric-irregular' || currentPage === 'customers' || currentPage === 'order-receive' || currentPage === 'order-fulfill' || currentPage === 'zone-rack' }">
+      <div class="main-content" :class="{ 'fr-tight': ['fabric-regular','fabric-irregular','fabric-regular-group','fabric-irregular-group','fabric-raw','customers','partners','employee-info','fabric-info-structure','fabric-info-composition','fabric-info-width','fabric-info-finishing','fabric-info-weight','order-receive','order-fulfill','zone-rack'].includes(currentPage) }">
       <!-- breadcrumb ย้ายขึ้นไปอยู่ใน TopNavbar (ระนาบเดียวกับแถบขวา) -->
       <!-- ============ DASHBOARD PAGE ============ -->
       <DashboardHome v-if="currentPage === 'dashboard'" />
