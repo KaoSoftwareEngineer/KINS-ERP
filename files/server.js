@@ -375,20 +375,20 @@ app.get('/api/partners', auth, wrap(async (req, res) => {
 }));
 app.post('/api/partners', auth, wrap(async (req, res) => {
   const b = req.body || {};
-  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อคู่ค้า' });
+  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อบริษัท' });
   const [info] = await mysqlPool.query(
-    `INSERT INTO partners (code, name, phone, email, address, tax_id, contact, note, active)
-     VALUES (:code, :name, :phone, :email, :address, :tax_id, :contact, :note, :active)`,
-    { code: b.code || '', name: b.name.trim(), phone: b.phone || '', email: b.email || '', address: b.address || '', tax_id: b.tax_id || '', contact: b.contact || '', note: b.note || '', active: b.active === false ? 0 : 1 }
+    `INSERT INTO partners (code, name, check_name, contact, address, country, phone, email, pgroup, account_term, tax_id, note, active)
+     VALUES (:code, :name, :check_name, :contact, :address, :country, :phone, :email, :pgroup, :account_term, :tax_id, :note, :active)`,
+    { code: b.code || '', name: b.name.trim(), check_name: b.check_name || '', contact: b.contact || '', address: b.address || '', country: b.country || '', phone: b.phone || '', email: b.email || '', pgroup: b.pgroup || '', account_term: b.account_term || '', tax_id: b.tax_id || '', note: b.note || '', active: b.active === false ? 0 : 1 }
   );
   res.json({ ok: true, message: 'บันทึกคู่ค้าแล้ว', id: info.insertId });
 }));
 app.put('/api/partners/:id', auth, wrap(async (req, res) => {
   const b = req.body || {};
-  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อคู่ค้า' });
+  if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อบริษัท' });
   await mysqlPool.query(
-    `UPDATE partners SET code=:code, name=:name, phone=:phone, email=:email, address=:address, tax_id=:tax_id, contact=:contact, note=:note, active=:active WHERE id=:id`,
-    { id: req.params.id, code: b.code || '', name: b.name.trim(), phone: b.phone || '', email: b.email || '', address: b.address || '', tax_id: b.tax_id || '', contact: b.contact || '', note: b.note || '', active: b.active === false ? 0 : 1 }
+    `UPDATE partners SET code=:code, name=:name, check_name=:check_name, contact=:contact, address=:address, country=:country, phone=:phone, email=:email, pgroup=:pgroup, account_term=:account_term, tax_id=:tax_id, note=:note, active=:active WHERE id=:id`,
+    { id: req.params.id, code: b.code || '', name: b.name.trim(), check_name: b.check_name || '', contact: b.contact || '', address: b.address || '', country: b.country || '', phone: b.phone || '', email: b.email || '', pgroup: b.pgroup || '', account_term: b.account_term || '', tax_id: b.tax_id || '', note: b.note || '', active: b.active === false ? 0 : 1 }
   );
   res.json({ ok: true, message: 'บันทึกแล้ว' });
 }));

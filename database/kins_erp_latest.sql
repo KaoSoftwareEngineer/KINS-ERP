@@ -317,7 +317,7 @@ CREATE TABLE `fabric_raw` (
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +326,7 @@ CREATE TABLE `fabric_raw` (
 
 LOCK TABLES `fabric_raw` WRITE;
 /*!40000 ALTER TABLE `fabric_raw` DISABLE KEYS */;
-INSERT INTO `fabric_raw` VALUES (1,'Greige','G001','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27'),(2,'Greige','G002','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27'),(3,'Greige','G003','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27');
+INSERT INTO `fabric_raw` VALUES (1,'Greige','G001','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27'),(2,'Greige','G002','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27'),(3,'Greige','G003','anything','Cotton 100%','','','หลา',3,5,'',1,'2026-08-19 09:56:27','2026-08-19 09:56:27'),(4,'Greige','001','','','','','หลา',0,0,'',1,'2026-08-19 09:57:50','2026-08-19 09:57:50'),(5,'Greige','002','','','','','หลา',0,0,'',1,'2026-08-19 09:57:54','2026-08-19 09:57:54'),(6,'Greige','003','','','','','หลา',0,0,'',1,'2026-08-19 09:57:59','2026-08-19 09:57:59'),(7,'Greige','004','','','','','หลา',0,0,'',1,'2026-08-19 09:58:05','2026-08-19 09:58:05'),(8,'Greige','005','','','','','หลา',0,0,'',1,'2026-08-19 09:58:15','2026-08-19 09:58:15'),(9,'Greige','006','','','','','หลา',0,0,'',1,'2026-08-19 09:58:21','2026-08-19 09:58:21'),(10,'Greige','009','','','','','หลา',0,0,'',1,'2026-08-19 09:58:27','2026-08-19 09:58:27');
 /*!40000 ALTER TABLE `fabric_raw` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -781,6 +781,10 @@ CREATE TABLE `partners` (
   `active` tinyint(4) DEFAULT 1,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `check_name` varchar(255) DEFAULT '',
+  `country` varchar(64) DEFAULT '',
+  `pgroup` varchar(64) DEFAULT '',
+  `account_term` varchar(64) DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -791,7 +795,7 @@ CREATE TABLE `partners` (
 
 LOCK TABLES `partners` WRITE;
 /*!40000 ALTER TABLE `partners` DISABLE KEYS */;
-INSERT INTO `partners` VALUES (1,'V-001','D Finest Fabric','02-391-5737','info@dfinest.co.th',NULL,'0105551234567','คุณเก่า',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(2,'V-002','บจก. สยามเทรดดิ้ง','02-222-3333','sale@siamtrading.co.th',NULL,'0105549876543','คุณสมชาย',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(3,'V-003','หจก. เอเชียยาร์น','02-444-5555','contact@asiayarn.com',NULL,'0105547654321','คุณสมหญิง',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(4,'V-004','บจก. ไทยเท็กซ์ไทล์','02-666-7777','info@thaitextile.co.th',NULL,'0105543216549','คุณวิชัย',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06'),(5,'V-005','โรงย้อมรุ่งเรือง','02-888-9999','rungrueng.dye@gmail.com',NULL,'0105541122334','คุณมานะ',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06');
+INSERT INTO `partners` VALUES (1,'V-001','D Finest Fabric','02-391-5737','info@dfinest.co.th',NULL,'0105551234567','คุณเก่า',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06','','','',''),(2,'V-002','บจก. สยามเทรดดิ้ง','02-222-3333','sale@siamtrading.co.th',NULL,'0105549876543','คุณสมชาย',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06','','','',''),(3,'V-003','หจก. เอเชียยาร์น','02-444-5555','contact@asiayarn.com',NULL,'0105547654321','คุณสมหญิง',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06','','','',''),(4,'V-004','บจก. ไทยเท็กซ์ไทล์','02-666-7777','info@thaitextile.co.th',NULL,'0105543216549','คุณวิชัย',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06','','','',''),(5,'V-005','โรงย้อมรุ่งเรือง','02-888-9999','rungrueng.dye@gmail.com',NULL,'0105541122334','คุณมานะ',NULL,1,'2026-08-18 17:49:06','2026-08-18 17:49:06','','','','');
 /*!40000 ALTER TABLE `partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1094,4 +1098,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-19  9:56:31
+-- Dump completed on 2026-08-19 10:12:59

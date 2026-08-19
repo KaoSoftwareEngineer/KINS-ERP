@@ -122,6 +122,11 @@ async function initTables() {
       ('V-005', 'โรงย้อมรุ่งเรือง', '02-888-9999', 'rungrueng.dye@gmail.com', '0105541122334', 'คุณมานะ')`);
     console.log('  ➕ ใส่ข้อมูลคู่ค้าตัวอย่าง 5 ราย');
   }
+  // คอลัมน์เพิ่มเติมของคู่ค้า (ตามหน้าจัดการคู่ค้า)
+  await ensureColumn('partners', 'check_name', "VARCHAR(255) DEFAULT ''");   // ชื่อที่ออกเช็ค
+  await ensureColumn('partners', 'country', "VARCHAR(64) DEFAULT ''");        // ประเทศ
+  await ensureColumn('partners', 'pgroup', "VARCHAR(64) DEFAULT ''");         // กลุ่มคู่ค้า
+  await ensureColumn('partners', 'account_term', "VARCHAR(64) DEFAULT ''");   // เงื่อนไขบัญชี
 
   // ---- โรงงาน / โรงย้อม (factories) ----
   await pool.query(`
