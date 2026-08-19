@@ -77,6 +77,8 @@ async function initTables() {
       INDEX idx_md_cat (category)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  // ฟิลด์พิเศษ: หลาส่งขั้นต่ำ (ใช้เฉพาะ category=width)
+  await ensureColumn('master_data', 'min_yards', 'DOUBLE NULL');
   // seed จากค่า distinct ที่มีจริงในตารางผ้า (ครั้งแรกเท่านั้น ต่อ category)
   const mdMap = { structure: 'structure', composition: 'composition', width: 'width', finishing: 'finishing', weight: 'weight' };
   for (const [cat, col] of Object.entries(mdMap)) {

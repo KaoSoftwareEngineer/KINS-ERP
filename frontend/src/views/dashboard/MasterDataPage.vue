@@ -33,7 +33,8 @@
         <thead>
           <tr>
             <th style="width:60px;">ที่</th>
-            <th>ชื่อ</th>
+            <th>{{ meta.title }}</th>
+            <th v-if="meta.extra" style="width:200px;">{{ meta.extra.label }}</th>
             <th style="width:100px;">จัดการ</th>
           </tr>
         </thead>
@@ -41,13 +42,14 @@
           <tr v-for="(item, idx) in pagedRows" :key="item.id">
             <td>{{ (page - 1) * pageSize + idx + 1 }}</td>
             <td class="fr-td-wrap">{{ item.name }}</td>
+            <td v-if="meta.extra" style="text-align:right;">{{ item[meta.extra.field] != null ? Number(item[meta.extra.field]).toFixed(2) : '' }}</td>
             <td class="md-actions">
               <button class="md-ic md-edit" title="แก้ไข" @click="openEdit(item)">✏️</button>
               <button class="md-ic md-del" title="ลบ" @click="deleteItem(item)">🗑️</button>
             </td>
           </tr>
-          <tr v-if="loading"><td colspan="3" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>
-          <tr v-else-if="pagedRows.length === 0"><td colspan="3" style="text-align:center;padding:24px;color:#94a3b8;">ไม่พบข้อมูล{{ meta.title }}</td></tr>
+          <tr v-if="loading"><td :colspan="meta.extra ? 4 : 3" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>
+          <tr v-else-if="pagedRows.length === 0"><td :colspan="meta.extra ? 4 : 3" style="text-align:center;padding:24px;color:#94a3b8;">ไม่พบข้อมูล{{ meta.title }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -69,7 +71,8 @@
       </div>
       <div class="erp-modal-body">
         <div class="erp-grid" style="grid-template-columns: 1fr;">
-          <div class="erp-field"><label>ชื่อ <span class="erp-req">*</span></label><input type="text" v-model="form.name" :placeholder="'ชื่อ' + meta.title" @keyup.enter="save" /></div>
+          <div class="erp-field"><label>{{ meta.title }} <span class="erp-req">*</span></label><input type="text" v-model="form.name" :placeholder="meta.title" @keyup.enter="save" /></div>
+          <div class="erp-field" v-if="meta.extra"><label>{{ meta.extra.label }}</label><input type="number" step="0.01" v-model="form.min_yards" placeholder="0.00" @keyup.enter="save" /></div>
         </div>
       </div>
       <div class="erp-modal-foot">
@@ -85,7 +88,7 @@
 const META = {
   'fabric-info-structure':   { category: 'structure',   title: 'โครงสร้างผ้า', icon: '🧵' },
   'fabric-info-composition': { category: 'composition', title: 'ส่วนประกอบ',    icon: '🧬' },
-  'fabric-info-width':       { category: 'width',       title: 'หน้ากว้าง',     icon: '📏' },
+  'fabric-info-width':       { category: 'width',       title: 'หน้ากว้าง',     icon: '📏', extra: { field: 'min_yards', label: 'หลาส่งขั้นต่ำ' } },
   'fabric-info-finishing':   { category: 'finishing',   title: 'Finishing',     icon: '✨' },
   'fabric-info-weight':      { category: 'weight',      title: 'น้ำหนัก',       icon: '⚖️' },
 };
@@ -119,14 +122,16 @@ export default {
         const d = await res.json(); this.items = d.items || [];
       } catch (e) {} finally { this.loading = false; }
     },
-    openAdd() { this.editingId = null; this.form = { name: '' }; this.showModal = true; },
-    openEdit(item) { this.editingId = item.id; this.form = { name: item.name }; this.showModal = true; },
+    openAdd() { this.editingId = null; this.form = { name: '', min_yards: '' }; this.showModal = true; },
+    openEdit(item) { this.editingId = item.id; this.form = { name: item.name, min_yards: item.min_yards != null ? item.min_yards : '' }; this.showModal = true; },
     async save() {
       if (!this.form.name || !this.form.name.trim()) { this.dash.fbFail('กรุณากรอกชื่อ'); return; }
       this.dash.fbLoading('กำลังบันทึก...');
       try {
         const url = this.editingId ? `/api/master-data/${this.editingId}` : '/api/master-data';
-        const body = this.editingId ? { name: this.form.name.trim() } : { category: this.meta.category, name: this.form.name.trim() };
+        const body = this.editingId
+          ? { name: this.form.name.trim(), min_yards: this.form.min_yards }
+          : { category: this.meta.category, name: this.form.name.trim(), min_yards: this.form.min_yards };
         const res = await fetch(url, { method: this.editingId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(body) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
