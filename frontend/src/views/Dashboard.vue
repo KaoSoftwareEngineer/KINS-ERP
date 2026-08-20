@@ -20,6 +20,7 @@ import GoodsDyedReceivePage from './dashboard/GoodsDyedReceivePage.vue';
 import GoodsTransferPage from './dashboard/GoodsTransferPage.vue';
 import RawTransferPage from './dashboard/RawTransferPage.vue';
 import RackTransferPage from './dashboard/RackTransferPage.vue';
+import BarcodePage from './dashboard/BarcodePage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -73,6 +74,7 @@ export default {
     GoodsTransferPage,
     RawTransferPage,
     RackTransferPage,
+    BarcodePage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4036,6 +4038,7 @@ data() {
       <GoodsTransferPage v-else-if="currentPage === 'move-stock'" />
       <RawTransferPage v-else-if="currentPage === 'move-fabric-raw'" />
       <RackTransferPage v-else-if="currentPage === 'move-shelf'" />
+      <BarcodePage v-else-if="currentPage === 'barcode'" />
 
       <StockGenericPage v-else-if="stockPages[currentPage]" />
 

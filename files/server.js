@@ -1773,7 +1773,9 @@ app.get('/api/fabric-rolls/lookup', auth, wrap(async (req, res) => {
   const qr = (req.query.qr || '').toString().trim();
   if (!qr) return res.status(400).json({ ok: false, message: 'ไม่มีรหัส QR' });
   const [[roll]] = await mysqlPool.query(`
-    SELECT r.*, f.sku AS product_sku, f.name AS product_name, s.name AS color_name, l.location_code
+    SELECT r.*, f.sku AS product_sku, f.name AS product_name, f.type AS product_type,
+           f.width AS product_width, f.weight AS product_weight, f.unit AS product_unit, f.image_name AS product_image,
+           s.name AS color_name, l.location_code, l.zone AS location_zone, l.rack AS location_rack
     FROM fabric_rolls r
     LEFT JOIN fabrics f ON f.id = r.product_id
     LEFT JOIN fabric_shades s ON s.id = r.color_id
