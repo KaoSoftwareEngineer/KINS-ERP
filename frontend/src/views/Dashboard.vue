@@ -4499,11 +4499,11 @@ data() {
   }
   .btn-small:hover { background: var(--field); border-color: var(--brand); }
   .btn-primary {
-    background: #1e3a8a;
+    background: var(--brand);
     color: #fff;
-    border-color: #1e3a8a;
+    border-color: var(--brand);
   }
-  .btn-primary:hover { background: #172b6b; border-color: #172b6b; }
+  .btn-primary:hover { background: var(--brand-2); border-color: var(--brand-2); }
 
   /* ============ STATS GRID ============ */
   .stats-grid {
