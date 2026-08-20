@@ -4520,7 +4520,11 @@ data() {
     gap: 12px;
   }
   .header h1 { font-size: 28px; font-weight: 700; color: var(--text); }
-  .header-actions { display: flex; gap: 12px; }
+  .header-actions { display: flex; gap: 14px; flex-wrap: wrap; row-gap: 8px; align-items: center; }
+  .dash-fit { padding-top: 8px; }
+  .dash-fit .header { margin-top: 4px; }
+  .dash-fit .header-actions { gap: 10px; }
+  .dash-fit .header-actions .btn-small { padding: 8px 14px; }
   .btn-small {
     padding: 10px 18px;
     border: 1px solid var(--field-border);
