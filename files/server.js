@@ -693,11 +693,31 @@ async function insertFabricRolls(items) {
   for (const it of (items || [])) {
     const sku = (it.sku || '').trim();
     if (!sku || !Array.isArray(it.rolls) || it.rolls.length === 0) continue;
-    const [[fab]] = await mysqlPool.query('SELECT id FROM fabrics WHERE sku = ? LIMIT 1', [sku]);
-    if (!fab) continue; // ไม่พบผ้าใน master → ข้าม (ม้วนยังอยู่ใน items_json ของเอกสาร)
+    let [[fab]] = await mysqlPool.query('SELECT id FROM fabrics WHERE sku = ? LIMIT 1', [sku]);
+    if (!fab) {
+      // ยังไม่มีผ้านี้ใน master → สร้างให้อัตโนมัติจากข้อมูลที่รับเข้า (เพื่อให้สแกน QR ม้วนได้)
+      try {
+        const [ins] = await mysqlPool.query(
+          'INSERT INTO fabrics (sku, name, width, unit, active) VALUES (?, ?, ?, ?, 1)',
+          [sku, it.name || '', it.width || '', it.unit || 'หลา']
+        );
+        fab = { id: ins.insertId };
+      } catch (e) {
+        const [[again]] = await mysqlPool.query('SELECT id FROM fabrics WHERE sku = ? LIMIT 1', [sku]);
+        if (!again) continue;
+        fab = again;
+      }
+    }
     let colorId = null;
     if (it.color) {
-      const [[sh]] = await mysqlPool.query('SELECT id FROM fabric_shades WHERE fabric_id = ? AND name = ? LIMIT 1', [fab.id, it.color]);
+      let [[sh]] = await mysqlPool.query('SELECT id FROM fabric_shades WHERE fabric_id = ? AND name = ? LIMIT 1', [fab.id, it.color]);
+      if (!sh) {
+        // สร้างเฉดสีให้ผ้านี้ถ้ายังไม่มี (เพื่อให้ข้อมูลสีตรงกับม้วน)
+        try {
+          const [insSh] = await mysqlPool.query('INSERT INTO fabric_shades (fabric_id, name) VALUES (?, ?)', [fab.id, it.color]);
+          sh = { id: insSh.insertId };
+        } catch (e) { sh = null; }
+      }
       if (sh) colorId = sh.id;
     }
     for (const roll of it.rolls) {
