@@ -15,6 +15,7 @@ import NoteInfoPage from './dashboard/NoteInfoPage.vue';
 import CustomersPage from './dashboard/CustomersPage.vue';
 import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
 import GoodsFinishedReceivePage from './dashboard/GoodsFinishedReceivePage.vue';
+import GoodsRawReceivePage from './dashboard/GoodsRawReceivePage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -63,6 +64,7 @@ export default {
     CustomersPage,
     GoodsReceivePage,
     GoodsFinishedReceivePage,
+    GoodsRawReceivePage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4012,6 +4014,9 @@ data() {
       <!-- ============ จัดการสินค้า (เมนูย่อยทั้ง 7 หน้า) ============ -->
       <!-- ============ รับผ้าสำเร็จ (เอกสารรับ + autofill จากผ้า) ============ -->
       <GoodsFinishedReceivePage v-else-if="currentPage === 'receive-fabric-finished'" />
+
+      <!-- ============ รับผ้าดิบ (เอกสารรับ + autofill จากผ้าดิบ, เลข IN รันร่วม) ============ -->
+      <GoodsRawReceivePage v-else-if="currentPage === 'receive-fabric-raw'" />
 
       <!-- ============ WMS: ประวัติเคลื่อนไหวสต็อก ============ -->
       <StockHistoryPage v-else-if="currentPage === 'stock-history'" />

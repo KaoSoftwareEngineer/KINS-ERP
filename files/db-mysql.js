@@ -293,6 +293,27 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- เอกสารรับผ้าดิบ (raw_receipts) — เลข IN รันร่วมกับผ้าสำเร็จ ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS raw_receipts (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      in_no         VARCHAR(32) NOT NULL,
+      receipt_date  VARCHAR(20) DEFAULT '',
+      receipt_type  VARCHAR(32) DEFAULT 'Purchase',
+      factory       VARCHAR(255) DEFAULT '',
+      po_ref        VARCHAR(64) DEFAULT '',
+      supplier      VARCHAR(255) DEFAULT '',
+      bill_no       VARCHAR(64) DEFAULT '',
+      remark        TEXT,
+      subtotal      DOUBLE DEFAULT 0,
+      discount      DOUBLE DEFAULT 0,
+      vat           DOUBLE DEFAULT 0,
+      net_total     DOUBLE DEFAULT 0,
+      items_json    MEDIUMTEXT,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS fabric_regular_group (
