@@ -688,6 +688,31 @@ async function makeInNo() {
   );
   return `${prefix}-${String(n + 1).padStart(3, '0')}`;
 }
+// เชื่อม WMS: เขียนม้วนผ้า (rolls) ที่รับเข้า → ตาราง fabric_rolls เพื่อให้สแกน QR ย้ายเข้าแร็คได้
+async function insertFabricRolls(items) {
+  for (const it of (items || [])) {
+    const sku = (it.sku || '').trim();
+    if (!sku || !Array.isArray(it.rolls) || it.rolls.length === 0) continue;
+    const [[fab]] = await mysqlPool.query('SELECT id FROM fabrics WHERE sku = ? LIMIT 1', [sku]);
+    if (!fab) continue; // ไม่พบผ้าใน master → ข้าม (ม้วนยังอยู่ใน items_json ของเอกสาร)
+    let colorId = null;
+    if (it.color) {
+      const [[sh]] = await mysqlPool.query('SELECT id FROM fabric_shades WHERE fabric_id = ? AND name = ? LIMIT 1', [fab.id, it.color]);
+      if (sh) colorId = sh.id;
+    }
+    for (const roll of it.rolls) {
+      if (!roll || !roll.barcode) continue;
+      const y = Number(roll.yards) || 0;
+      try {
+        await mysqlPool.query(
+          `INSERT INTO fabric_rolls (roll_qr_code, product_id, color_id, lot_no, initial_yards, current_yards, status, received_at)
+           VALUES (?, ?, ?, ?, ?, ?, 'available', NOW())`,
+          [roll.barcode, fab.id, colorId, it.lot || null, y, y]
+        );
+      } catch (e) { /* บาร์โค้ดซ้ำ (uq_roll_qr) → ข้าม */ }
+    }
+  }
+}
 app.get('/api/finished-receipts/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, in_no: await makeInNo() });
 }));
@@ -717,6 +742,7 @@ app.post('/api/finished-receipts', auth, wrap(async (req, res) => {
       items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
     }
   );
+  await insertFabricRolls(b.items);
   res.json({ ok: true, message: 'บันทึกเอกสารรับผ้าสำเร็จแล้ว', id: info.insertId, in_no });
 }));
 
@@ -787,6 +813,7 @@ app.post('/api/dyed-receipts', auth, wrap(async (req, res) => {
       items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
     }
   );
+  await insertFabricRolls(b.items);
   res.json({ ok: true, message: 'บันทึกเอกสารรับผ้าย้อมแล้ว', id: info.insertId, in_no });
 }));
 
@@ -855,6 +882,57 @@ app.post('/api/raw-transfers', auth, wrap(async (req, res) => {
     }
   );
   res.json({ ok: true, message: 'บันทึกเอกสารย้ายผ้าดิบแล้ว', id: info.insertId, tg_no });
+}));
+
+// ============================================================
+//  เอกสารย้ายชั้นสินค้า (rack_transfers) — สแกน QR ม้วน → เก็บเข้าแร็ค (WMS)
+//  เชื่อม fabric_rolls.location_id + log stock_transactions (เลข TK)
+// ============================================================
+async function makeTkNo() {
+  const d = new Date();
+  const prefix = 'TK' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM rack_transfers WHERE tk_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/rack-transfers/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, tk_no: await makeTkNo() });
+}));
+app.get('/api/rack-transfers', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM rack_transfers ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, transfers: rows });
+}));
+app.post('/api/rack-transfers', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const locCode = (b.location_code || '').toString().trim();
+  const scans = Array.isArray(b.items) ? b.items : [];
+  if (!locCode) return res.status(400).json({ ok: false, message: 'กรุณาระบุแร็คปลายทาง' });
+  if (scans.length === 0) return res.status(400).json({ ok: false, message: 'กรุณาสแกนม้วนผ้าอย่างน้อย 1 ม้วน' });
+  const [[loc]] = await mysqlPool.query('SELECT * FROM warehouse_locations WHERE location_qr = ? OR location_code = ?', [locCode, locCode]);
+  if (!loc) return res.status(404).json({ ok: false, message: 'ไม่พบแร็ค/ช่องเก็บรหัส ' + locCode });
+
+  let moved = 0;
+  const notFound = [];
+  for (const it of scans) {
+    const rollQr = (it.roll_qr || it.barcode || '').toString().trim();
+    if (!rollQr) continue;
+    const [[roll]] = await mysqlPool.query('SELECT * FROM fabric_rolls WHERE roll_qr_code = ?', [rollQr]);
+    if (!roll) { notFound.push(rollQr); continue; }
+    const fromLoc = roll.location_id;
+    await mysqlPool.query('UPDATE fabric_rolls SET location_id = ? WHERE roll_id = ?', [loc.location_id, roll.roll_id]);
+    await mysqlPool.query(
+      `INSERT INTO stock_transactions (roll_id, txn_type, yards_change, yards_before, yards_after, from_location_id, to_location_id, ref_type, ref_no, note, created_by)
+       VALUES (:roll_id, 'move', 0, :y, :y, :from_loc, :to_loc, 'rack_transfer', :ref, :note, :by)`,
+      { roll_id: roll.roll_id, y: roll.current_yards, from_loc: fromLoc, to_loc: loc.location_id, ref: '', note: 'ย้ายชั้นสินค้าเข้าแร็ค ' + loc.location_code, by: req.userId }
+    );
+    moved++;
+  }
+  const tk_no = await makeTkNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO rack_transfers (tk_no, transfer_date, location_code, remark, items_json)
+     VALUES (:tk_no, :transfer_date, :location_code, :remark, :items_json)`,
+    { tk_no, transfer_date: b.transfer_date || '', location_code: loc.location_code, remark: b.remark || '', items_json: JSON.stringify(scans) }
+  );
+  res.json({ ok: true, message: `เก็บเข้าแร็ค ${loc.location_code} สำเร็จ ${moved} ม้วน` + (notFound.length ? ` (ไม่พบ ${notFound.length} ม้วน)` : ''), id: info.insertId, tk_no, moved, not_found: notFound });
 }));
 
 // ============================================================

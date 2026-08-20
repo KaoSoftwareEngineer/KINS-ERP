@@ -362,6 +362,19 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- เอกสารย้ายชั้นสินค้า/เก็บเข้าแร็ค (rack_transfers) — เลข TK ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS rack_transfers (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      tk_no         VARCHAR(32) NOT NULL,
+      transfer_date VARCHAR(20) DEFAULT '',
+      location_code VARCHAR(64) DEFAULT '',
+      remark        TEXT,
+      items_json    MEDIUMTEXT,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS fabric_regular_group (
