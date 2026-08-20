@@ -8,9 +8,9 @@
       <thead>
         <tr>
           <th style="width:50px;">ที่</th>
-          <th style="width:180px;">ราคาขาย (ตั้งแต่)</th>
+          <th style="width:180px;text-align:right;">ราคาขาย (ตั้งแต่)</th>
           <th style="width:40px;"></th>
-          <th style="width:180px;">ถึง</th>
+          <th style="width:180px;text-align:right;">ถึง</th>
           <th style="text-align:left;">กลุ่มสินค้า VAT</th>
           <th style="width:96px;"></th>
         </tr>
