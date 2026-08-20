@@ -8,7 +8,7 @@
     </div>
     <div class="set-import-actions">
       <button class="set-import-btn" @click="dash.xlTogglePanel"><span class="set-import-ic">📊</span> นำเข้าข้อมูลผ้า (Excel)</button>
-      <button class="set-import-btn" @click="dash.cmTogglePanel"><span class="set-import-ic">👥</span> นำเข้าข้อมูลลูกค้า (Excel)</button>
+      <button class="set-import-btn" @click="customer.cmTogglePanel"><span class="set-import-ic">👥</span> นำเข้าข้อมูลลูกค้า (Excel)</button>
     </div>
   </div>
 
@@ -134,24 +134,24 @@
   </div>
 
   <!-- ============ โมดัลนำเข้าข้อมูลลูกค้า (Excel) ============ -->
-  <div class="erp-overlay" v-if="dash.cmShowPanel" @click.self="dash.cmTogglePanel">
+  <div class="erp-overlay" v-if="customer.cmShowPanel" @click.self="customer.cmTogglePanel">
     <div class="erp-modal erp-modal-wide">
       <div class="erp-modal-head">
         <span><span class="erp-head-ic">👥</span> นำเข้าข้อมูลลูกค้าจากไฟล์ Excel</span>
-        <button class="erp-x" @click="dash.cmTogglePanel">✕</button>
+        <button class="erp-x" @click="customer.cmTogglePanel">✕</button>
       </div>
       <div class="erp-modal-body">
         <div class="imp-step-title">📎 เลือกไฟล์ Excel ที่จะนำเข้า</div>
-        <label class="imp-dropzone" :class="{ dragging: dragCm, 'has-file': dash.cmFile }"
+        <label class="imp-dropzone" :class="{ dragging: dragCm, 'has-file': customer.cmFile }"
                @dragover.prevent="dragCm = true" @dragleave.prevent="dragCm = false" @drop.prevent="onDropCm">
-          <input :key="dash.cmFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.cmHandleFile" hidden />
-          <div class="imp-dz-icon">{{ dash.cmFile ? '📗' : '📁' }}</div>
-          <div v-if="!dash.cmFile" class="imp-dz-text">
+          <input :key="customer.cmFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="customer.cmHandleFile" hidden />
+          <div class="imp-dz-icon">{{ customer.cmFile ? '📗' : '📁' }}</div>
+          <div v-if="!customer.cmFile" class="imp-dz-text">
             <span class="imp-dz-main"><strong>คลิกเพื่อเลือกไฟล์</strong> หรือ ลากไฟล์มาวางที่นี่</span>
             <span class="imp-dz-sub">รองรับไฟล์ .xlsx, .xls, .csv</span>
           </div>
           <div v-else class="imp-dz-text">
-            <span class="imp-dz-main imp-dz-file">✓ {{ dash.cmFile.name }}</span>
+            <span class="imp-dz-main imp-dz-file">✓ {{ customer.cmFile.name }}</span>
             <span class="imp-dz-sub">คลิกเพื่อเปลี่ยนไฟล์ — แล้วกดปุ่ม "นำเข้าข้อมูล" ด้านล่าง</span>
           </div>
         </label>
@@ -159,12 +159,12 @@
           คอลัมน์ A = รหัสลูกค้า (เลข 4 หลักนำหน้า) + ชื่อลูกค้า เช่น "2114 Mr.Hamad", คอลัมน์ B = ที่อยู่จัดส่ง
           — ระบบจะแยกรหัสและชื่อให้อัตโนมัติ และแจ้งเตือนหากพบรหัสลูกค้าซ้ำ
         </p>
-        <p v-if="dash.cmImportMessage" class="xl-import-message" :class="{ 'is-error': dash.cmImportMessage.indexOf('⚠️') === 0 }">{{ dash.cmImportMessage }}</p>
+        <p v-if="customer.cmImportMessage" class="xl-import-message" :class="{ 'is-error': customer.cmImportMessage.indexOf('⚠️') === 0 }">{{ customer.cmImportMessage }}</p>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="dash.cmTogglePanel">ปิด</button>
-        <button class="erp-btn erp-btn-save" :disabled="dash.cmImporting" @click="dash.cmImportFile">
-          {{ dash.cmImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
+        <button class="erp-btn erp-btn-cancel" @click="customer.cmTogglePanel">ปิด</button>
+        <button class="erp-btn erp-btn-save" :disabled="customer.cmImporting" @click="customer.cmImportFile">
+          {{ customer.cmImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
         </button>
       </div>
     </div>
@@ -173,9 +173,14 @@
 </template>
 
 <script>
+import { useCustomerStore } from '../../stores/customer.js';
+
 export default {
   name: 'SettingsPage',
   inject: ['dash'],
+  setup() {
+    return { customer: useCustomerStore() };
+  },
   data() {
     return { dragXl: false, dragCm: false, emailNotif: true };
   },
@@ -188,7 +193,7 @@ export default {
     onDropCm(e) {
       this.dragCm = false;
       const f = e.dataTransfer && e.dataTransfer.files[0];
-      if (f) this.dash.cmFile = f;
+      if (f) this.customer.cmFile = f;
     },
   },
 };

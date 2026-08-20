@@ -673,6 +673,47 @@ app.post('/api/dye-orders', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  เอกสารรับผ้าสำเร็จ (finished_receipts)
+// ============================================================
+async function makeInNo() {
+  const d = new Date();
+  const prefix = 'IN' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM finished_receipts WHERE in_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/finished-receipts/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, in_no: await makeInNo() });
+}));
+app.get('/api/finished-receipts', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM finished_receipts ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, receipts: rows });
+}));
+app.post('/api/finished-receipts', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const in_no = await makeInNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO finished_receipts (in_no, receipt_date, receipt_type, warehouse, po_ref, supplier, bill_no, remark, subtotal, discount, vat, net_total, items_json)
+     VALUES (:in_no, :receipt_date, :receipt_type, :warehouse, :po_ref, :supplier, :bill_no, :remark, :subtotal, :discount, :vat, :net_total, :items_json)`,
+    {
+      in_no,
+      receipt_date: b.receipt_date || '',
+      receipt_type: b.receipt_type || 'Purchase',
+      warehouse: b.warehouse || 'Warehouse',
+      po_ref: b.po_ref || '',
+      supplier: b.supplier || '',
+      bill_no: b.bill_no || '',
+      remark: b.remark || '',
+      subtotal: Number(b.subtotal) || 0,
+      discount: Number(b.discount) || 0,
+      vat: Number(b.vat) || 0,
+      net_total: Number(b.net_total) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกเอกสารรับผ้าสำเร็จแล้ว', id: info.insertId, in_no });
+}));
+
+// ============================================================
 //  กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม
 // ============================================================
 app.get('/api/fabric-regular-group', auth, wrap(async (req, res) => {

@@ -101,9 +101,14 @@
 </template>
 
 <script>
+import { useCustomerStore } from '../../stores/customer.js';
+
 export default {
   name: 'SalesContractPage',
   inject: ['dash'],
+  setup() {
+    return { customer: useCustomerStore() };
+  },
   data() {
     return {
       form: {
@@ -117,7 +122,7 @@ export default {
     };
   },
   computed: {
-    customerOptions() { return (this.dash.cuItems || []).map(c => c.company_name).filter(Boolean).slice(0, 200); },
+    customerOptions() { return (this.customer.cuItems || []).map(c => c.company_name).filter(Boolean).slice(0, 200); },
     subtotal() { return this.items.reduce((s, r) => s + this.rowAmount(r), 0); },
     discountAmount() {
       if (this.form.discount_type === 'baht') return Number(this.form.discount_value) || 0;
@@ -133,7 +138,7 @@ export default {
   mounted() {
     this.loadProducts();
     this.loadNextNo();
-    if (!this.dash.cuItems || this.dash.cuItems.length === 0) this.dash.cuLoadItems && this.dash.cuLoadItems();
+    if (!this.customer.cuItems || this.customer.cuItems.length === 0) this.customer.cuLoadItems();
     this.addRow();
   },
   methods: {

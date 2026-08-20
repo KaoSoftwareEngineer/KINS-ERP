@@ -149,10 +149,14 @@
 
 <script>
 import QRCode from 'qrcode';
+import { useCustomerStore } from '../../stores/customer.js';
 
 export default {
   name: 'GoodsReceivePage',
   inject: ['dash'],
+  setup() {
+    return { customer: useCustomerStore() };
+  },
   data() {
     return {
       receiptTypes: ['ซื้อ', 'ผลิตเสร็จ', 'รับคืน', 'โอนย้ายระหว่างคลัง'],
@@ -183,14 +187,14 @@ export default {
       return [...new Set(this.locations.map(l => l.zone).filter(Boolean))].map(z => 'คลัง ' + z);
     },
     supplierOptions() {
-      return (this.dash.cuItems || []).map(c => c.company_name).filter(Boolean).slice(0, 200);
+      return (this.customer.cuItems || []).map(c => c.company_name).filter(Boolean).slice(0, 200);
     },
   },
   mounted() {
     this.loadProducts();
     this.loadLocations();
-    if (!this.dash.cuItems || this.dash.cuItems.length === 0) {
-      this.dash.cuLoadItems && this.dash.cuLoadItems();
+    if (!this.customer.cuItems || this.customer.cuItems.length === 0) {
+      this.customer.cuLoadItems();
     }
     this.addRow();
   },

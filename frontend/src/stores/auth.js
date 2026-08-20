@@ -4,6 +4,7 @@
 //  แยกออกจาก Dashboard.vue เพื่อให้ดูแลง่ายและ reuse ได้ทุก component
 // ============================================================================
 import { defineStore } from 'pinia';
+import router from '../router/index.js';
 
 const API = '';
 
@@ -45,6 +46,13 @@ export const useAuthStore = defineStore('auth', {
     setCurrentUser(u) {
       this.currentUser = u;
       localStorage.setItem('currentUser', JSON.stringify(u));
+    },
+    // เซสชันหมดอายุ (401 จากเซิร์ฟเวอร์) — เคลียร์ token + เด้งไปหน้าล็อกอิน
+    sessionExpired() {
+      this.setToken(null);
+      this.setCurrentUser({});
+      alert('เซสชันหมดอายุ (เซิร์ฟเวอร์อาจรีสตาร์ทไป) กรุณาเข้าสู่ระบบใหม่');
+      router.push('/login');
     },
 
     // ---- ตรวจสิทธิ์เข้าถึงหน้า/เมนู ----
