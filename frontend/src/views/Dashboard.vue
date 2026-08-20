@@ -16,6 +16,7 @@ import CustomersPage from './dashboard/CustomersPage.vue';
 import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
 import GoodsFinishedReceivePage from './dashboard/GoodsFinishedReceivePage.vue';
 import GoodsRawReceivePage from './dashboard/GoodsRawReceivePage.vue';
+import GoodsDyedReceivePage from './dashboard/GoodsDyedReceivePage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -65,6 +66,7 @@ export default {
     GoodsReceivePage,
     GoodsFinishedReceivePage,
     GoodsRawReceivePage,
+    GoodsDyedReceivePage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4017,6 +4019,9 @@ data() {
 
       <!-- ============ รับผ้าดิบ (เอกสารรับ + autofill จากผ้าดิบ, เลข IN รันร่วม) ============ -->
       <GoodsRawReceivePage v-else-if="currentPage === 'receive-fabric-raw'" />
+
+      <!-- ============ รับผ้าย้อม (อ้างอิงใบสั่งย้อม + QR รายม้วน, เลข IN รันร่วม) ============ -->
+      <GoodsDyedReceivePage v-else-if="currentPage === 'receive-fabric-dyed'" />
 
       <!-- ============ WMS: ประวัติเคลื่อนไหวสต็อก ============ -->
       <StockHistoryPage v-else-if="currentPage === 'stock-history'" />

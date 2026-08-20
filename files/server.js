@@ -675,15 +675,16 @@ app.post('/api/dye-orders', auth, wrap(async (req, res) => {
 // ============================================================
 //  เอกสารรับผ้าสำเร็จ (finished_receipts)
 // ============================================================
-// เลขที่รับสินค้า IN + YYMM + running — รันต่อเนื่องร่วมกันทั้งผ้าสำเร็จและผ้าดิบ
+// เลขที่รับสินค้า IN + YYMM + running — รันต่อเนื่องร่วมกันทั้งผ้าสำเร็จ/ผ้าดิบ/ผ้าย้อม
 async function makeInNo() {
   const d = new Date();
   const prefix = 'IN' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
   const like = prefix + '-%';
   const [[{ n }]] = await mysqlPool.query(
     `SELECT (SELECT COUNT(*) FROM finished_receipts WHERE in_no LIKE ?)
-          + (SELECT COUNT(*) FROM raw_receipts WHERE in_no LIKE ?) AS n`,
-    [like, like]
+          + (SELECT COUNT(*) FROM raw_receipts WHERE in_no LIKE ?)
+          + (SELECT COUNT(*) FROM dyed_receipts WHERE in_no LIKE ?) AS n`,
+    [like, like, like]
   );
   return `${prefix}-${String(n + 1).padStart(3, '0')}`;
 }
@@ -752,6 +753,41 @@ app.post('/api/raw-receipts', auth, wrap(async (req, res) => {
     }
   );
   res.json({ ok: true, message: 'บันทึกเอกสารรับผ้าดิบแล้ว', id: info.insertId, in_no });
+}));
+
+// ============================================================
+//  เอกสารรับผ้าย้อม (dyed_receipts) — เลข IN รันร่วมกับผ้าสำเร็จ/ดิบ
+// ============================================================
+app.get('/api/dyed-receipts/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, in_no: await makeInNo() });
+}));
+app.get('/api/dyed-receipts', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM dyed_receipts ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, receipts: rows });
+}));
+app.post('/api/dyed-receipts', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const in_no = await makeInNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO dyed_receipts (in_no, receipt_date, order_ref, factory, warehouse, supplier, bill_no, remark, subtotal, discount, vat, net_total, items_json)
+     VALUES (:in_no, :receipt_date, :order_ref, :factory, :warehouse, :supplier, :bill_no, :remark, :subtotal, :discount, :vat, :net_total, :items_json)`,
+    {
+      in_no,
+      receipt_date: b.receipt_date || '',
+      order_ref: b.order_ref || '',
+      factory: b.factory || '',
+      warehouse: b.warehouse || 'Warehouse',
+      supplier: b.supplier || '',
+      bill_no: b.bill_no || '',
+      remark: b.remark || '',
+      subtotal: Number(b.subtotal) || 0,
+      discount: Number(b.discount) || 0,
+      vat: Number(b.vat) || 0,
+      net_total: Number(b.net_total) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกเอกสารรับผ้าย้อมแล้ว', id: info.insertId, in_no });
 }));
 
 // ============================================================
