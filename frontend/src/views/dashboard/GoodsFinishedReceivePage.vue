@@ -221,7 +221,7 @@ export default {
     this.loadRefs();
   },
   methods: {
-    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', color: '', name: '', width: '', lot: '', fold: 0, qty: 0, unit_price: null, folds: [{ perFold: null, count: null }], barcode: '', shadeOptions: [] }; },
+    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', color: '', name: '', width: '', lot: '', fold: 0, qty: 0, unit_price: null, folds: [{ perFold: null, count: null }], rolls: [], barcode: '', shadeOptions: [] }; },
     lineTotal(r) { return (Number(r.qty) || 0) * (Number(r.unit_price) || 0); },
     addRow(idx) { this.items.splice(idx + 1, 0, this.newRow()); },
     removeRow(idx) { if (this.items.length > 1) this.items.splice(idx, 1); },
@@ -291,6 +291,30 @@ export default {
       const rand = String((Date.now() + idx * 7919) % 1000000).padStart(6, '0');
       return yymm + rand;
     },
+    // สร้างบาร์โค้ดต่อม้วน (unique ต่อ batch ด้วย base timestamp + running seq)
+    genRollBarcode(base, seq) {
+      const d = new Date();
+      const yymm = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+      const rand = String((base + seq * 131) % 1000000).padStart(6, '0');
+      return yymm + rand;
+    },
+    // ขยายพับ (folds) เป็นรายม้วน (rolls) — แต่ละม้วน 1 QR
+    // fold {perFold:60, count:10} => 10 ม้วน แต่ละม้วน 60 หลา
+    buildRolls(item) {
+      const rolls = [];
+      const folds = (item.folds || []).filter(f => (Number(f.perFold) || 0) > 0 && (Number(f.count) || 0) > 0);
+      if (folds.length === 0) {
+        // ไม่ได้ระบุพับ → ถือเป็น 1 ม้วน = จำนวนทั้งหมด
+        if ((Number(item.qty) || 0) > 0) rolls.push({ yards: Number(item.qty) || 0, barcode: '' });
+      } else {
+        for (const f of folds) {
+          const n = Number(f.count) || 0;
+          const y = Number(f.perFold) || 0;
+          for (let i = 0; i < n; i++) rolls.push({ yards: y, barcode: '' });
+        }
+      }
+      return rolls;
+    },
     resetForm() {
       this.form = { in_no: '', receipt_date: new Date().toISOString().slice(0, 10), receipt_type: 'Purchase', warehouse: 'Warehouse', po_ref: '', supplier: '', bill_no: '', remark: '' };
       this.items = [this.newRow()];
@@ -302,15 +326,22 @@ export default {
       const hasItem = this.items.some(r => (r.sku || '').trim());
       if (!hasItem) { this.dash.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ'); return; }
       this.dash.fbLoading('กำลังบันทึก...');
-      // gen บาร์โค้ดให้ทุกแถวที่มีรหัสสินค้า
-      this.items.forEach((r, i) => { if ((r.sku || '').trim() && !r.barcode) r.barcode = this.genBarcode(i); });
+      // ขยายพับเป็นรายม้วน + gen บาร์โค้ด unique ต่อม้วน (สำหรับติดผ้าแต่ละไม้ → link ช่องเก็บ)
+      const base = Date.now() % 1000000;
+      let seq = 0;
+      this.items.forEach((r) => {
+        if (!(r.sku || '').trim()) return;
+        const rolls = this.buildRolls(r);
+        rolls.forEach((roll, i) => { roll.roll_no = i + 1; roll.barcode = this.genRollBarcode(base, seq++); });
+        r.rolls = rolls;
+      });
       const payload = {
         ...this.form,
         subtotal: this.subtotal, discount: this.discountAmount, vat: this.vatAmount, net_total: this.netTotal,
         items: this.items.filter(r => (r.sku || '').trim()).map(r => ({
           sku: r.sku, color: r.color, name: r.name, width: r.width, lot: r.lot,
           fold: r.fold, qty: r.qty, unit_price: r.unit_price, total: this.lineTotal(r),
-          folds: r.folds, barcode: r.barcode,
+          folds: r.folds, rolls: r.rolls,
         })),
       };
       try {
@@ -335,30 +366,39 @@ export default {
       const rows = this.items.filter(r => (r.sku || '').trim());
       if (rows.length === 0) { this.dash.fbFail('ไม่มีรายการสำหรับพิมพ์บาร์โค้ด'); return; }
       const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-      // แต่ละแถวออกกี่ป้าย = จำนวนพับ (fold) ป้าย; ถ้าไม่มีพับให้ 1 ป้าย
+      // ออก QR 1 อันต่อ 1 ม้วน (roll) — 001 มี 10 ม้วน = 10 QR แต่ละอันมีหลาของม้วนนั้น
+      const base = Date.now() % 1000000;
+      let seq = 0;
       const stickers = [];
+      const totalRolls = rows.reduce((s, r) => s + ((r.rolls && r.rolls.length) ? r.rolls.length : this.buildRolls(r).length), 0);
       for (const r of rows) {
-        if (!r.barcode) r.barcode = this.genBarcode(stickers.length);
-        const perFoldYards = (Number(r.qty) || 0);
-        const qr = await QRCode.toDataURL(r.barcode, { width: 150, margin: 1 });
-        stickers.push(`
-          <div class="st">
-            <div class="st-top">
-              <div><span class="lbl">Code</span> <b>${esc(r.sku)}</b></div>
-              <div><span class="lbl">color</span> ${esc(r.color || '-')}</div>
-            </div>
-            <div class="st-mid">
-              <div class="st-info">
-                <div>LOT ${esc(r.lot || '')}</div>
-                <div>QTY ${perFoldYards} หลา.</div>
+        let rolls = (r.rolls && r.rolls.length) ? r.rolls : this.buildRolls(r);
+        if (!rolls.length) continue;
+        for (const roll of rolls) {
+          if (!roll.barcode) roll.barcode = this.genRollBarcode(base, seq);
+          seq++;
+          const qr = await QRCode.toDataURL(roll.barcode, { width: 150, margin: 1 });
+          stickers.push(`
+            <div class="st">
+              <div class="st-top">
+                <div><span class="lbl">Code</span> <b>${esc(r.sku)}</b></div>
+                <div><span class="lbl">color</span> ${esc(r.color || '-')}</div>
+                <div><span class="lbl">ม้วนที่</span> ${roll.roll_no || '-'} / ${rolls.length}</div>
               </div>
-              <div class="st-qr">
-                <img src="${qr}" />
-                <div class="st-code">${esc(r.barcode)}</div>
+              <div class="st-mid">
+                <div class="st-info">
+                  <div>LOT ${esc(r.lot || '')}</div>
+                  <div>QTY ${roll.yards || 0} หลา.</div>
+                </div>
+                <div class="st-qr">
+                  <img src="${qr}" />
+                  <div class="st-code">${esc(roll.barcode)}</div>
+                </div>
               </div>
-            </div>
-          </div>`);
+            </div>`);
+        }
       }
+      if (stickers.length === 0) { this.dash.fbFail('ยังไม่มีข้อมูลม้วนผ้า — กรุณาระบุพับหรือจำนวนก่อน'); return; }
       const win = window.open('', '_blank', 'width=900,height=680');
       if (!win) { this.dash.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
       win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>บาร์โค้ดผ้า (${stickers.length})</title>
