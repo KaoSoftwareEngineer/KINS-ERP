@@ -40,9 +40,9 @@
       <thead>
         <tr>
           <th style="width:40px;">ที่</th>
-          <th>รหัสสินค้า</th><th>รหัสสี</th><th>ชื่อ</th><th>หน้ากว้าง</th><th>พับ</th>
-          <th>จำนวน</th><th>ราคา/หน่วย</th><th>ราคา</th>
-          <th style="width:96px;"></th>
+          <th>รหัสสินค้า</th><th>รหัสสี</th><th>ชื่อ</th><th>หน้ากว้าง</th><th style="width:70px;">พับ</th>
+          <th style="width:90px;">จำนวน</th><th style="width:100px;">ราคา/หน่วย</th><th style="width:110px;">ราคา</th>
+          <th style="width:150px;"></th>
         </tr>
       </thead>
       <tbody>
@@ -58,21 +58,32 @@
           </td>
           <td><input v-model="row.name" class="po-ro-cell" placeholder="ชื่อ" /></td>
           <td><input v-model="row.width" class="po-ro-cell" placeholder="หน้ากว้าง" /></td>
-          <td><input v-model="row.fold" placeholder="พับ" /></td>
-          <td><input type="number" v-model.number="row.qty" class="po-num" /></td>
+          <td><input :value="row.fold" readonly class="po-ro-cell po-num" /></td>
+          <td><input :value="row.qty" readonly class="po-ro-cell po-num" /></td>
           <td><input type="number" v-model.number="row.unit_price" class="po-num" /></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
           <td class="po-row-actions">
+            <button class="po-ic po-fold" title="รายละเอียดพับ" @click="openFoldDrawer(idx)">☰</button>
             <button class="po-ic po-add" title="เพิ่มแถว" @click="addRow(idx)">＋</button>
             <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">－</button>
+            <button class="po-ic po-copy" title="คัดลอกแถว" @click="copyRow(idx)">⧉</button>
           </td>
         </tr>
       </tbody>
+      <tfoot>
+        <tr class="po-foot-row">
+          <td colspan="5" class="po-foot-label">รวม</td>
+          <td class="po-num">{{ totalFold }}</td>
+          <td class="po-num">{{ totalQty.toFixed(2) }}</td>
+          <td></td>
+          <td class="po-num">{{ subtotal.toFixed(2) }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
     </table>
 
     <!-- สรุปยอด -->
     <div class="po-summary">
-      <div class="po-sum-row"><label>รวม</label><input :value="subtotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
       <div class="po-sum-row">
         <label>ส่วนลด</label>
         <select v-model="discountMode"><option value="none">None</option><option value="percent">%</option><option value="amount">บาท</option></select>
@@ -93,13 +104,62 @@
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
       <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-      <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
+      <template v-if="!saved">
+        <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
+      </template>
+      <template v-else>
+        <button class="po-btn po-btn-receipt" @click="openReceiptPdf">🧾 ใบรับสินค้า</button>
+        <button class="po-btn po-btn-barcode" @click="printBarcodes">🏷️ บาร์โค้ด</button>
+        <button class="po-btn po-btn-new" @click="resetForm">＋ รับใหม่</button>
+      </template>
     </div>
   </div>
+
+  <!-- Drawer รายละเอียดพับ -->
+  <transition name="fd-slide">
+    <div v-if="foldDrawerOpen" class="fd-wrap">
+      <div class="fd-backdrop" @click="closeFoldDrawer"></div>
+      <div class="fd-drawer">
+        <div class="fd-head">
+          <span>รายละเอียดพับ&nbsp;&nbsp;<b>{{ foldTitle }}</b></span>
+          <button class="fd-x" @click="closeFoldDrawer">✕</button>
+        </div>
+        <div class="fd-body" v-if="foldRow">
+          <table class="fd-table">
+            <thead><tr><th>จำนวน/พับ</th><th>พับ</th><th>รวม</th><th style="width:70px;"></th></tr></thead>
+            <tbody>
+              <tr v-for="(f, i) in foldRow.folds" :key="i">
+                <td><input type="number" v-model.number="f.perFold" class="fd-num" placeholder="0" /></td>
+                <td><input type="number" v-model.number="f.count" class="fd-num" placeholder="0" /></td>
+                <td><input :value="foldLine(f).toFixed(2)" readonly class="fd-num fd-ro" /></td>
+                <td class="fd-actions">
+                  <button class="po-ic po-add" title="เพิ่ม" @click="addFold(i)">＋</button>
+                  <button class="po-ic po-del" title="ลบ" @click="removeFold(i)">－</button>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td class="fd-foot-label">รวม</td>
+                <td class="fd-num fd-foot">{{ foldTotalCount }}</td>
+                <td class="fd-num fd-foot">{{ foldTotalYards.toFixed(2) }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="fd-foot-bar">
+          <button class="po-btn po-btn-save" @click="applyFolds">💾 บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </transition>
 </div>
 </template>
 
 <script>
+import QRCode from 'qrcode';
+
 export default {
   name: 'GoodsFinishedReceivePage',
   inject: ['dash'],
@@ -111,11 +171,14 @@ export default {
       warehouseOptions: ['Warehouse', 'Factory'],
       discountMode: 'none', discountValue: 0, vatMode: 'none',
       fabrics: [], vendorOptions: ['D Finest'], poOptions: [],
-      savedMsg: '', _seq: 1,
+      saved: false, savedMsg: '', savedData: null, _seq: 1,
+      foldDrawerOpen: false, foldIdx: null,
     };
   },
   computed: {
     subtotal() { return this.items.reduce((s, r) => s + this.lineTotal(r), 0); },
+    totalFold() { return this.items.reduce((s, r) => s + (Number(r.fold) || 0), 0); },
+    totalQty() { return this.items.reduce((s, r) => s + (Number(r.qty) || 0), 0); },
     discountAmount() {
       if (this.discountMode === 'percent') return this.subtotal * (Number(this.discountValue) || 0) / 100;
       if (this.discountMode === 'amount') return Number(this.discountValue) || 0;
@@ -124,16 +187,48 @@ export default {
     afterDiscount() { return Math.max(0, this.subtotal - this.discountAmount); },
     vatAmount() { return this.vatMode === '7' ? this.afterDiscount * 0.07 : 0; },
     netTotal() { return this.afterDiscount + this.vatAmount; },
+    foldRow() { return this.foldIdx != null ? this.items[this.foldIdx] : null; },
+    foldTitle() {
+      const r = this.foldRow;
+      if (!r) return '';
+      return [r.sku, r.color].filter(Boolean).join(' – ');
+    },
+    foldTotalCount() { return this.foldRow ? this.foldRow.folds.reduce((s, f) => s + (Number(f.count) || 0), 0) : 0; },
+    foldTotalYards() { return this.foldRow ? this.foldRow.folds.reduce((s, f) => s + this.foldLine(f), 0) : 0; },
   },
   async mounted() {
     await this.loadNextNo();
     this.loadRefs();
   },
   methods: {
-    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', color: '', name: '', width: '', fold: '', qty: null, unit_price: null, shadeOptions: [] }; },
+    newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', color: '', name: '', width: '', lot: '', fold: 0, qty: 0, unit_price: null, folds: [{ perFold: null, count: null }], barcode: '', shadeOptions: [] }; },
     lineTotal(r) { return (Number(r.qty) || 0) * (Number(r.unit_price) || 0); },
     addRow(idx) { this.items.splice(idx + 1, 0, this.newRow()); },
     removeRow(idx) { if (this.items.length > 1) this.items.splice(idx, 1); },
+    copyRow(idx) {
+      const src = this.items[idx];
+      const clone = JSON.parse(JSON.stringify(src));
+      clone._key = (this._seq = (this._seq || 0) + 1);
+      clone.barcode = '';
+      this.items.splice(idx + 1, 0, clone);
+    },
+    // ---- Drawer รายละเอียดพับ ----
+    openFoldDrawer(idx) {
+      this.foldIdx = idx;
+      const r = this.items[idx];
+      if (!r.folds || r.folds.length === 0) r.folds = [{ perFold: null, count: null }];
+      this.foldDrawerOpen = true;
+    },
+    closeFoldDrawer() { this.foldDrawerOpen = false; this.foldIdx = null; },
+    foldLine(f) { return (Number(f.perFold) || 0) * (Number(f.count) || 0); },
+    addFold(i) { this.foldRow.folds.splice(i + 1, 0, { perFold: null, count: null }); },
+    removeFold(i) { if (this.foldRow.folds.length > 1) this.foldRow.folds.splice(i, 1); },
+    applyFolds() {
+      const r = this.foldRow;
+      if (r) { r.fold = this.foldTotalCount; r.qty = this.foldTotalYards; }
+      this.closeFoldDrawer();
+    },
+    // ---- โหลดข้อมูล ----
     async loadNextNo() {
       try {
         const res = await fetch('/api/finished-receipts/next-no', { headers: { Authorization: 'Bearer ' + this.dash.token } });
@@ -169,14 +264,34 @@ export default {
         row.shadeOptions = (d.shades || []).map(s => s.name);
       } catch (e) { row.shadeOptions = []; }
     },
+    // ---- บันทึก ----
+    genBarcode(idx) {
+      const d = new Date();
+      const yymm = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+      const rand = String((Date.now() + idx * 7919) % 1000000).padStart(6, '0');
+      return yymm + rand;
+    },
+    resetForm() {
+      this.form = { in_no: '', receipt_date: new Date().toISOString().slice(0, 10), receipt_type: 'Purchase', warehouse: 'Warehouse', po_ref: '', supplier: '', bill_no: '', remark: '' };
+      this.items = [this.newRow()];
+      this.discountMode = 'none'; this.discountValue = 0; this.vatMode = 'none';
+      this.saved = false; this.savedMsg = ''; this.savedData = null;
+      this.loadNextNo();
+    },
     async save() {
       const hasItem = this.items.some(r => (r.sku || '').trim());
       if (!hasItem) { this.dash.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ'); return; }
       this.dash.fbLoading('กำลังบันทึก...');
+      // gen บาร์โค้ดให้ทุกแถวที่มีรหัสสินค้า
+      this.items.forEach((r, i) => { if ((r.sku || '').trim() && !r.barcode) r.barcode = this.genBarcode(i); });
       const payload = {
         ...this.form,
         subtotal: this.subtotal, discount: this.discountAmount, vat: this.vatAmount, net_total: this.netTotal,
-        items: this.items.map(r => ({ sku: r.sku, color: r.color, name: r.name, width: r.width, fold: r.fold, qty: r.qty, unit_price: r.unit_price, total: this.lineTotal(r) })),
+        items: this.items.filter(r => (r.sku || '').trim()).map(r => ({
+          sku: r.sku, color: r.color, name: r.name, width: r.width, lot: r.lot,
+          fold: r.fold, qty: r.qty, unit_price: r.unit_price, total: this.lineTotal(r),
+          folds: r.folds, barcode: r.barcode,
+        })),
       };
       try {
         const res = await fetch('/api/finished-receipts', {
@@ -188,17 +303,109 @@ export default {
         const d = await res.json();
         if (d.ok) {
           this.form.in_no = d.in_no;
+          this.saved = true;
+          this.savedData = JSON.parse(JSON.stringify(payload));
           this.savedMsg = 'ระบบได้ทำการเพิ่มข้อมูลเรียบร้อยแล้ว';
           this.dash.fbDone('บันทึกแล้ว');
         } else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
+    },
+    // ---- พิมพ์บาร์โค้ด (QR sticker) ----
+    async printBarcodes() {
+      const rows = this.items.filter(r => (r.sku || '').trim());
+      if (rows.length === 0) { this.dash.fbFail('ไม่มีรายการสำหรับพิมพ์บาร์โค้ด'); return; }
+      const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      // แต่ละแถวออกกี่ป้าย = จำนวนพับ (fold) ป้าย; ถ้าไม่มีพับให้ 1 ป้าย
+      const stickers = [];
+      for (const r of rows) {
+        if (!r.barcode) r.barcode = this.genBarcode(stickers.length);
+        const perFoldYards = (Number(r.qty) || 0);
+        const qr = await QRCode.toDataURL(r.barcode, { width: 150, margin: 1 });
+        stickers.push(`
+          <div class="st">
+            <div class="st-top">
+              <div><span class="lbl">Code</span> <b>${esc(r.sku)}</b></div>
+              <div><span class="lbl">color</span> ${esc(r.color || '-')}</div>
+            </div>
+            <div class="st-mid">
+              <div class="st-info">
+                <div>LOT ${esc(r.lot || '')}</div>
+                <div>QTY ${perFoldYards} หลา.</div>
+              </div>
+              <div class="st-qr">
+                <img src="${qr}" />
+                <div class="st-code">${esc(r.barcode)}</div>
+              </div>
+            </div>
+          </div>`);
+      }
+      const win = window.open('', '_blank', 'width=900,height=680');
+      if (!win) { this.dash.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>บาร์โค้ดผ้า (${stickers.length})</title>
+        <style>
+          *{box-sizing:border-box}
+          body{font-family:'Noto Sans Thai','Segoe UI',sans-serif;margin:12px}
+          .sheet{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+          .st{border:1px solid #222;border-radius:8px;padding:10px 12px;page-break-inside:avoid}
+          .st-top{border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:8px;font-size:13px;line-height:1.5}
+          .lbl{color:#555;font-size:11px}
+          .st-mid{display:flex;justify-content:space-between;align-items:flex-end}
+          .st-info{font-size:13px;line-height:1.7}
+          .st-qr{text-align:center}
+          .st-qr img{width:96px;height:96px;display:block}
+          .st-code{font-family:'Courier New',monospace;font-size:11px;font-weight:700;margin-top:2px}
+          @media print{.no-print{display:none}}
+        </style></head><body>
+        <div class="no-print" style="text-align:center;margin-bottom:10px"><button onclick="window.print()" style="padding:8px 22px;font-size:14px;cursor:pointer">🖨️ พิมพ์</button></div>
+        <div class="sheet">${stickers.join('')}</div>
+        </body></html>`);
+      win.document.close();
+    },
+    // ---- พิมพ์ใบรับสินค้า ----
+    openReceiptPdf() {
+      const f = this.form;
+      const rows = this.items.filter(r => (r.sku || '').trim());
+      const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      const body = rows.map((r, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${esc(r.sku)}</td><td>${esc(r.color)}</td><td>${esc(r.width)}</td><td>${r.fold || ''}</td><td>${r.qty || ''}</td><td>${(Number(r.unit_price) || 0).toFixed(2)}</td><td>${this.lineTotal(r).toFixed(2)}</td></tr>`).join('');
+      const win = window.open('', '_blank', 'width=800,height=1000');
+      if (!win) { this.dash.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(f.in_no)}</title>
+        <style>
+          body{font-family:'Noto Sans Thai','Times New Roman',serif;margin:26px;color:#000}
+          .center{text-align:center}.h1{font-size:20px;font-weight:bold}.h2{font-size:14px;font-weight:bold}
+          .addr{font-size:12px;margin-top:4px}
+          .meta{display:flex;justify-content:space-between;font-size:12px;margin:14px 0}
+          table{width:100%;border-collapse:collapse;margin-top:6px}
+          th,td{border:1px solid #000;padding:5px 6px;font-size:12px;text-align:center;height:22px}
+          th{font-weight:bold;background:#f0f0f0}
+          .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:44px;font-size:12px}
+          @media print{.no-print{display:none}}
+        </style></head><body>
+        <div class="no-print" style="text-align:center;margin-bottom:12px"><button onclick="window.print()" style="padding:8px 22px;font-size:14px;cursor:pointer">🖨️ พิมพ์ / บันทึก PDF</button></div>
+        <div class="center h1">D'finest Fabric Co., Ltd.</div>
+        <div class="center h2">ใบรับสินค้า (Goods Receipt)</div>
+        <div class="center addr">55/4 Meesuwan 3 Yeak 1, Sukhumvit 71 Rd. Wattana District, Bangkok, Thailand 10110</div>
+        <div class="meta">
+          <div><b>คู่ค้า :</b> ${esc(f.supplier) || '-'}<br><b>ประเภทการรับ :</b> ${esc(f.receipt_type)}<br><b>คลัง :</b> ${esc(f.warehouse)}</div>
+          <div><b>เลขที่รับสินค้า :</b> ${esc(f.in_no)}<br><b>วันที่ :</b> ${esc(f.receipt_date)}<br><b>เลขที่บิล :</b> ${esc(f.bill_no) || '-'}</div>
+        </div>
+        <table>
+          <thead><tr><th style="width:32px">ที่</th><th>รหัสสินค้า</th><th>รหัสสี</th><th>หน้ากว้าง</th><th>พับ</th><th>จำนวน</th><th>ราคา/หน่วย</th><th>ราคา</th></tr></thead>
+          <tbody>${body}
+            <tr><td colspan="4"><b>รวม</b></td><td><b>${this.totalFold}</b></td><td><b>${this.totalQty.toFixed(2)}</b></td><td></td><td><b>${this.subtotal.toFixed(2)}</b></td></tr>
+          </tbody>
+        </table>
+        <div style="text-align:right;font-size:13px;margin-top:10px"><b>ยอดสุทธิ :</b> ${this.netTotal.toFixed(2)} บาท</div>
+        <div class="foot"><div><b>ผู้รับสินค้า :</b> ____________________</div><div><b>D'finest Fabric</b></div></div>
+        </body></html>`);
+      win.document.close();
     },
   },
 };
 </script>
 
 <style scoped>
-.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .po-titlebar { background: transparent; color: var(--text); font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 .po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 20px; background: transparent; border: none; border-bottom: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
@@ -230,8 +437,13 @@ export default {
 .po-ro-cell { background: var(--field); }
 .po-no { text-align: center; color: var(--muted); }
 .po-row-actions { display: flex; gap: 4px; justify-content: center; }
-.po-ic { width: 24px; height: 24px; border-radius: 50%; border: none; color: #fff; cursor: pointer; font-size: 14px; line-height: 1; }
-.po-add { background: #1a9c54; } .po-del { background: #e03131; }
+.po-ic { width: 26px; height: 26px; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-size: 14px; line-height: 1; flex-shrink: 0; }
+.po-fold { background: #6b7280; } .po-fold:hover { background: #556070; }
+.po-add { background: #1a9c54; } .po-add:hover { background: #158045; }
+.po-del { background: #e03131; } .po-del:hover { background: #c42525; }
+.po-copy { background: #2F65F6; } .po-copy:hover { background: #2450cc; }
+.po-foot-row td { padding: 9px 8px; border-top: 2px solid var(--field-border); font-weight: 700; font-size: 12.5px; }
+.po-foot-label { text-align: right; color: var(--muted); }
 
 .po-summary { margin-top: 12px; max-width: 560px; margin-left: auto; display: flex; flex-direction: column; gap: 6px; }
 .po-sum-row { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
@@ -247,8 +459,35 @@ export default {
 .po-btn:hover { background: #dde1ea; border-color: #c7cede; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; border-color: #158045; }
+.po-btn-receipt { background: #3c4453; color: #fff; border-color: #3c4453; }
+.po-btn-receipt:hover { background: #2d333f; }
+.po-btn-barcode { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+.po-btn-barcode:hover { background: #172b6b; }
+.po-btn-new { background: #1a9c54; color: #fff; border-color: #1a9c54; }
+.po-btn-new:hover { background: #158045; }
 
 /* ช่องกรอกที่ยังว่าง — ใส่พื้นเทาอ่อนให้มองเห็นชัด */
 .po-page input:not([type="checkbox"]), .po-page select, .po-page textarea { background: var(--field); }
 .po-page input:focus, .po-page select:focus, .po-page textarea:focus { background: var(--surface); }
+
+/* Drawer รายละเอียดพับ */
+.fd-wrap { position: fixed; inset: 0; z-index: 3300; }
+.fd-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.4); }
+.fd-drawer { position: absolute; top: 0; right: 0; height: 100%; width: 460px; max-width: 92vw; background: var(--surface); box-shadow: -8px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+.fd-head { background: #2F65F6; color: #fff; padding: 14px 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+.fd-head b { font-weight: 700; }
+.fd-x { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+.fd-body { flex: 1; overflow-y: auto; padding: 16px; }
+.fd-table { width: 100%; border-collapse: collapse; }
+.fd-table th { font-size: 12px; color: var(--muted); font-weight: 600; padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--field-border); }
+.fd-table td { padding: 5px 6px; }
+.fd-num { width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--field-border); border-radius: 7px; font-size: 12.5px; text-align: right; font-family: inherit; background: var(--field); color: var(--text); }
+.fd-num:focus { outline: none; border-color: #2F65F6; background: var(--surface); }
+.fd-ro { background: var(--field); font-weight: 600; }
+.fd-actions { display: flex; gap: 4px; justify-content: center; }
+.fd-foot-label { text-align: right; color: var(--muted); font-weight: 700; padding: 10px 8px; border-top: 2px solid var(--field-border); }
+.fd-foot { font-weight: 700; padding-top: 10px; border-top: 2px solid var(--field-border); }
+.fd-foot-bar { padding: 14px 18px; border-top: 1px solid var(--field-border); text-align: right; background: var(--field); }
+.fd-slide-enter-active, .fd-slide-leave-active { transition: opacity 0.2s; }
+.fd-slide-enter-from, .fd-slide-leave-to { opacity: 0; }
 </style>
