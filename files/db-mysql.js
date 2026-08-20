@@ -375,6 +375,62 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- เอกสารรับสินค้า VAT (vat_receipts) — เลข VN ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vat_receipts (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      vn_no         VARCHAR(32) NOT NULL,
+      receipt_date  VARCHAR(20) DEFAULT '',
+      vendor        VARCHAR(255) DEFAULT '',
+      ref_no        VARCHAR(64) DEFAULT '',
+      remark        TEXT,
+      subtotal      DOUBLE DEFAULT 0,
+      discount      DOUBLE DEFAULT 0,
+      vat           DOUBLE DEFAULT 0,
+      net_total     DOUBLE DEFAULT 0,
+      items_json    MEDIUMTEXT,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // ---- เอกสารตัดสต็อก VAT (vat_stock_cuts) — เลข VO (ตัดปกติ / ตัดจากใบกำกับภาษี) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vat_stock_cuts (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      vo_no         VARCHAR(32) NOT NULL,
+      cut_date      VARCHAR(20) DEFAULT '',
+      source        VARCHAR(24) DEFAULT 'manual',
+      invoice_ref   VARCHAR(32) DEFAULT '',
+      customer      VARCHAR(255) DEFAULT '',
+      sale_type     VARCHAR(64) DEFAULT '',
+      remark        TEXT,
+      total_qty     DOUBLE DEFAULT 0,
+      total_amount  DOUBLE DEFAULT 0,
+      items_json    MEDIUMTEXT,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // ---- ใบกำกับภาษี (vat_invoices) — เลข VT ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vat_invoices (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      vt_no         VARCHAR(32) NOT NULL,
+      invoice_date  VARCHAR(20) DEFAULT '',
+      customer      VARCHAR(255) DEFAULT '',
+      salesperson   VARCHAR(255) DEFAULT '',
+      account_term  VARCHAR(64) DEFAULT '',
+      bill_address  VARCHAR(255) DEFAULT '',
+      remark        TEXT,
+      subtotal      DOUBLE DEFAULT 0,
+      discount      DOUBLE DEFAULT 0,
+      vat           DOUBLE DEFAULT 0,
+      net_total     DOUBLE DEFAULT 0,
+      items_json    MEDIUMTEXT,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- กลุ่มสินค้า VAT ตามช่วงราคาขาย (vat_product_groups) ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS vat_product_groups (

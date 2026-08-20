@@ -22,6 +22,10 @@ import RawTransferPage from './dashboard/RawTransferPage.vue';
 import RackTransferPage from './dashboard/RackTransferPage.vue';
 import BarcodePage from './dashboard/BarcodePage.vue';
 import VatProductGroupPage from './dashboard/VatProductGroupPage.vue';
+import VatReceivePage from './dashboard/VatReceivePage.vue';
+import VatStockCutPage from './dashboard/VatStockCutPage.vue';
+import VatInvoicePage from './dashboard/VatInvoicePage.vue';
+import VatInvoiceCutPage from './dashboard/VatInvoiceCutPage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -77,6 +81,10 @@ export default {
     RackTransferPage,
     BarcodePage,
     VatProductGroupPage,
+    VatReceivePage,
+    VatStockCutPage,
+    VatInvoicePage,
+    VatInvoiceCutPage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4046,6 +4054,10 @@ data() {
 
       <!-- ============ จัดการ VAT (เมนูย่อยทั้ง 5 หน้า) ============ -->
       <VatProductGroupPage v-else-if="currentPage === 'vat-product-group'" />
+      <VatReceivePage v-else-if="currentPage === 'vat-receive'" />
+      <VatStockCutPage v-else-if="currentPage === 'vat-stock-cut'" />
+      <VatInvoicePage v-else-if="currentPage === 'vat-invoice'" />
+      <VatInvoiceCutPage v-else-if="currentPage === 'vat-stock-cut-from-invoice'" />
       <VatGenericPage v-else-if="vatPages[currentPage]" />
 
       <!-- ============ รับออร์เดอร์ (Order Entry Form) ============ -->

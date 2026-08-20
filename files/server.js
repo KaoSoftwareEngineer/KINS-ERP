@@ -956,6 +956,122 @@ app.post('/api/rack-transfers', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  เอกสารรับสินค้า VAT (vat_receipts) — เลข VN
+// ============================================================
+async function makeVnNo() {
+  const d = new Date();
+  const prefix = 'VN' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM vat_receipts WHERE vn_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/vat-receipts/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, vn_no: await makeVnNo() });
+}));
+app.get('/api/vat-receipts', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM vat_receipts ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, receipts: rows });
+}));
+app.post('/api/vat-receipts', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const vn_no = await makeVnNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO vat_receipts (vn_no, receipt_date, vendor, ref_no, remark, subtotal, discount, vat, net_total, items_json)
+     VALUES (:vn_no, :receipt_date, :vendor, :ref_no, :remark, :subtotal, :discount, :vat, :net_total, :items_json)`,
+    {
+      vn_no,
+      receipt_date: b.receipt_date || '',
+      vendor: b.vendor || '',
+      ref_no: b.ref_no || '',
+      remark: b.remark || '',
+      subtotal: Number(b.subtotal) || 0,
+      discount: Number(b.discount) || 0,
+      vat: Number(b.vat) || 0,
+      net_total: Number(b.net_total) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกเอกสารรับสินค้า VAT แล้ว', id: info.insertId, vn_no });
+}));
+
+// ============================================================
+//  เอกสารตัดสต็อก VAT (vat_stock_cuts) — เลข VO
+// ============================================================
+async function makeVoNo() {
+  const d = new Date();
+  const prefix = 'VO' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM vat_stock_cuts WHERE vo_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/vat-stock-cuts/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, vo_no: await makeVoNo() });
+}));
+app.get('/api/vat-stock-cuts', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM vat_stock_cuts ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, cuts: rows });
+}));
+app.post('/api/vat-stock-cuts', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const vo_no = await makeVoNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO vat_stock_cuts (vo_no, cut_date, source, invoice_ref, customer, sale_type, remark, total_qty, total_amount, items_json)
+     VALUES (:vo_no, :cut_date, :source, :invoice_ref, :customer, :sale_type, :remark, :total_qty, :total_amount, :items_json)`,
+    {
+      vo_no,
+      cut_date: b.cut_date || '',
+      source: b.source || 'manual',
+      invoice_ref: b.invoice_ref || '',
+      customer: b.customer || '',
+      sale_type: b.sale_type || '',
+      remark: b.remark || '',
+      total_qty: Number(b.total_qty) || 0,
+      total_amount: Number(b.total_amount) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกเอกสารตัดสต็อก VAT แล้ว', id: info.insertId, vo_no });
+}));
+
+// ============================================================
+//  ใบกำกับภาษี (vat_invoices) — เลข VT
+// ============================================================
+async function makeVtNo() {
+  const d = new Date();
+  const prefix = 'VT' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM vat_invoices WHERE vt_no LIKE ?', [prefix + '%']);
+  return `${prefix}${String(n + 1).padStart(4, '0')}`;
+}
+app.get('/api/vat-invoices/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, vt_no: await makeVtNo() });
+}));
+app.get('/api/vat-invoices', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM vat_invoices ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, invoices: rows });
+}));
+app.post('/api/vat-invoices', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const vt_no = await makeVtNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO vat_invoices (vt_no, invoice_date, customer, salesperson, account_term, bill_address, remark, subtotal, discount, vat, net_total, items_json)
+     VALUES (:vt_no, :invoice_date, :customer, :salesperson, :account_term, :bill_address, :remark, :subtotal, :discount, :vat, :net_total, :items_json)`,
+    {
+      vt_no,
+      invoice_date: b.invoice_date || '',
+      customer: b.customer || '',
+      salesperson: b.salesperson || '',
+      account_term: b.account_term || '',
+      bill_address: b.bill_address || '',
+      remark: b.remark || '',
+      subtotal: Number(b.subtotal) || 0,
+      discount: Number(b.discount) || 0,
+      vat: Number(b.vat) || 0,
+      net_total: Number(b.net_total) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกใบกำกับภาษีแล้ว', id: info.insertId, vt_no });
+}));
+
+// ============================================================
 //  กลุ่มสินค้า VAT ตามช่วงราคาขาย (vat_product_groups)
 // ============================================================
 app.get('/api/vat-product-groups', auth, wrap(async (req, res) => {
