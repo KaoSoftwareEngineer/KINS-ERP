@@ -105,7 +105,7 @@ export default {
 .po-titlebar { font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 .po-items { padding: 14px 20px; }
 .vpg-hint { font-size: 12.5px; color: var(--muted); margin: 0 0 14px; }
-.po-item-table { width: 100%; border-collapse: collapse; max-width: 760px; }
+.po-item-table { width: 100%; border-collapse: collapse; }
 .po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; letter-spacing: .3px; border-right: 1px solid rgba(255,255,255,.18); }
 .po-item-table th:last-child { border-right: none; }
 .po-item-table td { padding: 5px 6px; border-bottom: 1px solid var(--field-border); }
