@@ -30,9 +30,9 @@
       <thead>
         <tr>
           <th style="width:44px;">ที่</th>
-          <th>รหัสสินค้า</th>
-          <th style="width:130px;">บาร์โค้ด</th>
-          <th style="width:130px;">จำนวน</th>
+          <th style="text-align:left;">รหัสสินค้า</th>
+          <th style="width:150px;">บาร์โค้ด</th>
+          <th style="width:130px;text-align:right;">จำนวน</th>
           <th style="width:54px;"></th>
         </tr>
       </thead>
