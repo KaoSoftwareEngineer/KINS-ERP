@@ -375,6 +375,18 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- กลุ่มสินค้า VAT ตามช่วงราคาขาย (vat_product_groups) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vat_product_groups (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      price_from  DOUBLE DEFAULT 0,
+      price_to    DOUBLE DEFAULT 0,
+      group_name  VARCHAR(255) DEFAULT '',
+      sort_order  INT DEFAULT 0,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS fabric_regular_group (

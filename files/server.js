@@ -956,6 +956,36 @@ app.post('/api/rack-transfers', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  กลุ่มสินค้า VAT ตามช่วงราคาขาย (vat_product_groups)
+// ============================================================
+app.get('/api/vat-product-groups', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM vat_product_groups ORDER BY sort_order ASC, price_from ASC');
+  res.json({ ok: true, total: rows.length, items: rows });
+}));
+app.post('/api/vat-product-groups', auth, wrap(async (req, res) => {
+  const items = Array.isArray(req.body.items) ? req.body.items : [];
+  const conn = await mysqlPool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query('DELETE FROM vat_product_groups');
+    let i = 0;
+    for (const it of items) {
+      await conn.query(
+        'INSERT INTO vat_product_groups (price_from, price_to, group_name, sort_order) VALUES (?, ?, ?, ?)',
+        [Number(it.price_from) || 0, Number(it.price_to) || 0, (it.group_name || '').toString().trim(), i++]
+      );
+    }
+    await conn.commit();
+    res.json({ ok: true, message: 'บันทึกกลุ่มสินค้า VAT แล้ว', total: items.length });
+  } catch (e) {
+    await conn.rollback();
+    res.status(500).json({ ok: false, message: 'บันทึกไม่สำเร็จ: ' + e.message });
+  } finally {
+    conn.release();
+  }
+}));
+
+// ============================================================
 //  กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม
 // ============================================================
 app.get('/api/fabric-regular-group', auth, wrap(async (req, res) => {

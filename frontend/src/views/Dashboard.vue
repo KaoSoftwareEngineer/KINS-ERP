@@ -21,6 +21,7 @@ import GoodsTransferPage from './dashboard/GoodsTransferPage.vue';
 import RawTransferPage from './dashboard/RawTransferPage.vue';
 import RackTransferPage from './dashboard/RackTransferPage.vue';
 import BarcodePage from './dashboard/BarcodePage.vue';
+import VatProductGroupPage from './dashboard/VatProductGroupPage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -75,6 +76,7 @@ export default {
     RawTransferPage,
     RackTransferPage,
     BarcodePage,
+    VatProductGroupPage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4043,6 +4045,7 @@ data() {
       <StockGenericPage v-else-if="stockPages[currentPage]" />
 
       <!-- ============ จัดการ VAT (เมนูย่อยทั้ง 5 หน้า) ============ -->
+      <VatProductGroupPage v-else-if="currentPage === 'vat-product-group'" />
       <VatGenericPage v-else-if="vatPages[currentPage]" />
 
       <!-- ============ รับออร์เดอร์ (Order Entry Form) ============ -->
