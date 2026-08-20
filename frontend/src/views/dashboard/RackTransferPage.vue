@@ -32,6 +32,7 @@
           <th style="width:44px;">ที่</th>
           <th style="text-align:left;">รหัสสินค้า</th>
           <th style="width:150px;">บาร์โค้ด</th>
+          <th style="width:150px;">จากช่อง</th>
           <th style="width:130px;text-align:right;">จำนวน</th>
           <th style="width:54px;"></th>
         </tr>
@@ -41,6 +42,10 @@
           <td class="po-no">{{ idx + 1 }}</td>
           <td class="rt-prod">{{ row.display }}</td>
           <td class="rt-code">{{ row.roll_qr }}</td>
+          <td class="rt-from">
+            <span v-if="row.from_loc" class="rt-from-tag">{{ row.from_loc }}</span>
+            <span v-else class="rt-from-new">ยังไม่เคยเก็บ</span>
+          </td>
           <td class="po-num">{{ Number(row.yards).toFixed(2) }} หลา</td>
           <td class="po-row-actions">
             <button class="po-ic po-del" title="เอาออก" @click="removeRow(idx)">
@@ -48,11 +53,11 @@
             </button>
           </td>
         </tr>
-        <tr v-if="items.length === 0"><td colspan="5" class="po-empty">ยังไม่มีม้วนผ้า — เลือกแร็คปลายทาง แล้วสแกน QR ม้วนผ้า</td></tr>
+        <tr v-if="items.length === 0"><td colspan="6" class="po-empty">ยังไม่มีม้วนผ้า — เลือกแร็คปลายทาง แล้วสแกน QR ม้วนผ้า</td></tr>
       </tbody>
       <tfoot v-if="items.length">
         <tr class="po-foot-row">
-          <td colspan="3" class="po-foot-label">รวม {{ items.length }} ม้วน</td>
+          <td colspan="4" class="po-foot-label">รวม {{ items.length }} ม้วน</td>
           <td class="po-num">{{ totalYards.toFixed(2) }} หลา</td>
           <td></td>
         </tr>
@@ -128,7 +133,7 @@ export default {
         if (!d.ok) { this.dash.fbFail(d.message || 'ไม่พบม้วนผ้ารหัสนี้'); this.barcode = ''; return; }
         const r = d.roll;
         const display = [r.product_sku, r.product_name].filter(Boolean).join(' - ') + (r.color_name ? ' : ' + r.color_name : '');
-        this.items.push({ roll_qr: qr, sku: r.product_sku || '', display: display || qr, yards: Number(r.current_yards) || 0 });
+        this.items.push({ roll_qr: qr, sku: r.product_sku || '', display: display || qr, yards: Number(r.current_yards) || 0, from_loc: r.location_code || '' });
         this.barcode = '';
         this.$nextTick(() => { if (this.$refs.barcodeInput) this.$refs.barcodeInput.focus(); });
       } catch (e) { this.dash.fbFail('สแกนไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); this.barcode = ''; }
@@ -189,6 +194,9 @@ export default {
 .po-item-table td { padding: 8px 8px; border-bottom: 1px solid var(--field-border); }
 .rt-prod { font-weight: 600; }
 .rt-code { font-family: 'Courier New', monospace; font-size: 12px; color: var(--muted); text-align: center; }
+.rt-from { text-align: center; }
+.rt-from-tag { display: inline-block; padding: 3px 10px; border-radius: 20px; background: #fff2e0; color: #b45309; font-size: 12px; font-weight: 600; }
+.rt-from-new { font-size: 12px; color: var(--muted); }
 .po-num { text-align: right; }
 .po-no { text-align: center; color: var(--muted); }
 .po-empty { text-align: center; color: var(--muted); padding: 30px; }
