@@ -791,6 +791,73 @@ app.post('/api/dyed-receipts', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  เอกสารย้ายสินค้าระหว่างคลัง (stock_transfers) — เลข TR แยกจาก IN
+// ============================================================
+async function makeTrNo() {
+  const d = new Date();
+  const prefix = 'TR' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM stock_transfers WHERE tr_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/stock-transfers/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, tr_no: await makeTrNo() });
+}));
+app.get('/api/stock-transfers', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM stock_transfers ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, transfers: rows });
+}));
+app.post('/api/stock-transfers', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const tr_no = await makeTrNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO stock_transfers (tr_no, transfer_date, from_wh, to_wh, remark, items_json)
+     VALUES (:tr_no, :transfer_date, :from_wh, :to_wh, :remark, :items_json)`,
+    {
+      tr_no,
+      transfer_date: b.transfer_date || '',
+      from_wh: b.from_wh || '',
+      to_wh: b.to_wh || '',
+      remark: b.remark || '',
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกเอกสารย้ายสินค้าแล้ว', id: info.insertId, tr_no });
+}));
+
+// ============================================================
+//  เอกสารย้ายผ้าดิบ (raw_transfers) — เลข TG แยกจาก TR/IN
+// ============================================================
+async function makeTgNo() {
+  const d = new Date();
+  const prefix = 'TG' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM raw_transfers WHERE tg_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/raw-transfers/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, tg_no: await makeTgNo() });
+}));
+app.get('/api/raw-transfers', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM raw_transfers ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, transfers: rows });
+}));
+app.post('/api/raw-transfers', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const tg_no = await makeTgNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO raw_transfers (tg_no, transfer_date, to_wh, remark, items_json)
+     VALUES (:tg_no, :transfer_date, :to_wh, :remark, :items_json)`,
+    {
+      tg_no,
+      transfer_date: b.transfer_date || '',
+      to_wh: b.to_wh || '',
+      remark: b.remark || '',
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกเอกสารย้ายผ้าดิบแล้ว', id: info.insertId, tg_no });
+}));
+
+// ============================================================
 //  กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม
 // ============================================================
 app.get('/api/fabric-regular-group', auth, wrap(async (req, res) => {

@@ -17,6 +17,8 @@ import GoodsReceivePage from './dashboard/GoodsReceivePage.vue';
 import GoodsFinishedReceivePage from './dashboard/GoodsFinishedReceivePage.vue';
 import GoodsRawReceivePage from './dashboard/GoodsRawReceivePage.vue';
 import GoodsDyedReceivePage from './dashboard/GoodsDyedReceivePage.vue';
+import GoodsTransferPage from './dashboard/GoodsTransferPage.vue';
+import RawTransferPage from './dashboard/RawTransferPage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -67,6 +69,8 @@ export default {
     GoodsFinishedReceivePage,
     GoodsRawReceivePage,
     GoodsDyedReceivePage,
+    GoodsTransferPage,
+    RawTransferPage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4025,6 +4029,10 @@ data() {
 
       <!-- ============ WMS: ประวัติเคลื่อนไหวสต็อก ============ -->
       <StockHistoryPage v-else-if="currentPage === 'stock-history'" />
+
+      <!-- ============ ย้ายสินค้า (TR) / ย้ายผ้าดิบ (TG) ============ -->
+      <GoodsTransferPage v-else-if="currentPage === 'move-stock'" />
+      <RawTransferPage v-else-if="currentPage === 'move-fabric-raw'" />
 
       <StockGenericPage v-else-if="stockPages[currentPage]" />
 

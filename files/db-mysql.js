@@ -335,6 +335,33 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- เอกสารย้ายสินค้าระหว่างคลัง (stock_transfers) — เลข TR ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS stock_transfers (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      tr_no         VARCHAR(32) NOT NULL,
+      transfer_date VARCHAR(20) DEFAULT '',
+      from_wh       VARCHAR(64) DEFAULT '',
+      to_wh         VARCHAR(64) DEFAULT '',
+      remark        TEXT,
+      items_json    MEDIUMTEXT,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // ---- เอกสารย้ายผ้าดิบ (raw_transfers) — เลข TG ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS raw_transfers (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      tg_no         VARCHAR(32) NOT NULL,
+      transfer_date VARCHAR(20) DEFAULT '',
+      to_wh         VARCHAR(64) DEFAULT '',
+      remark        TEXT,
+      items_json    MEDIUMTEXT,
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- กลุ่มผ้าประจำ (fabric_regular_group) + เฉดสีของกลุ่ม ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS fabric_regular_group (
