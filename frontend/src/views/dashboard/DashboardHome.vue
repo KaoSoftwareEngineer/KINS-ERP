@@ -9,11 +9,49 @@
       <button class="btn-small" @click="dash.dashExportExcel('day')">{{ dash.t[dash.lang].dailyDaily }}</button>
       <button class="btn-small" @click="dash.dashExportExcel('week')">{{ dash.t[dash.lang].weekly }}</button>
       <button class="btn-small btn-primary" @click="dash.dashExportExcel('month')">{{ dash.t[dash.lang].export }}</button>
+      <div class="dash-customize-wrap">
+        <button class="btn-small dash-customize-btn" :class="{ 'is-open': customizeOpen }" @click="customizeOpen = !customizeOpen" title="ปรับแต่งหน้า">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          ปรับแต่งหน้า
+        </button>
+        <transition name="dash-fade">
+          <div v-if="customizeOpen" class="dash-customize-panel">
+            <div class="dash-customize-head">แสดง/ซ่อนการ์ด</div>
+            <label v-for="c in cardList" :key="c.key" class="dash-customize-item">
+              <input type="checkbox" :checked="cards[c.key]" @change="toggleCard(c.key)" />
+              <span>{{ c.label }}</span>
+            </label>
+            <button class="dash-customize-reset" @click="resetCards">คืนค่าเริ่มต้น</button>
+          </div>
+        </transition>
+      </div>
     </div>
   </div>
 
+  <!-- My Tasks / Action Required -->
+  <div v-if="cards.tasks" class="section dash-tasks">
+    <div class="section-header">
+      <h2>✅ งานที่ต้องทำวันนี้ <span class="dash-tasks-count" v-if="totalTasks">{{ totalTasks }}</span></h2>
+      <span class="dash-tasks-sub">งานที่รอคุณจัดการ/อนุมัติ</span>
+    </div>
+    <div v-if="myTasks.length" class="dash-tasks-grid">
+      <button v-for="t in myTasks" :key="t.key" class="dash-task-card" :class="'dash-task-' + t.tone" @click="goTask(t.page)">
+        <div class="dash-task-icon">{{ t.icon }}</div>
+        <div class="dash-task-body">
+          <div class="dash-task-title">{{ t.title }}</div>
+          <div class="dash-task-hint">{{ t.hint }}</div>
+        </div>
+        <div class="dash-task-count">{{ t.count }}<span>{{ t.unit }}</span></div>
+        <div class="dash-task-go">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </button>
+    </div>
+    <div v-else class="dash-tasks-empty">🎉 ไม่มีงานค้าง — วันนี้เคลียร์หมดแล้ว</div>
+  </div>
+
   <!-- Top Stats Grid -->
-  <div class="stats-grid">
+  <div v-if="cards.stats" class="stats-grid">
     <div class="stat-card stat-card-revenue">
       <div class="stat-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -49,7 +87,7 @@
   </div>
 
   <!-- Charts Row -->
-  <div class="dash-charts-row dash-flex-row">
+  <div v-if="cards.charts" class="dash-charts-row dash-flex-row">
     <!-- แนวโน้มยอดขาย: แท่ง (ซ้าย) + เส้น (ขวา) แบ่งเลเยอร์เทียบกัน -->
     <div class="section dash-chart-section">
       <div class="section-header">
@@ -174,7 +212,7 @@
   </div>
 
   <!-- Cards Grid -->
-  <div class="dash-cards-grid dash-cards-grid-compact">
+  <div v-if="cards.mini" class="dash-cards-grid dash-cards-grid-compact">
     <div class="mini-stat-card mini-stat-pink">
       <div class="mini-stat-label">📋 ออร์เดอร์รอดำเนินการ</div>
       <div class="mini-stat-value">{{ dash.ofOrders.filter(o => o.status !== 'Prepared').length }}</div>
@@ -198,9 +236,9 @@
   </div>
 
   <!-- Recent Activities & Order Status -->
-  <div class="dash-activity-row dash-flex-row">
+  <div v-if="cards.activities || cards.orders" class="dash-activity-row dash-flex-row">
     <!-- Recent Activities -->
-    <div class="section dash-list-section">
+    <div v-if="cards.activities" class="section dash-list-section">
       <div class="section-header">
         <h2>{{ dash.t[dash.lang].recentActivities }}</h2>
       </div>
@@ -216,7 +254,7 @@
     </div>
 
     <!-- Order Status -->
-    <div class="section dash-list-section">
+    <div v-if="cards.orders" class="section dash-list-section">
       <div class="section-header">
         <h2>{{ dash.t[dash.lang].orderStatus }}</h2>
         <button class="btn-small">{{ dash.t[dash.lang].allOrders }}</button>
@@ -250,5 +288,87 @@
 export default {
   name: 'DashboardHome',
   inject: ['dash'],
+  data() {
+    return {
+      customizeOpen: false,
+      cardList: [
+        { key: 'tasks', label: 'งานที่ต้องทำวันนี้' },
+        { key: 'stats', label: 'สถิติภาพรวม (การ์ดบน)' },
+        { key: 'charts', label: 'กราฟแนวโน้ม + สัดส่วน' },
+        { key: 'mini', label: 'การ์ดสรุปย่อ' },
+        { key: 'activities', label: 'กิจกรรมล่าสุด' },
+        { key: 'orders', label: 'สถานะออร์เดอร์' },
+      ],
+      cards: this.loadCardPrefs(),
+    };
+  },
+  computed: {
+    // งานที่รอจัดการ — ประกอบจากสถานะออร์เดอร์จริง
+    myTasks() {
+      const o = this.dash.ofOrders || [];
+      const tasks = [];
+      const waiting = o.filter(x => x.status !== 'Prepared');
+      if (waiting.length) tasks.push({ key: 'prep', icon: '📋', title: 'ออร์เดอร์รอจัดเตรียม', hint: 'กดเพื่อไปจัดเตรียมสินค้า', count: waiting.length, unit: ' รายการ', page: 'order-fulfill', tone: 'blue' });
+      const urgent = o.filter(x => x.urgent && x.status !== 'Prepared');
+      if (urgent.length) tasks.push({ key: 'urgent', icon: '⚡', title: 'ออร์เดอร์ด่วน', hint: 'ต้องเร่งจัดส่ง', count: urgent.length, unit: ' รายการ', page: 'order-fulfill', tone: 'red' });
+      const toInvoice = o.filter(x => x.status === 'Prepared' && !x.invoiced);
+      if (toInvoice.length) tasks.push({ key: 'invoice', icon: '🧾', title: 'รอออกใบกำกับภาษี', hint: 'จัดเตรียมเสร็จ รอวางบิล', count: toInvoice.length, unit: ' รายการ', page: 'vat-invoice', tone: 'purple' });
+      const toVat = o.filter(x => x.invoiced && !x.vatDone);
+      if (toVat.length) tasks.push({ key: 'vat', icon: '📊', title: 'รอตัดสต็อก VAT', hint: 'วางบิลแล้ว รอตัดสต็อก', count: toVat.length, unit: ' รายการ', page: 'vat-stock-cut', tone: 'orange' });
+      return tasks;
+    },
+    totalTasks() { return this.myTasks.reduce((s, t) => s + t.count, 0); },
+  },
+  methods: {
+    loadCardPrefs() {
+      // ค่าเริ่มต้น: My Tasks ซ่อน (หน้าเดิม) — คนที่อยากได้ค่อยเปิดผ่าน "ปรับแต่งหน้า"
+      const def = { tasks: false, stats: true, charts: true, mini: true, activities: true, orders: true };
+      try { const s = JSON.parse(localStorage.getItem('dashCardPrefs')); return s ? { ...def, ...s } : def; } catch (e) { return def; }
+    },
+    saveCardPrefs() { try { localStorage.setItem('dashCardPrefs', JSON.stringify(this.cards)); } catch (e) {} },
+    toggleCard(k) { this.cards[k] = !this.cards[k]; this.saveCardPrefs(); },
+    resetCards() { this.cards = { tasks: false, stats: true, charts: true, mini: true, activities: true, orders: true }; this.saveCardPrefs(); this.customizeOpen = false; },
+    goTask(page) { if (page && this.dash.canAccess(page)) this.dash.currentPage = page; else if (page) this.dash.fbFail && this.dash.fbFail('คุณไม่มีสิทธิ์เข้าหน้านี้'); },
+  },
 };
 </script>
+
+<style scoped>
+/* ปุ่มปรับแต่งหน้า + panel แสดง/ซ่อนการ์ด */
+.dash-customize-wrap { position: relative; }
+.dash-customize-btn { display: inline-flex; align-items: center; gap: 6px; }
+.dash-customize-btn svg { width: 15px; height: 15px; }
+.dash-customize-btn.is-open { border-color: var(--brand); color: var(--brand); }
+.dash-customize-panel { position: absolute; top: calc(100% + 6px); right: 0; z-index: 50; min-width: 220px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.12); padding: 10px; }
+.dash-customize-head { font-size: 12px; font-weight: 700; color: var(--muted); padding: 4px 8px 8px; }
+.dash-customize-item { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text); }
+.dash-customize-item:hover { background: var(--field); }
+.dash-customize-item input { width: 15px; height: 15px; accent-color: var(--brand); cursor: pointer; }
+.dash-customize-reset { width: 100%; margin-top: 6px; padding: 7px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.dash-customize-reset:hover { color: var(--text); border-color: var(--muted); }
+.dash-fade-enter-active, .dash-fade-leave-active { transition: opacity .15s, transform .15s; }
+.dash-fade-enter-from, .dash-fade-leave-to { opacity: 0; transform: translateY(-4px); }
+
+/* My Tasks / Action Required */
+.dash-tasks { margin-bottom: 18px; }
+.dash-tasks .section-header { align-items: baseline; }
+.dash-tasks-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; margin-left: 6px; background: #e03131; color: #fff; border-radius: 11px; font-size: 12px; font-weight: 700; vertical-align: middle; }
+.dash-tasks-sub { font-size: 12.5px; color: var(--muted); }
+.dash-tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.dash-task-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--field-border); border-left-width: 4px; border-radius: 12px; background: var(--surface); cursor: pointer; text-align: left; font-family: inherit; transition: box-shadow .15s, transform .15s, border-color .15s; }
+.dash-task-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.09); transform: translateY(-2px); }
+.dash-task-icon { font-size: 22px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 11px; flex-shrink: 0; }
+.dash-task-body { flex: 1; min-width: 0; }
+.dash-task-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.dash-task-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dash-task-count { font-size: 22px; font-weight: 800; color: var(--text); white-space: nowrap; }
+.dash-task-count span { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+.dash-task-go { color: var(--muted); flex-shrink: 0; }
+.dash-task-go svg { width: 18px; height: 18px; }
+.dash-task-card:hover .dash-task-go { color: var(--brand); }
+.dash-task-blue { border-left-color: #2f65f6; } .dash-task-blue .dash-task-icon { background: #e9f0fe; }
+.dash-task-red { border-left-color: #e03131; } .dash-task-red .dash-task-icon { background: #fdeaea; }
+.dash-task-purple { border-left-color: #7c4dff; } .dash-task-purple .dash-task-icon { background: #f0eafe; }
+.dash-task-orange { border-left-color: #f08c00; } .dash-task-orange .dash-task-icon { background: #fff2e0; }
+.dash-tasks-empty { padding: 22px; text-align: center; color: var(--muted); font-size: 14px; background: var(--field); border-radius: 12px; }
+</style>
