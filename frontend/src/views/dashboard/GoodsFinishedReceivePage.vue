@@ -63,10 +63,18 @@
           <td><input type="number" v-model.number="row.unit_price" class="po-num" /></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
           <td class="po-row-actions">
-            <button class="po-ic po-fold" title="รายละเอียดพับ" @click="openFoldDrawer(idx)">☰</button>
-            <button class="po-ic po-add" title="เพิ่มแถว" @click="addRow(idx)">＋</button>
-            <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">－</button>
-            <button class="po-ic po-copy" title="คัดลอกแถว" @click="copyRow(idx)">⧉</button>
+            <button class="po-ic po-fold" title="รายละเอียดพับ" @click="openFoldDrawer(idx)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+            </button>
+            <button class="po-ic po-add" title="เพิ่มแถว" @click="addRow(idx)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>
+            </button>
+            <button class="po-ic po-copy" title="คัดลอกแถว" @click="copyRow(idx)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -110,7 +118,7 @@
       <template v-else>
         <button class="po-btn po-btn-receipt" @click="openReceiptPdf">🧾 ใบรับสินค้า</button>
         <button class="po-btn po-btn-barcode" @click="printBarcodes">🏷️ บาร์โค้ด</button>
-        <button class="po-btn po-btn-new" @click="resetForm">＋ รับใหม่</button>
+        <button class="po-btn po-btn-new" @click="resetForm">🔄 รับใหม่</button>
       </template>
     </div>
   </div>
@@ -121,35 +129,47 @@
       <div class="fd-backdrop" @click="closeFoldDrawer"></div>
       <div class="fd-drawer">
         <div class="fd-head">
-          <span>รายละเอียดพับ&nbsp;&nbsp;<b>{{ foldTitle }}</b></span>
-          <button class="fd-x" @click="closeFoldDrawer">✕</button>
+          <div class="fd-head-txt">
+            <span class="fd-head-title">รายละเอียดพับ</span>
+            <span v-if="foldTitle" class="fd-head-sub">{{ foldTitle }}</span>
+          </div>
+          <button class="fd-x" title="ปิด" @click="closeFoldDrawer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
         <div class="fd-body" v-if="foldRow">
-          <table class="fd-table">
-            <thead><tr><th>จำนวน/พับ</th><th>พับ</th><th>รวม</th><th style="width:70px;"></th></tr></thead>
-            <tbody>
-              <tr v-for="(f, i) in foldRow.folds" :key="i">
-                <td><input type="number" v-model.number="f.perFold" class="fd-num" placeholder="0" /></td>
-                <td><input type="number" v-model.number="f.count" class="fd-num" placeholder="0" /></td>
-                <td><input :value="foldLine(f).toFixed(2)" readonly class="fd-num fd-ro" /></td>
-                <td class="fd-actions">
-                  <button class="po-ic po-add" title="เพิ่ม" @click="addFold(i)">＋</button>
-                  <button class="po-ic po-del" title="ลบ" @click="removeFold(i)">－</button>
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td class="fd-foot-label">รวม</td>
-                <td class="fd-num fd-foot">{{ foldTotalCount }}</td>
-                <td class="fd-num fd-foot">{{ foldTotalYards.toFixed(2) }}</td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
+          <p class="fd-hint">ระบุจำนวนหลาต่อพับ และจำนวนพับ — ระบบจะรวมเป็นจำนวนหลาทั้งหมดให้อัตโนมัติ</p>
+          <div class="fd-list">
+            <div class="fd-row fd-row-head">
+              <div class="fd-c-per">จำนวน/พับ (หลา)</div>
+              <div class="fd-c-cnt">จำนวนพับ</div>
+              <div class="fd-c-sum">รวม (หลา)</div>
+              <div class="fd-c-act"></div>
+            </div>
+            <div class="fd-row" v-for="(f, i) in foldRow.folds" :key="i">
+              <div class="fd-c-per"><input type="number" v-model.number="f.perFold" class="fd-num" placeholder="0" /></div>
+              <div class="fd-c-cnt"><input type="number" v-model.number="f.count" class="fd-num" placeholder="0" /></div>
+              <div class="fd-c-sum"><input :value="foldLine(f).toFixed(2)" readonly class="fd-num fd-ro" /></div>
+              <div class="fd-c-act">
+                <button class="fd-mini fd-mini-del" title="ลบพับนี้" @click="removeFold(i)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <button class="fd-add-btn" @click="addFold(foldRow.folds.length - 1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            เพิ่มพับ
+          </button>
+
+          <div class="fd-summary">
+            <div class="fd-sum-item"><span class="fd-sum-lbl">จำนวนพับรวม</span><span class="fd-sum-val">{{ foldTotalCount }}</span></div>
+            <div class="fd-sum-item fd-sum-main"><span class="fd-sum-lbl">จำนวนหลารวม</span><span class="fd-sum-val">{{ foldTotalYards.toFixed(2) }}</span></div>
+          </div>
         </div>
         <div class="fd-foot-bar">
-          <button class="po-btn po-btn-save" @click="applyFolds">💾 บันทึก</button>
+          <button class="po-btn" @click="closeFoldDrawer">ยกเลิก</button>
+          <button class="po-btn po-btn-save" @click="applyFolds">บันทึก</button>
         </div>
       </div>
     </div>
@@ -436,12 +456,13 @@ export default {
 .po-num { text-align: right; }
 .po-ro-cell { background: var(--field); }
 .po-no { text-align: center; color: var(--muted); }
-.po-row-actions { display: flex; gap: 4px; justify-content: center; }
-.po-ic { width: 26px; height: 26px; border-radius: 6px; border: none; color: #fff; cursor: pointer; font-size: 14px; line-height: 1; flex-shrink: 0; }
-.po-fold { background: #6b7280; } .po-fold:hover { background: #556070; }
-.po-add { background: #1a9c54; } .po-add:hover { background: #158045; }
-.po-del { background: #e03131; } .po-del:hover { background: #c42525; }
-.po-copy { background: #2F65F6; } .po-copy:hover { background: #2450cc; }
+.po-row-actions { display: flex; gap: 5px; justify-content: center; }
+.po-ic { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--field-border); background: var(--field); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; transition: background .15s, border-color .15s, color .15s; }
+.po-ic svg { width: 15px; height: 15px; }
+.po-fold { color: #475569; } .po-fold:hover { background: #eef1f6; border-color: #cbd5e1; color: #334155; }
+.po-add { color: #1a9c54; } .po-add:hover { background: #e7f6ee; border-color: #1a9c54; }
+.po-del { color: #e03131; } .po-del:hover { background: #fdeaea; border-color: #e03131; }
+.po-copy { color: #2F65F6; } .po-copy:hover { background: #e9f0fe; border-color: #2F65F6; }
 .po-foot-row td { padding: 9px 8px; border-top: 2px solid var(--field-border); font-weight: 700; font-size: 12.5px; }
 .po-foot-label { text-align: right; color: var(--muted); }
 
@@ -473,21 +494,38 @@ export default {
 /* Drawer รายละเอียดพับ */
 .fd-wrap { position: fixed; inset: 0; z-index: 3300; }
 .fd-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.4); }
-.fd-drawer { position: absolute; top: 0; right: 0; height: 100%; width: 460px; max-width: 92vw; background: var(--surface); box-shadow: -8px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
-.fd-head { background: #2F65F6; color: #fff; padding: 14px 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-.fd-head b { font-weight: 700; }
-.fd-x { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
-.fd-body { flex: 1; overflow-y: auto; padding: 16px; }
-.fd-table { width: 100%; border-collapse: collapse; }
-.fd-table th { font-size: 12px; color: var(--muted); font-weight: 600; padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--field-border); }
-.fd-table td { padding: 5px 6px; }
-.fd-num { width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--field-border); border-radius: 7px; font-size: 12.5px; text-align: right; font-family: inherit; background: var(--field); color: var(--text); }
-.fd-num:focus { outline: none; border-color: #2F65F6; background: var(--surface); }
-.fd-ro { background: var(--field); font-weight: 600; }
-.fd-actions { display: flex; gap: 4px; justify-content: center; }
-.fd-foot-label { text-align: right; color: var(--muted); font-weight: 700; padding: 10px 8px; border-top: 2px solid var(--field-border); }
-.fd-foot { font-weight: 700; padding-top: 10px; border-top: 2px solid var(--field-border); }
-.fd-foot-bar { padding: 14px 18px; border-top: 1px solid var(--field-border); text-align: right; background: var(--field); }
+.fd-drawer { position: absolute; top: 0; right: 0; height: 100%; width: 440px; max-width: 94vw; background: var(--surface); box-shadow: -8px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+.fd-head { background: #3c4453; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.fd-head-txt { display: flex; flex-direction: column; gap: 2px; }
+.fd-head-title { font-weight: 700; font-size: 15px; }
+.fd-head-sub { font-size: 12px; color: rgba(255,255,255,.7); }
+.fd-x { background: rgba(255,255,255,.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background .15s; }
+.fd-x:hover { background: rgba(255,255,255,.24); }
+.fd-x svg { width: 16px; height: 16px; }
+.fd-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+.fd-hint { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 0 14px; }
+.fd-list { display: flex; flex-direction: column; gap: 8px; }
+.fd-row { display: grid; grid-template-columns: 1fr 1fr 1fr 34px; gap: 8px; align-items: center; }
+.fd-row-head { margin-bottom: 2px; }
+.fd-row-head > div { font-size: 11px; color: var(--muted); font-weight: 600; text-align: center; }
+.fd-c-per, .fd-c-cnt, .fd-c-sum { min-width: 0; }
+.fd-num { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; text-align: right; font-family: inherit; background: var(--field); color: var(--text); transition: border-color .15s, background .15s; }
+.fd-num:focus { outline: none; border-color: #2F65F6; background: var(--surface); box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+.fd-ro { background: var(--field); font-weight: 700; color: var(--text); }
+.fd-c-act { display: flex; justify-content: center; }
+.fd-mini { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--field-border); background: var(--field); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s; }
+.fd-mini svg { width: 15px; height: 15px; }
+.fd-mini-del { color: #e03131; } .fd-mini-del:hover { background: #fdeaea; border-color: #e03131; }
+.fd-add-btn { margin-top: 12px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border: 1px dashed var(--field-border); border-radius: 9px; background: transparent; color: #2F65F6; font-weight: 600; font-size: 13px; font-family: inherit; cursor: pointer; transition: background .15s, border-color .15s; }
+.fd-add-btn:hover { background: #e9f0fe; border-color: #2F65F6; }
+.fd-add-btn svg { width: 15px; height: 15px; }
+.fd-summary { margin-top: 18px; display: flex; gap: 10px; }
+.fd-sum-item { flex: 1; background: var(--field); border: 1px solid var(--field-border); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.fd-sum-lbl { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.fd-sum-val { font-size: 20px; font-weight: 700; color: var(--text); }
+.fd-sum-main { background: #e7f6ee; border-color: #1a9c54; }
+.fd-sum-main .fd-sum-val { color: #158045; }
+.fd-foot-bar { padding: 14px 20px; border-top: 1px solid var(--field-border); display: flex; justify-content: flex-end; gap: 10px; background: var(--field); }
 .fd-slide-enter-active, .fd-slide-leave-active { transition: opacity 0.2s; }
 .fd-slide-enter-from, .fd-slide-leave-to { opacity: 0; }
 </style>
