@@ -3783,7 +3783,7 @@ data() {
           <!-- Language — บานพับออกด้านข้าง -->
           <div class="lang-flyout-container" :class="{ open: langDropdownOpen }">
             <button class="lang-flyout-btn" @click="toggleLangDropdown" title="Language">
-              <span class="lang-flyout-label">🌐 Language</span>
+              <span class="lang-flyout-label">🌐 Language <b class="lang-flyout-code">{{ (lang || 'th').toUpperCase() }}</b></span>
               <span class="lang-flyout-caret">▶</span>
             </button>
             <!-- เมนูลอยหน้าสุด (teleport ไป body เพื่อไม่โดน sidebar ตัดขอบ) -->
@@ -4205,6 +4205,7 @@ data() {
     transition: background .2s, border-color .2s;
   }
   .lang-flyout-btn:hover { background: var(--field); border-color: var(--brand); }
+  .lang-flyout-code { color: var(--brand); font-weight: 700; margin-left: 2px; }
   .lang-flyout-caret { font-size: 9px; opacity: .6; transition: transform .2s; }
   .lang-flyout-container.open .lang-flyout-caret { transform: rotate(90deg); }
   /* เมนูภาษาแบบลอยหน้าสุด (teleport ไป body) */
