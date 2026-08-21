@@ -2545,10 +2545,28 @@ app.post('/api/credit-notes', auth, wrap(async (req, res) => {
 // ============================================================
 async function makePaymentNo(type) {
   const d = new Date();
-  const prefix = (type === 'pay' ? 'PP' : 'RC') + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const map = { pay: 'PP', receive: 'RC', 'deduct-customer': 'DC', 'deduct-partner': 'DP' };
+  const prefix = (map[type] || 'RC') + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
   const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM payments WHERE doc_no LIKE ?', [prefix + '-%']);
   return `${prefix}-${String(n + 1).padStart(3, '0')}`;
 }
+// ยอดบัญชีลูกค้า/คู่ค้า (สำหรับหน้าหักบัญชี) — ยอดรวม / หักไปแล้ว / คงเหลือ
+app.get('/api/account-balance', auth, wrap(async (req, res) => {
+  const type = (req.query.type || 'customer').toString();
+  const party = (req.query.party || '').toString().trim();
+  let total = 0;
+  if (party && type === 'customer') {
+    const [[r]] = await mysqlPool.query('SELECT COALESCE(SUM(net_total),0) AS t FROM vat_invoices WHERE customer = ?', [party]);
+    total = Number(r.t) || 0;
+  }
+  const deductType = type === 'partner' ? 'deduct-partner' : 'deduct-customer';
+  const [rows] = await mysqlPool.query('SELECT items_json FROM payments WHERE doc_type = ?', [deductType]);
+  let deducted = 0;
+  for (const row of rows) {
+    try { (JSON.parse(row.items_json || '[]')).forEach(it => { if ((it.party || '') === party) deducted += Number(it.amount) || 0; }); } catch (e) {}
+  }
+  res.json({ ok: true, total, deducted, remaining: total - deducted });
+}));
 app.get('/api/payments/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, doc_no: await makePaymentNo(req.query.type) });
 }));
