@@ -183,20 +183,54 @@ data() {
           ],
         },
         reportMenu: [
-          { key: 'report-stock', label: { th: 'คลังสินค้า', en: 'Inventory' } },
-          { key: 'report-vat-stock', label: { th: 'คลัง VAT', en: 'VAT Inventory' } },
+          { key: 'report-stock', label: { th: 'คลังสินค้า', en: 'Inventory' }, children: [
+              { key: 'report-stock', label: { th: 'รายงานสินค้าคงคลัง', en: 'Stock Inventory' } },
+              { key: 'report-stock-shelf', label: { th: 'รายงานสินค้าคงคลังตามชั้น', en: 'Stock by Shelf' } },
+              { key: 'report-stock-raw', label: { th: 'รายงานผ้าดิบคงคลัง', en: 'Raw Fabric Stock' } },
+              { key: 'report-stock-receive', label: { th: 'รายงานการรับสินค้า', en: 'Goods Receiving' } },
+              { key: 'report-stock-issue', label: { th: 'รายงานการเบิกสินค้า', en: 'Goods Issue' } },
+              { key: 'report-stock-move', label: { th: 'รายงานการย้ายสินค้า', en: 'Stock Transfer' } },
+              { key: 'report-stock-move-raw', label: { th: 'รายงานการย้ายผ้าดิบ', en: 'Raw Transfer' } },
+              { key: 'report-stock-move-shelf', label: { th: 'รายงานการย้ายชั้นสินค้า', en: 'Shelf Transfer' } },
+          ] },
+          { key: 'report-vat-stock', label: { th: 'คลัง VAT', en: 'VAT Inventory' }, children: [
+              { key: 'report-vat-stock', label: { th: 'รายงานสินค้า VAT คงคลัง', en: 'VAT Stock' } },
+              { key: 'report-vat-receive', label: { th: 'รายงานรับสินค้า VAT', en: 'VAT Receiving' } },
+              { key: 'report-vat-issue', label: { th: 'รายงานเบิกสินค้า VAT', en: 'VAT Issue' } },
+          ] },
           { key: 'report-po', label: { th: 'รายงานใบสั่งซื้อ', en: 'Purchase Order Report' } },
           { key: 'report-dye-order', label: { th: 'รายงานใบสั่งย้อม', en: 'Dyeing Order Report' } },
           { key: 'report-sales-contract', label: { th: 'รายงานใบสัญญาขาย', en: 'Sales Contract Report' } },
           { key: 'report-order', label: { th: 'รายงานออร์เดอร์', en: 'Order Report' } },
-          { key: 'report-sales', label: { th: 'การขาย', en: 'Sales' } },
+          { key: 'report-sales', label: { th: 'การขาย', en: 'Sales' }, children: [
+              { key: 'report-sales-ws', label: { th: 'รายงานการขายส่ง', en: 'Wholesale Sales' } },
+              { key: 'report-sales-rt', label: { th: 'รายงานการขายปลีก', en: 'Retail Sales' } },
+              { key: 'report-sales', label: { th: 'รายงานการขาย', en: 'Sales Summary' } },
+              { key: 'report-sales-return', label: { th: 'รายงานรับคืนอินวอยส์', en: 'Invoice Return' } },
+          ] },
           { key: 'report-tax-invoice', label: { th: 'รายงานใบกำกับภาษี', en: 'Tax Invoice Report' } },
-          { key: 'report-profit-loss', label: { th: 'กำไร & ขาดทุน', en: 'Profit & Loss' } },
-          { key: 'report-customer-account', label: { th: 'บัญชีลูกค้า', en: 'Customer Accounts' } },
-          { key: 'report-partner-account', label: { th: 'บัญชีคู่ค้า', en: 'Vendor Accounts' } },
+          { key: 'report-profit-loss', label: { th: 'กำไร & ขาดทุน', en: 'Profit & Loss' }, children: [
+              { key: 'report-pl-ws', label: { th: 'รายงานกำไร & ขาดทุนขายส่ง', en: 'P&L Wholesale' } },
+              { key: 'report-pl-rt', label: { th: 'รายงานกำไร & ขาดทุนขายปลีก', en: 'P&L Retail' } },
+              { key: 'report-pl-year', label: { th: 'รายงานกำไร & ขาดทุนรายปี', en: 'P&L Yearly' } },
+          ] },
+          { key: 'report-customer-account', label: { th: 'บัญชีลูกค้า', en: 'Customer Accounts' }, children: [
+              { key: 'report-cust-billing', label: { th: 'รายงานวางบิลลูกค้า', en: 'Customer Billing' } },
+              { key: 'report-cust-receive', label: { th: 'รายงานรับเงินลูกค้า', en: 'Customer Payment' } },
+              { key: 'report-cust-credit', label: { th: 'รายงานใบลดหนี้ลูกค้า', en: 'Customer Credit Note' } },
+          ] },
+          { key: 'report-partner-account', label: { th: 'บัญชีคู่ค้า', en: 'Vendor Accounts' }, children: [
+              { key: 'report-partner-pay', label: { th: 'รายงานจ่ายเงินคู่ค้า', en: 'Vendor Payment' } },
+              { key: 'report-partner-credit', label: { th: 'รายงานใบลดหนี้คู่ค้า', en: 'Vendor Credit Note' } },
+          ] },
           { key: 'report-annual-summary', label: { th: 'รายงานสรุปประจำปี', en: 'Annual Summary' } },
           { key: 'report-reorder-point', label: { th: 'รายงานจุดสั่งซื้อสินค้า', en: 'Reorder Point Report' } },
-          { key: 'report-others', label: { th: 'อื่นๆ', en: 'Others' } },
+          { key: 'report-others', label: { th: 'อื่นๆ', en: 'Others' }, children: [
+              { key: 'report-other-price', label: { th: 'รายงานการแก้ไขราคาขาย', en: 'Price Edit' } },
+              { key: 'report-other-adjust', label: { th: 'รายงานการปรับสต็อกสินค้า', en: 'Stock Adjust' } },
+              { key: 'report-other-fold', label: { th: 'รายงานการแบ่งพับสินค้า', en: 'Fold Split' } },
+              { key: 'report-other-barcode', label: { th: 'รายงานประวัติบาร์โค้ด', en: 'Barcode History' } },
+          ] },
         ],
         reportPages: {
           'report-stock': {
@@ -1138,7 +1172,7 @@ data() {
       // รายการลูกของเมนูย่อยซ้อนที่กำลังเปิด (กรองตามสิทธิ์)
       nestedFlyoutChildren() {
         if (!this.nestedFlyoutKey) return [];
-        const parent = this.basicDataMenu.find(c => c.key === this.nestedFlyoutKey);
+        const parent = [...this.basicDataMenu, ...this.reportMenu].find(c => c.key === this.nestedFlyoutKey && c.children);
         if (!parent || !parent.children) return [];
         return parent.children.filter(g => this.canAccess(g.key));
       },
@@ -1706,6 +1740,12 @@ data() {
       },
     },
     mounted() {
+      // สร้างหน้ารายงานย่อย (mock) จากเมนู nested ที่ยังไม่มีใน reportPages
+      this.reportMenu.forEach(g => {
+        if (g.children) g.children.forEach(c => {
+          if (!this.reportPages[c.key]) this.reportPages[c.key] = { title: c.label.th, columns: ['รายการ', 'รายละเอียด', 'จำนวน', 'มูลค่า', 'สถานะ'], rows: [] };
+        });
+      });
       // โหลด token/user/สิทธิ์ ล่าสุดจาก localStorage เข้า store (กันค้างหลัง re-login)
       this.auth.hydrate();
       document.documentElement.setAttribute('data-theme', this.theme);
@@ -3915,7 +3955,7 @@ data() {
         <!-- ====== รายงาน (เมนูหลัก + เมนูย่อย) ====== -->
         <div class="menu-group" v-if="menuGroupVisible(reportMenu)">
           <div class="menu-item menu-group-header"
-               :class="{ active: openGroups.report, 'has-open-child': reportMenu.some(c => c.key === currentPage) }"
+               :class="{ active: openGroups.report, 'has-open-child': reportMenu.some(c => c.children ? c.children.some(cc => cc.key === currentPage) : c.key === currentPage) }"
                @click="toggleGroup('report')">
             <span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
             <span class="menu-label">{{ t[lang].groupReport }}</span>
@@ -3923,10 +3963,21 @@ data() {
           </div>
           <transition name="dropdown">
             <div class="submenu" v-if="openGroups.report">
-              <div class="submenu-item" v-for="child in reportMenu.filter(c => canAccess(c.key))" :key="child.key"
-                   :class="{ active: currentPage === child.key }" @click="currentPage = child.key">
-                <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
-              </div>
+              <template v-for="child in reportMenu.filter(c => c.children ? canAccessAny(c.children.map(x => x.key)) : canAccess(c.key))" :key="child.key">
+                <template v-if="child.children">
+                  <div class="submenu-item submenu-group-header"
+                       :class="{ active: nestedFlyoutKey === child.key, 'has-open-child': child.children.some(cc => cc.key === currentPage) }"
+                       @click="openNestedFlyout(child, $event)">
+                    <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
+                    <span class="menu-chevron-right">›</span>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="submenu-item" :class="{ active: currentPage === child.key }" @click="goToMenu(child)">
+                    <span>{{ lang === 'th' ? child.label.th : child.label.en }}</span>
+                  </div>
+                </template>
+              </template>
             </div>
           </transition>
         </div>
