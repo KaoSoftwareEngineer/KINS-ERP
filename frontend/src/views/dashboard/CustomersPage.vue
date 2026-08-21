@@ -172,7 +172,8 @@
         <span><span class="erp-head-ic">🧑‍💼</span> {{ customer.cuModalMode === 'edit' ? 'แก้ไข' : customer.cuModalMode === 'view' ? 'รายละเอียด' : 'เพิ่ม' }} ลูกค้า</span>
         <button class="erp-x" @click="customer.cuCloseAddModal" title="ปิด">✕</button>
       </div>
-      <fieldset :disabled="customer.cuModalMode === 'view'" class="erp-modal-body" style="border:0;margin:0;min-width:0;">
+      <div class="erp-modal-body">
+      <fieldset :disabled="customer.cuModalMode === 'view'" style="border:0;margin:0;padding:0;min-width:0;">
         <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลลูกค้า</div>
         <div class="erp-grid">
           <div class="erp-field"><label>รหัสลูกค้า</label><input type="text" v-model="customer.cuNewItem.code" placeholder="รหัส (เว้นว่างได้)" /></div>
@@ -194,6 +195,7 @@
           <div class="erp-field"><label>เลขผู้เสียภาษี</label><input type="text" v-model="customer.cuNewItem.tax_id" placeholder="เลขประจำตัวผู้เสียภาษี" /></div>
         </div>
       </fieldset>
+      </div>
       <div class="erp-modal-foot">
         <button class="erp-btn erp-btn-cancel" @click="customer.cuCloseAddModal">{{ customer.cuModalMode === 'view' ? 'ปิด' : 'ยกเลิก' }}</button>
         <button v-if="customer.cuModalMode !== 'view'" class="erp-btn erp-btn-save" @click="customer.cuSaveAdd">💾 บันทึก</button>

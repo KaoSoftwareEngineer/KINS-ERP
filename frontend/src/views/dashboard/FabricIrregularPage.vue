@@ -179,7 +179,8 @@
         <span><span class="erp-head-ic">🧶</span> {{ dash.fiModalMode === 'edit' ? dash.t[dash.lang].edit : dash.fiModalMode === 'view' ? dash.t[dash.lang].viewDetails : dash.t[dash.lang].add }} {{ dash.pageTitle('fabric-irregular') }}</span>
         <button class="erp-x" @click="dash.fiCloseModal" title="ปิด">✕</button>
       </div>
-      <fieldset :disabled="dash.fiModalMode === 'view'" class="erp-modal-body" style="border:0;margin:0;min-width:0;">
+      <div class="erp-modal-body">
+      <fieldset :disabled="dash.fiModalMode === 'view'" style="border:0;margin:0;padding:0;min-width:0;">
         <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลผ้า</div>
         <div class="erp-grid">
           <div class="erp-field"><label>ประเภท <span class="erp-req">*</span></label>
@@ -228,6 +229,7 @@
           </div>
         </div>
       </fieldset>
+      </div>
       <div class="erp-modal-foot">
         <button class="erp-btn erp-btn-cancel" @click="dash.fiCloseModal">{{ dash.fiModalMode === 'view' ? dash.t[dash.lang].close : 'ยกเลิก' }}</button>
         <button v-if="dash.fiModalMode !== 'view'" class="erp-btn erp-btn-save" @click="dash.fiSaveItem">💾 {{ dash.t[dash.lang].save }}</button>
