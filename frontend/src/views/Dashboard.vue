@@ -182,6 +182,15 @@ data() {
             ['ฝ่ายขาย', 'รับออร์เดอร์ เปิดอินวอยส์ สัญญาขาย', 'จัดการออร์เดอร์, สัญญาขาย', '4', 'ใช้งาน'],
           ],
         },
+        reportChildParent: {
+          'report-stock-shelf': 'report-stock', 'report-stock-raw': 'report-stock', 'report-stock-receive': 'report-stock', 'report-stock-issue': 'report-stock', 'report-stock-move': 'report-stock', 'report-stock-move-raw': 'report-stock', 'report-stock-move-shelf': 'report-stock',
+          'report-vat-receive': 'report-vat-stock', 'report-vat-issue': 'report-vat-stock',
+          'report-sales-ws': 'report-sales', 'report-sales-rt': 'report-sales', 'report-sales-return': 'report-sales',
+          'report-pl-ws': 'report-profit-loss', 'report-pl-rt': 'report-profit-loss', 'report-pl-year': 'report-profit-loss',
+          'report-cust-billing': 'report-customer-account', 'report-cust-receive': 'report-customer-account', 'report-cust-credit': 'report-customer-account',
+          'report-partner-pay': 'report-partner-account', 'report-partner-credit': 'report-partner-account',
+          'report-other-price': 'report-others', 'report-other-adjust': 'report-others', 'report-other-fold': 'report-others', 'report-other-barcode': 'report-others',
+        },
         reportMenu: [
           { key: 'report-stock', label: { th: 'คลังสินค้า', en: 'Inventory' }, children: [
               { key: 'report-stock', label: { th: 'รายงานสินค้าคงคลัง', en: 'Stock Inventory' } },
@@ -1801,7 +1810,7 @@ data() {
       //  โมดัลสิทธิ์การเข้าใช้งาน (เพิ่ม/แก้ไขบทบาท + ต้นไม้สิทธิ์)
       // ===================================================================
       // ตรวจสิทธิ์เข้าถึงหน้า/เมนู — delegate ไป auth store
-      canAccess(key) { return this.auth.canAccess(key); },
+      canAccess(key) { return this.auth.canAccess(this.reportChildParent[key] || key); },
       canAccessAny(keys) { return this.auth.canAccessAny(keys); },
       menuGroupVisible(menuArray) { return this.auth.menuGroupVisible(menuArray); },
       pmOpen() {
