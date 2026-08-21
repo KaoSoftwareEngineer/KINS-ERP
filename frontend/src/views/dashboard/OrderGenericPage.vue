@@ -15,8 +15,8 @@
       <h2>{{ dash.t[dash.lang].totalItems }} {{ dash.genCurrentTable.rows.length }} {{ dash.t[dash.lang].itemsUnit }}</h2>
       <div class="fr-summary-actions">
         <button v-if="dash.genSelected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="dash.genBulkDeleteRows">🗑️ ลบที่เลือก ({{ dash.genSelected.length }})</button>
-        <button v-if="dash.genSelected.length > 0" class="btn-small" @click="dash.genExportExcel(true)">⬇️ ส่งออกที่เลือก</button>
-        <button class="btn-small" @click="dash.genExportExcel(false)">{{ dash.t[dash.lang].export }}</button>
+        <button v-if="dash.genSelected.length > 0" class="btn-small" @click="dash.genExportExcel(true)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออกที่เลือก</button>
+        <button class="btn-small" @click="dash.genExportExcel(false)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>{{ dash.t[dash.lang].export }}</button>
       </div>
     </div>
     <div class="overflow-x-auto table-scroll-y">

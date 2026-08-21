@@ -74,7 +74,7 @@
   <div class="fr-summary fr-summary-row">
     <span>{{ dash.t[dash.lang].foundItems }} {{ customer.cuFilteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span>
     <div class="fr-summary-actions">
-      <button class="btn-small" @click="customer.cuExportExcel(false)">⬇️ ส่งออก Excel</button>
+      <button class="btn-small" @click="customer.cuExportExcel(false)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออก Excel</button>
       <button class="btn-small fr-btn-add" @click="customer.cuOpenAdd">+ เพิ่ม ลูกค้า</button>
     </div>
   </div>
@@ -87,7 +87,7 @@
       </span>
       <div class="fr-bulk-actions">
         <button class="fr-bulk-btn danger" @click="customer.cuBulkDelete">🗑️ ลบรายการที่เลือก ({{ customer.cuSelected.length }})</button>
-        <button class="fr-bulk-btn" @click="customer.cuExportExcel(true)">⬇️ ส่งออกที่เลือก</button>
+        <button class="fr-bulk-btn" @click="customer.cuExportExcel(true)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออกที่เลือก</button>
         <button class="fr-bulk-btn ghost" @click="customer.cuClearSelection">✕ ยกเลิกการเลือก</button>
       </div>
     </div>

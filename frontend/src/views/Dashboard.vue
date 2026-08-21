@@ -4629,6 +4629,8 @@ data() {
     border-color: var(--brand);
   }
   .btn-primary:hover { background: var(--brand-2); border-color: var(--brand-2); }
+  /* ไอคอน Excel สำหรับปุ่มส่งออก .xlsx/.xls */
+  .xls-ico { width: 15px; height: 15px; display: inline-block; vertical-align: -3px; margin-right: 4px; flex-shrink: 0; }
 
   /* ============ STATS GRID ============ */
   .stats-grid {
