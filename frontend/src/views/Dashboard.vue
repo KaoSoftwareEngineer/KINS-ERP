@@ -795,6 +795,7 @@ data() {
         frSortBy: '',
         frSortDir: 'asc',
         oeFabricOptions: [],
+        oeCustomerOptions: [],
         genPage: 1,
         genPageSize: 20,
         genSelected: [],
@@ -2052,19 +2053,27 @@ data() {
       // ============ รับออร์เดอร์: ดึงผ้าประจำ + ผ้าไม่ประจำ ============
       async oeLoadFabrics() {
         try {
-          const [rReg, rIrr] = await Promise.all([
+          const [rReg, rIrr, rCus] = await Promise.all([
             fetch(API + '/api/fabrics', { headers: { Authorization: 'Bearer ' + this.token } }),
             fetch(API + '/api/fabric-irregular', { headers: { Authorization: 'Bearer ' + this.token } }),
+            fetch(API + '/api/customers', { headers: { Authorization: 'Bearer ' + this.token } }),
           ]);
-          if (rReg.status === 401 || rIrr.status === 401) { this.sessionExpired(); return; }
+          if (rReg.status === 401 || rIrr.status === 401 || rCus.status === 401) { this.sessionExpired(); return; }
           const dReg = await rReg.json();
           const dIrr = await rIrr.json();
+          const dCus = await rCus.json();
           const map = (arr, src) => (arr || []).map(f => ({
             sku: f.sku, name: f.name || '', width: f.width || '', type: f.type || '', source: src,
             label: `${f.sku} — ${f.name || f.type || ''} ${src === 'reg' ? '(ผ้าประจำ)' : '(ผ้าไม่ประจำ)'}`,
           }));
           this.oeFabricOptions = [...map(dReg.fabrics, 'reg'), ...map(dIrr.items, 'irr')];
-        } catch (e) { this.oeFabricOptions = []; }
+          this.oeCustomerOptions = (dCus.customers || [])
+            .filter(c => (c.company_name || '').trim())
+            .map(c => ({
+              name: c.company_name,
+              label: c.code ? `${c.company_name} (${c.code})` : c.company_name,
+            }));
+        } catch (e) { this.oeFabricOptions = []; this.oeCustomerOptions = []; }
       },
       oeOnSkuChange(row) {
         const sku = (row.sku || '').trim();

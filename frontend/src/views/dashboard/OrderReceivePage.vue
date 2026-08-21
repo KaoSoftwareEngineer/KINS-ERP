@@ -15,7 +15,10 @@
       </div>
       <div class="fr-field-group">
         <label>ลูกค้า</label>
-        <input type="text" v-model="dash.oeForm.customer" placeholder="ชื่อลูกค้า" />
+        <input type="text" v-model="dash.oeForm.customer" list="oe-customer-list" placeholder="พิมพ์เพื่อค้นหาลูกค้า" autocomplete="off" />
+        <datalist id="oe-customer-list">
+          <option v-for="c in dash.oeCustomerOptions" :key="c.name" :value="c.name">{{ c.label }}</option>
+        </datalist>
       </div>
       <div class="fr-field-group">
         <label>พนักงานขาย</label>
