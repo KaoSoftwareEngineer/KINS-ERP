@@ -1811,7 +1811,7 @@ data() {
       // ===================================================================
       // ตรวจสิทธิ์เข้าถึงหน้า/เมนู — delegate ไป auth store
       canAccess(key) { return this.auth.canAccess(this.reportChildParent[key] || key); },
-      canAccessAny(keys) { return this.auth.canAccessAny(keys); },
+      canAccessAny(keys) { return this.auth.canAccessAny((keys || []).map(k => this.reportChildParent[k] || k)); },
       menuGroupVisible(menuArray) { return this.auth.menuGroupVisible(menuArray); },
       pmOpen() {
         this.pmEditing = false;
