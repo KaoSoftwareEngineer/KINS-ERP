@@ -86,8 +86,8 @@
       <button v-if="dash.fiSelected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="dash.fiBulkDelete">
         🗑️ ลบที่เลือก ({{ dash.fiSelected.length }})
       </button>
-      <button v-if="dash.fiSelected.length > 0" class="btn-small" @click="dash.fiExportExcel(true)">⬇️ ส่งออกที่เลือก</button>
-      <button class="btn-small" @click="dash.fiExportExcel(false)">⬇️ ส่งออก Excel</button>
+      <button v-if="dash.fiSelected.length > 0" class="btn-small" @click="dash.fiExportExcel(true)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออกที่เลือก</button>
+      <button class="btn-small" @click="dash.fiExportExcel(false)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออก Excel</button>
       <button class="btn-small fr-btn-add" @click="dash.fiOpenAdd">+ {{ dash.t[dash.lang].add }} {{ dash.pageTitle('fabric-irregular') }}</button>
     </div>
   </div>
