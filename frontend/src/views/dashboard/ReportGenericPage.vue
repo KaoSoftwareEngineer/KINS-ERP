@@ -6,7 +6,7 @@
     </div>
     <div class="header-actions">
       <button class="btn-small">{{ dash.t[dash.lang].selectPeriod }}</button>
-      <button class="btn-small btn-primary"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#fff"/><path d="M14 2v6h6" fill="#cfe8dc"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#217346" stroke-width="1.8" stroke-linecap="round"/></svg>{{ dash.t[dash.lang].exportExcel }}</button>
+      <button class="btn-small btn-primary">{{ dash.t[dash.lang].exportExcel }}</button>
     </div>
   </div>
 
