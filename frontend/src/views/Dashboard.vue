@@ -30,6 +30,9 @@ import StockInventoryReportPage from './dashboard/StockInventoryReportPage.vue';
 import CreditNotePage from './dashboard/CreditNotePage.vue';
 import PaymentPage from './dashboard/PaymentPage.vue';
 import AccountDeductPage from './dashboard/AccountDeductPage.vue';
+import InvoiceOpenPage from './dashboard/InvoiceOpenPage.vue';
+import InvoiceReturnPage from './dashboard/InvoiceReturnPage.vue';
+import CustomerBillingPage from './dashboard/CustomerBillingPage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -93,6 +96,9 @@ export default {
     CreditNotePage,
     PaymentPage,
     AccountDeductPage,
+    InvoiceOpenPage,
+    InvoiceReturnPage,
+    CustomerBillingPage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4075,12 +4081,15 @@ data() {
       <OrderFulfillPage v-else-if="currentPage === 'order-fulfill'" />
 
       <!-- ============ จัดการออร์เดอร์ (เมนูย่อยทั้ง 4 หน้า) ============ -->
+      <InvoiceOpenPage v-else-if="currentPage === 'invoice-open'" />
+      <InvoiceReturnPage v-else-if="currentPage === 'invoice-return'" />
       <OrderGenericPage v-else-if="orderPages[currentPage]" />
 
       <!-- ============ บัญชีลูกค้า (เมนูย่อยทั้ง 4 หน้า) ============ -->
       <PaymentPage v-else-if="currentPage === 'receive-payment-customer'" mode="receive" />
       <CreditNotePage v-else-if="currentPage === 'credit-note-customer'" party-type="customer" />
       <AccountDeductPage v-else-if="currentPage === 'deduct-customer-account'" party-type="customer" />
+      <CustomerBillingPage v-else-if="currentPage === 'billing-customer'" />
       <CustAccGenericPage v-else-if="custAccPages[currentPage]" />
 
       <!-- ============ บัญชีคู่ค้า (เมนูย่อยทั้ง 3 หน้า) ============ -->

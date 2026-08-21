@@ -375,6 +375,54 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- อินวอยส์การขาย (sale_invoices) — เลข yymm+running ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS sale_invoices (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      inv_no       VARCHAR(32) NOT NULL,
+      inv_date     VARCHAR(20) DEFAULT '',
+      customer     VARCHAR(255) DEFAULT '',
+      order_ref    VARCHAR(64) DEFAULT '',
+      account_term VARCHAR(64) DEFAULT '',
+      salesperson  VARCHAR(255) DEFAULT '',
+      bill_address VARCHAR(255) DEFAULT '',
+      ship_address VARCHAR(255) DEFAULT '',
+      shipper      VARCHAR(255) DEFAULT '',
+      remark       TEXT,
+      items_json   MEDIUMTEXT,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // ---- รับคืนอินวอยส์ (invoice_returns) — เลข IVR ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS invoice_returns (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      ivr_no       VARCHAR(32) NOT NULL,
+      ret_date     VARCHAR(20) DEFAULT '',
+      shipper      VARCHAR(255) DEFAULT '',
+      payment_type VARCHAR(64) DEFAULT '',
+      remark       TEXT,
+      items_json   MEDIUMTEXT,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // ---- วางบิลลูกค้า (customer_billings) — เลข BR ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS customer_billings (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      br_no        VARCHAR(32) NOT NULL,
+      bill_date    VARCHAR(20) DEFAULT '',
+      due_date     VARCHAR(20) DEFAULT '',
+      customer     VARCHAR(255) DEFAULT '',
+      remark       TEXT,
+      total_amount DOUBLE DEFAULT 0,
+      items_json   MEDIUMTEXT,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- ใบลดหนี้ ลูกค้า(CR)/คู่ค้า(CP) (credit_notes) ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS credit_notes (

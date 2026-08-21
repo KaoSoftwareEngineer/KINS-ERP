@@ -2506,6 +2506,75 @@ app.post('/api/logout', auth, async (req, res) => {
 });
 
 // ============================================================
+//  อินวอยส์การขาย (sale_invoices) / รับคืนอินวอยส์ (invoice_returns) / วางบิล (customer_billings)
+// ============================================================
+async function makeInvNo() {
+  const d = new Date();
+  const prefix = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM sale_invoices WHERE inv_no LIKE ?', [prefix + '%']);
+  return `${prefix}${String(n + 1).padStart(4, '0')}`;
+}
+app.get('/api/sale-invoices/next-no', auth, wrap(async (req, res) => { res.json({ ok: true, inv_no: await makeInvNo() }); }));
+app.get('/api/sale-invoices', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM sale_invoices ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, invoices: rows });
+}));
+app.post('/api/sale-invoices', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const inv_no = await makeInvNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO sale_invoices (inv_no, inv_date, customer, order_ref, account_term, salesperson, bill_address, ship_address, shipper, remark, items_json)
+     VALUES (:inv_no, :inv_date, :customer, :order_ref, :account_term, :salesperson, :bill_address, :ship_address, :shipper, :remark, :items_json)`,
+    { inv_no, inv_date: b.inv_date || '', customer: b.customer || '', order_ref: b.order_ref || '', account_term: b.account_term || '', salesperson: b.salesperson || '', bill_address: b.bill_address || '', ship_address: b.ship_address || '', shipper: b.shipper || '', remark: b.remark || '', items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []) }
+  );
+  res.json({ ok: true, message: 'บันทึกอินวอยส์แล้ว', id: info.insertId, inv_no });
+}));
+
+async function makeIvrNo() {
+  const d = new Date();
+  const prefix = 'IVR' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM invoice_returns WHERE ivr_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/invoice-returns/next-no', auth, wrap(async (req, res) => { res.json({ ok: true, ivr_no: await makeIvrNo() }); }));
+app.get('/api/invoice-returns', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM invoice_returns ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, returns: rows });
+}));
+app.post('/api/invoice-returns', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const ivr_no = await makeIvrNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO invoice_returns (ivr_no, ret_date, shipper, payment_type, remark, items_json)
+     VALUES (:ivr_no, :ret_date, :shipper, :payment_type, :remark, :items_json)`,
+    { ivr_no, ret_date: b.ret_date || '', shipper: b.shipper || '', payment_type: b.payment_type || '', remark: b.remark || '', items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []) }
+  );
+  res.json({ ok: true, message: 'บันทึกรับคืนอินวอยส์แล้ว', id: info.insertId, ivr_no });
+}));
+
+async function makeBrNo() {
+  const d = new Date();
+  const prefix = 'BR' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM customer_billings WHERE br_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/customer-billings/next-no', auth, wrap(async (req, res) => { res.json({ ok: true, br_no: await makeBrNo() }); }));
+app.get('/api/customer-billings', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query('SELECT * FROM customer_billings ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, billings: rows });
+}));
+app.post('/api/customer-billings', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const br_no = await makeBrNo();
+  const [info] = await mysqlPool.query(
+    `INSERT INTO customer_billings (br_no, bill_date, due_date, customer, remark, total_amount, items_json)
+     VALUES (:br_no, :bill_date, :due_date, :customer, :remark, :total_amount, :items_json)`,
+    { br_no, bill_date: b.bill_date || '', due_date: b.due_date || '', customer: b.customer || '', remark: b.remark || '', total_amount: Number(b.total_amount) || 0, items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []) }
+  );
+  res.json({ ok: true, message: 'บันทึกวางบิลแล้ว', id: info.insertId, br_no });
+}));
+
+// ============================================================
 //  ใบลดหนี้ ลูกค้า(CR)/คู่ค้า(CP) (credit_notes)
 // ============================================================
 async function makeCreditNo(type) {
