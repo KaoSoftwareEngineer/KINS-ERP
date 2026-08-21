@@ -3188,7 +3188,7 @@ data() {
         const flatten = arr => arr.flatMap(m => (m.children ? m.children : [m]));
         const allMenus = [
           ...flatten(this.basicDataMenu), ...this.poMenu, ...this.stockMenu, ...this.vatMenu,
-          ...this.orderMenu, ...this.custAccMenu, ...this.partnerAccMenu, ...this.reportMenu, ...this.usersMenu,
+          ...this.orderMenu, ...this.custAccMenu, ...this.partnerAccMenu, ...flatten(this.reportMenu), ...this.usersMenu,
         ];
         const found = allMenus.find(m => m.key === key);
         if (!found) return '';
@@ -3198,7 +3198,7 @@ data() {
         const flatten = arr => arr.flatMap(m => (m.children ? m.children : [m]));
         const allMenus = [
           ...flatten(this.basicDataMenu), ...this.poMenu, ...this.stockMenu, ...this.vatMenu,
-          ...this.orderMenu, ...this.custAccMenu, ...this.partnerAccMenu, ...this.reportMenu, ...this.usersMenu,
+          ...this.orderMenu, ...this.custAccMenu, ...this.partnerAccMenu, ...flatten(this.reportMenu), ...this.usersMenu,
         ];
         const found = allMenus.find(m => m.key === key);
         if (!found) return '';
@@ -4211,7 +4211,8 @@ data() {
   @keyframes langFlyIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
 
   /* ลูกศร › สำหรับเมนูย่อยซ้อน */
-  .menu-chevron-right { margin-left: auto; font-size: 16px; opacity: .55; font-weight: 700; }
+  .menu-chevron-right { margin-left: auto; font-size: 18px; opacity: 1; font-weight: 800; color: var(--brand); }
+  .submenu-item.submenu-group-header { font-weight: 600; }
   /* เมนูย่อยซ้อน (cascading) ลอยออกข้าง */
   .nested-flyout-backdrop { position: fixed; inset: 0; z-index: 2999; }
   .nested-flyout {
