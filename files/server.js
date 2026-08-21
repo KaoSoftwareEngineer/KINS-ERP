@@ -2559,6 +2559,15 @@ async function makeBrNo() {
   return `${prefix}-${String(n + 1).padStart(3, '0')}`;
 }
 app.get('/api/customer-billings/next-no', auth, wrap(async (req, res) => { res.json({ ok: true, br_no: await makeBrNo() }); }));
+// ดึงเอกสารค้างวางบิลของลูกค้า แยก ขายส่ง(อินวอยส์ VAT) / ขายปลีก(อินวอยส์ขาย) / ใบลดหนี้
+app.get('/api/customer-billings/documents', auth, wrap(async (req, res) => {
+  const customer = (req.query.customer || '').toString().trim();
+  if (!customer) return res.json({ ok: true, wholesale: [], retail: [], credit: [] });
+  const [ws] = await mysqlPool.query('SELECT vt_no AS inv_no, invoice_date AS doc_date, net_total AS total FROM vat_invoices WHERE customer = ? ORDER BY id DESC', [customer]);
+  const [rt] = await mysqlPool.query("SELECT inv_no, inv_date AS doc_date, 0 AS total FROM sale_invoices WHERE customer = ? ORDER BY id DESC", [customer]);
+  const [cr] = await mysqlPool.query("SELECT doc_no AS inv_no, doc_date, net_total AS total FROM credit_notes WHERE party = ? AND doc_type = 'customer' ORDER BY id DESC", [customer]);
+  res.json({ ok: true, wholesale: ws, retail: rt, credit: cr });
+}));
 app.get('/api/customer-billings', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM customer_billings ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, billings: rows });
