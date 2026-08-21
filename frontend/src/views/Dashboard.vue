@@ -4940,22 +4940,24 @@ data() {
     width: 100%;
     max-width: 480px;
     background: var(--surface);
-    border: 2px solid var(--brand);
-    border-radius: 12px;
+    border: 1px solid var(--field-border);
+    border-radius: 9px;
     padding: 0 16px;
-    box-shadow: 0 4px 14px rgba(47, 101, 246, .15);
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
   }
-  .of-barcode-icon { width: 26px; height: 26px; color: var(--brand); flex-shrink: 0; }
+  .of-barcode-box:focus-within { border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+  .of-barcode-icon { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }
   .of-barcode-input {
     flex: 1;
     min-width: 0;
     border: none;
     outline: none;
     background: transparent;
-    height: 52px;
-    font-size: 16px;
+    height: 40px;
+    font-size: 13.5px;
     color: var(--text);
   }
+  .of-barcode-input::placeholder { color: var(--muted); font-size: 13px; }
 
   .of-filter-panel {
     background: var(--field);
@@ -5195,22 +5197,24 @@ data() {
     width: 100%;
     max-width: 480px;
     background: var(--surface);
-    border: 2px solid var(--brand);
-    border-radius: 12px;
+    border: 1px solid var(--field-border);
+    border-radius: 9px;
     padding: 0 16px;
-    box-shadow: 0 4px 14px rgba(47, 101, 246, .15);
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
   }
-  .of-barcode-icon { width: 26px; height: 26px; color: var(--brand); flex-shrink: 0; }
+  .of-barcode-box:focus-within { border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+  .of-barcode-icon { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }
   .of-barcode-input {
     flex: 1;
     min-width: 0;
     border: none;
     outline: none;
     background: transparent;
-    height: 52px;
-    font-size: 16px;
+    height: 40px;
+    font-size: 13.5px;
     color: var(--text);
   }
+  .of-barcode-input::placeholder { color: var(--muted); font-size: 13px; }
 
   .of-filter-panel {
     background: var(--field);
