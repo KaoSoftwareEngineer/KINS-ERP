@@ -5848,11 +5848,15 @@ data() {
     transition: background .15s, border-color .15s, color .15s;
   }
   .oe-act-btn svg { width: 16px; height: 16px; }
-  .oe-act-btn:hover { background: var(--surface); }
-  .oe-act-img:hover    { color: var(--text);  border-color: var(--muted); }
-  .oe-act-add:hover    { color: #1a9c54; border-color: #1a9c54; background: rgba(26,156,84,.10); }
-  .oe-act-remove:hover { color: #dc2626; border-color: #dc2626; background: rgba(220,38,38,.10); }
-  .oe-act-search:hover { color: #2563eb; border-color: #2563eb; background: rgba(37,99,235,.10); }
+  /* สีประจำตัวตั้งแต่แรก เพื่อให้มองปราดเดียวรู้ว่าปุ่มไหนทำอะไร */
+  .oe-act-img    { color: var(--muted); }
+  .oe-act-add    { color: #1a9c54; }
+  .oe-act-remove { color: #dc2626; }
+  .oe-act-search { color: #2563eb; }
+  .oe-act-img:hover    { border-color: var(--muted); background: var(--surface); }
+  .oe-act-add:hover    { border-color: #1a9c54; background: rgba(26,156,84,.12); }
+  .oe-act-remove:hover { border-color: #dc2626; background: rgba(220,38,38,.12); }
+  .oe-act-search:hover { border-color: #2563eb; background: rgba(37,99,235,.12); }
   .oe-act-btn:active { transform: translateY(1px); }
 
   .oe-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
