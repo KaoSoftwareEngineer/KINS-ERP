@@ -3763,7 +3763,7 @@ data() {
     <button class="mobile-menu-btn" @click="mobileMenuOpen = true" title="เมนู" aria-label="เปิดเมนู">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
-    <div class="brand-text">D'Finest</div>
+    <div class="brand-text">KINS</div>
   </div>
 
   <div class="sidebar-backdrop" v-if="mobileMenuOpen" @click="mobileMenuOpen = false"></div>
@@ -3772,8 +3772,10 @@ data() {
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar" :class="{ 'mobile-open': mobileMenuOpen }">
       <div class="sidebar-logo">
-        <div class="icon" style="background: linear-gradient(150deg, #4c6bff 0%, #2537c9 100%); display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 15px;">DF</div>
-        <div class="text">D'Finest</div>
+        <div class="icon" style="background: #0d0d0d; display: grid; place-items: center;">
+          <svg viewBox="0 0 100 100" style="width: 22px; height: 22px;"><circle cx="41" cy="50" r="19" fill="none" stroke="#fff" stroke-width="7"/><circle cx="59" cy="50" r="19" fill="none" stroke="#fff" stroke-width="7"/></svg>
+        </div>
+        <div class="text">KINS</div>
       </div>
 
       <!-- Utilities (Theme & Language) -->
