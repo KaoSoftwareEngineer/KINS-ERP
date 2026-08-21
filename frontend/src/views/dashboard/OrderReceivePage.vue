@@ -98,13 +98,19 @@
               </div>
             </td>
             <td>
-              <div class="fr-action-group">
-                <button class="fr-img-btn" title="ดูรูปสินค้า">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              <div class="oe-act-group">
+                <button class="oe-act-btn oe-act-img" title="ดูรูปสินค้า">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
                 </button>
-                <button class="oe-row-btn oe-row-btn-add" title="เพิ่มแถว" @click="dash.oeAddRow(idx)">+</button>
-                <button class="oe-row-btn oe-row-btn-remove" title="ลบแถว" @click="dash.oeRemoveRow(idx)">−</button>
-                <button class="oe-row-btn oe-row-btn-blue" title="ค้นหาสินค้า">🔍</button>
+                <button class="oe-act-btn oe-act-add" title="เพิ่มแถว" @click="dash.oeAddRow(idx)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <button class="oe-act-btn oe-act-remove" title="ลบแถว" @click="dash.oeRemoveRow(idx)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+                </button>
+                <button class="oe-act-btn oe-act-search" title="ค้นหาสินค้า">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                </button>
               </div>
             </td>
           </tr>

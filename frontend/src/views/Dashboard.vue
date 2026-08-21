@@ -5826,25 +5826,25 @@ data() {
   .oe-substitute-cell input[type="checkbox"] { width: 15px; height: 15px; accent-color: #2F65F6; flex-shrink: 0; }
   .oe-substitute-cell input[type="text"] { min-width: 110px; }
 
-  .oe-row-btn {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    border: none;
+  /* ปุ่มจัดการแถว (รับออร์เดอร์) — ชุดไอคอนสไตล์ ERP องค์กร: line icon โทนกลาง, hover ไล่สี accent */
+  .oe-act-group { display: flex; gap: 6px; align-items: center; }
+  .oe-act-btn {
+    width: 30px; height: 30px; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: var(--field);
+    border: 1px solid var(--field-border);
+    border-radius: 8px;
+    color: var(--muted);
     cursor: pointer;
-    display: grid;
-    place-items: center;
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1;
-    flex-shrink: 0;
-    transition: filter .15s;
+    transition: background .15s, border-color .15s, color .15s;
   }
-  .oe-row-btn:hover { filter: brightness(1.1); }
-  .oe-row-btn-add { background: var(--ok); }
-  .oe-row-btn-remove { background: var(--danger); }
-  .oe-row-btn-blue { background: #2F65F6; font-size: 12px; }
+  .oe-act-btn svg { width: 16px; height: 16px; }
+  .oe-act-btn:hover { background: var(--surface); }
+  .oe-act-img:hover    { color: var(--text);  border-color: var(--muted); }
+  .oe-act-add:hover    { color: #1a9c54; border-color: #1a9c54; background: rgba(26,156,84,.10); }
+  .oe-act-remove:hover { color: #dc2626; border-color: #dc2626; background: rgba(220,38,38,.10); }
+  .oe-act-search:hover { color: #2563eb; border-color: #2563eb; background: rgba(37,99,235,.10); }
+  .oe-act-btn:active { transform: translateY(1px); }
 
   .oe-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
   .oe-save-success { color: var(--ok); font-weight: 600; font-size: 13.5px; }
