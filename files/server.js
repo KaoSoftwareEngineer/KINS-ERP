@@ -2506,6 +2506,75 @@ app.post('/api/logout', auth, async (req, res) => {
 });
 
 // ============================================================
+//  ใบลดหนี้ ลูกค้า(CR)/คู่ค้า(CP) (credit_notes)
+// ============================================================
+async function makeCreditNo(type) {
+  const d = new Date();
+  const prefix = (type === 'partner' ? 'CP' : 'CR') + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM credit_notes WHERE doc_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/credit-notes/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, doc_no: await makeCreditNo(req.query.type) });
+}));
+app.get('/api/credit-notes', auth, wrap(async (req, res) => {
+  const type = req.query.type;
+  const [rows] = type
+    ? await mysqlPool.query('SELECT * FROM credit_notes WHERE doc_type = ? ORDER BY id DESC', [type])
+    : await mysqlPool.query('SELECT * FROM credit_notes ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, notes: rows });
+}));
+app.post('/api/credit-notes', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const doc_no = await makeCreditNo(b.doc_type);
+  const [info] = await mysqlPool.query(
+    `INSERT INTO credit_notes (doc_no, doc_type, doc_date, party, return_type, invoice_ref, remark, subtotal, vat, net_total, items_json)
+     VALUES (:doc_no, :doc_type, :doc_date, :party, :return_type, :invoice_ref, :remark, :subtotal, :vat, :net_total, :items_json)`,
+    {
+      doc_no, doc_type: b.doc_type === 'partner' ? 'partner' : 'customer',
+      doc_date: b.doc_date || '', party: b.party || '', return_type: b.return_type || 'No Return', invoice_ref: b.invoice_ref || '', remark: b.remark || '',
+      subtotal: Number(b.subtotal) || 0, vat: Number(b.vat) || 0, net_total: Number(b.net_total) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกใบลดหนี้แล้ว', id: info.insertId, doc_no });
+}));
+
+// ============================================================
+//  รับเงินลูกค้า(RC)/จ่ายเงินคู่ค้า(PP) (payments)
+// ============================================================
+async function makePaymentNo(type) {
+  const d = new Date();
+  const prefix = (type === 'pay' ? 'PP' : 'RC') + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0');
+  const [[{ n }]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM payments WHERE doc_no LIKE ?', [prefix + '-%']);
+  return `${prefix}-${String(n + 1).padStart(3, '0')}`;
+}
+app.get('/api/payments/next-no', auth, wrap(async (req, res) => {
+  res.json({ ok: true, doc_no: await makePaymentNo(req.query.type) });
+}));
+app.get('/api/payments', auth, wrap(async (req, res) => {
+  const type = req.query.type;
+  const [rows] = type
+    ? await mysqlPool.query('SELECT * FROM payments WHERE doc_type = ? ORDER BY id DESC', [type])
+    : await mysqlPool.query('SELECT * FROM payments ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, payments: rows });
+}));
+app.post('/api/payments', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const doc_no = await makePaymentNo(b.doc_type);
+  const [info] = await mysqlPool.query(
+    `INSERT INTO payments (doc_no, doc_type, doc_date, remark, total_amount, items_json)
+     VALUES (:doc_no, :doc_type, :doc_date, :remark, :total_amount, :items_json)`,
+    {
+      doc_no, doc_type: b.doc_type === 'pay' ? 'pay' : 'receive',
+      doc_date: b.doc_date || '', remark: b.remark || '', total_amount: Number(b.total_amount) || 0,
+      items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
+    }
+  );
+  res.json({ ok: true, message: 'บันทึกรายการเงินแล้ว', id: info.insertId, doc_no });
+}));
+
+// ============================================================
 //  รายงานสินค้าคงคลัง (stock inventory) — group ต่อ ผ้า+สี จาก fabric_rolls
 // ============================================================
 app.get('/api/reports/stock-inventory', auth, wrap(async (req, res) => {

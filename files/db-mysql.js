@@ -375,6 +375,39 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- ใบลดหนี้ ลูกค้า(CR)/คู่ค้า(CP) (credit_notes) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS credit_notes (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      doc_no       VARCHAR(32) NOT NULL,
+      doc_type     VARCHAR(16) NOT NULL DEFAULT 'customer',
+      doc_date     VARCHAR(20) DEFAULT '',
+      party        VARCHAR(255) DEFAULT '',
+      return_type  VARCHAR(32) DEFAULT 'No Return',
+      invoice_ref  VARCHAR(64) DEFAULT '',
+      remark       TEXT,
+      subtotal     DOUBLE DEFAULT 0,
+      vat          DOUBLE DEFAULT 0,
+      net_total    DOUBLE DEFAULT 0,
+      items_json   MEDIUMTEXT,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // ---- รับ/จ่ายเงิน ลูกค้า(RC)/คู่ค้า(PP) (payments) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS payments (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      doc_no       VARCHAR(32) NOT NULL,
+      doc_type     VARCHAR(16) NOT NULL DEFAULT 'receive',
+      doc_date     VARCHAR(20) DEFAULT '',
+      remark       TEXT,
+      total_amount DOUBLE DEFAULT 0,
+      items_json   MEDIUMTEXT,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
   // ---- เอกสารรับสินค้า VAT (vat_receipts) — เลข VN ----
   await pool.query(`
     CREATE TABLE IF NOT EXISTS vat_receipts (

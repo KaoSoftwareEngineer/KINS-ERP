@@ -27,6 +27,8 @@ import VatStockCutPage from './dashboard/VatStockCutPage.vue';
 import VatInvoicePage from './dashboard/VatInvoicePage.vue';
 import VatInvoiceCutPage from './dashboard/VatInvoiceCutPage.vue';
 import StockInventoryReportPage from './dashboard/StockInventoryReportPage.vue';
+import CreditNotePage from './dashboard/CreditNotePage.vue';
+import PaymentPage from './dashboard/PaymentPage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -87,6 +89,8 @@ export default {
     VatInvoicePage,
     VatInvoiceCutPage,
     StockInventoryReportPage,
+    CreditNotePage,
+    PaymentPage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4072,9 +4076,13 @@ data() {
       <OrderGenericPage v-else-if="orderPages[currentPage]" />
 
       <!-- ============ บัญชีลูกค้า (เมนูย่อยทั้ง 4 หน้า) ============ -->
+      <PaymentPage v-else-if="currentPage === 'receive-payment-customer'" mode="receive" />
+      <CreditNotePage v-else-if="currentPage === 'credit-note-customer'" party-type="customer" />
       <CustAccGenericPage v-else-if="custAccPages[currentPage]" />
 
       <!-- ============ บัญชีคู่ค้า (เมนูย่อยทั้ง 3 หน้า) ============ -->
+      <PaymentPage v-else-if="currentPage === 'pay-partner'" mode="pay" />
+      <CreditNotePage v-else-if="currentPage === 'credit-note-partner'" party-type="partner" />
       <PartnerAccGenericPage v-else-if="partnerAccPages[currentPage]" />
       <!-- ============ รายงาน (เมนูย่อยทั้ง 14 หน้า) ============ -->
       <StockInventoryReportPage v-else-if="currentPage === 'report-stock'" />
