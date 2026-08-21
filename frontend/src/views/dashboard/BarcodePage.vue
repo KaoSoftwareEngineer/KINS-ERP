@@ -163,7 +163,7 @@ export default {
 .bc-titlebar { font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 
 .bc-scan { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; padding: 16px 20px; border-bottom: 1px solid var(--field-border); }
-.bc-scan-field { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 6px; }
+.bc-scan-field { flex: 0 1 560px; min-width: 260px; max-width: 560px; display: flex; flex-direction: column; gap: 6px; }
 .bc-scan-field > label { font-size: 12px; color: var(--muted); font-weight: 600; }
 .bc-scan-input { display: flex; align-items: center; gap: 0; border: 1px solid var(--field-border); border-radius: 10px; overflow: hidden; background: var(--field); transition: border-color .2s, box-shadow .2s; }
 .bc-scan-input:focus-within { border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); background: var(--surface); }

@@ -2505,6 +2505,74 @@ app.post('/api/logout', auth, async (req, res) => {
   res.json({ ok: true });
 });
 
+// ============================================================
+//  รายงานสินค้าคงคลัง (stock inventory) — group ต่อ ผ้า+สี จาก fabric_rolls
+// ============================================================
+app.get('/api/reports/stock-inventory', auth, wrap(async (req, res) => {
+  const q = (req.query.q || '').toString().trim();
+  const sku = (req.query.sku || '').toString().trim();
+  const color = (req.query.color || '').toString().trim();
+  const group = (req.query.group || '').toString().trim();
+  const width = (req.query.width || '').toString().trim();
+  const warehouse = (req.query.warehouse || '').toString().trim();
+  const where = ["r.status <> 'depleted'"];
+  const params = [];
+  if (q) { where.push('(f.sku LIKE ? OR f.name LIKE ? OR s.name LIKE ?)'); params.push('%' + q + '%', '%' + q + '%', '%' + q + '%'); }
+  if (sku) { where.push('f.sku LIKE ?'); params.push('%' + sku + '%'); }
+  if (color) { where.push('s.name LIKE ?'); params.push('%' + color + '%'); }
+  if (group) { where.push('f.type LIKE ?'); params.push('%' + group + '%'); }
+  if (width) { where.push('f.width LIKE ?'); params.push('%' + width + '%'); }
+  if (warehouse) { where.push('l.location_code LIKE ?'); params.push('%' + warehouse + '%'); }
+  const [rows] = await mysqlPool.query(`
+    SELECT r.product_id, r.color_id, f.sku, f.name, f.type, f.width, s.name AS shade,
+           COUNT(*) AS folds, COALESCE(SUM(r.current_yards),0) AS total_yards
+    FROM fabric_rolls r
+    LEFT JOIN fabrics f ON f.id = r.product_id
+    LEFT JOIN fabric_shades s ON s.id = r.color_id
+    LEFT JOIN warehouse_locations l ON l.location_id = r.location_id
+    WHERE ${where.join(' AND ')}
+    GROUP BY r.product_id, r.color_id, f.sku, f.name, f.type, f.width, s.name
+    ORDER BY f.sku ASC, s.name ASC
+  `, params);
+  const totalFolds = rows.reduce((a, x) => a + Number(x.folds || 0), 0);
+  const totalYards = rows.reduce((a, x) => a + Number(x.total_yards || 0), 0);
+  res.json({ ok: true, total: rows.length, items: rows, summary: { folds: totalFolds, yards: totalYards } });
+}));
+// รายละเอียดม้วนของผ้า+สีที่เลือก
+app.get('/api/reports/stock-inventory/rolls', auth, wrap(async (req, res) => {
+  const productId = Number(req.query.product_id) || 0;
+  const colorId = req.query.color_id ? Number(req.query.color_id) : null;
+  const cond = colorId != null ? 'r.color_id = ?' : 'r.color_id IS NULL';
+  const params = colorId != null ? [productId, colorId] : [productId];
+  const [rows] = await mysqlPool.query(`
+    SELECT r.roll_id, r.roll_qr_code, r.lot_no, r.initial_yards, r.current_yards, r.received_at, r.status,
+           l.location_code, l.rack
+    FROM fabric_rolls r
+    LEFT JOIN warehouse_locations l ON l.location_id = r.location_id
+    WHERE r.product_id = ? AND ${cond}
+    ORDER BY r.roll_id ASC
+  `, params);
+  res.json({ ok: true, total: rows.length, rolls: rows });
+}));
+// ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
+app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
+  const rollQr = (req.body.roll_qr || '').toString().trim();
+  const newYards = Number(req.body.new_yards);
+  if (!rollQr || !(newYards >= 0)) return res.status(400).json({ ok: false, message: 'ต้องระบุบาร์โค้ดและจำนวนใหม่ (>= 0)' });
+  const [[roll]] = await mysqlPool.query('SELECT * FROM fabric_rolls WHERE roll_qr_code = ?', [rollQr]);
+  if (!roll) return res.status(404).json({ ok: false, message: 'ไม่พบม้วนผ้ารหัส ' + rollQr });
+  const before = Number(roll.current_yards);
+  const status = newYards <= 0 ? 'depleted' : roll.status;
+  await mysqlPool.query('UPDATE fabric_rolls SET current_yards = ?, lot_no = ?, status = ? WHERE roll_id = ?',
+    [newYards, (req.body.lot_no || roll.lot_no || ''), status, roll.roll_id]);
+  await mysqlPool.query(
+    `INSERT INTO stock_transactions (roll_id, txn_type, yards_change, yards_before, yards_after, from_location_id, ref_type, note, created_by)
+     VALUES (:roll_id, 'adjust', :change, :before, :after, :loc, 'adjust', :note, :by)`,
+    { roll_id: roll.roll_id, change: newYards - before, before, after: newYards, loc: roll.location_id, note: (req.body.note || 'ปรับปรุงสต็อก').toString().trim(), by: req.userId }
+  );
+  res.json({ ok: true, message: `ปรับปรุง ${rollQr} จาก ${before} เป็น ${newYards} หลา`, current_yards: newYards });
+}));
+
 app.get('/', (req, res) => res.redirect('http://localhost:5173/login'));
 
 app.listen(PORT, () => {

@@ -26,6 +26,7 @@ import VatReceivePage from './dashboard/VatReceivePage.vue';
 import VatStockCutPage from './dashboard/VatStockCutPage.vue';
 import VatInvoicePage from './dashboard/VatInvoicePage.vue';
 import VatInvoiceCutPage from './dashboard/VatInvoiceCutPage.vue';
+import StockInventoryReportPage from './dashboard/StockInventoryReportPage.vue';
 import ZoneRackPage from './dashboard/ZoneRackPage.vue';
 import StockHistoryPage from './dashboard/StockHistoryPage.vue';
 import BasicDataGenericPage from './dashboard/BasicDataGenericPage.vue';
@@ -85,6 +86,7 @@ export default {
     VatStockCutPage,
     VatInvoicePage,
     VatInvoiceCutPage,
+    StockInventoryReportPage,
     ZoneRackPage,
     StockHistoryPage,
     BasicDataGenericPage,
@@ -4075,6 +4077,7 @@ data() {
       <!-- ============ บัญชีคู่ค้า (เมนูย่อยทั้ง 3 หน้า) ============ -->
       <PartnerAccGenericPage v-else-if="partnerAccPages[currentPage]" />
       <!-- ============ รายงาน (เมนูย่อยทั้ง 14 หน้า) ============ -->
+      <StockInventoryReportPage v-else-if="currentPage === 'report-stock'" />
       <ReportGenericPage v-else-if="reportPages[currentPage]" />
 
       <!-- ============ สิทธิ์การเข้าใช้งาน ============ -->
