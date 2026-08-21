@@ -462,7 +462,8 @@ data() {
         oeSalespersonOptions: ['นายกิตติ มั่นคง', 'นางสาวปิยะดา สุขใจ'],
         oePaymentTermOptions: ['Cash', 'เครดิต 15 วัน', 'เครดิต 30 วัน', 'เครดิต 60 วัน'],
         oeColorCodeOptions: ['C-01', 'C-02', 'C-03', 'C-04', 'C-05'],
-        oePackOptions: ['ม้วน', 'แพ็ค', 'กล่อง', 'มัด'],
+        oePackOptions: ['ตัดเป็นไม้กลม', 'ตัดเป็นไม้แบน'],
+        oeUnitOptions: ['หลา', 'เมตร'],
         oeRowKeySeq: 1,
         oeSaved: false,
         oeShowSlip: false,
@@ -2885,7 +2886,7 @@ data() {
       oeReport() {
         this.fbFail('ตัวอย่างรายงานออร์เดอร์ (ยังไม่เชื่อมต่อระบบพิมพ์รายงานจริง)');
       },
-      oeSave() {
+      async oeSave() {
         if (!this.oeForm.customer.trim()) {
           this.fbFail('กรุณากรอกชื่อลูกค้า');
           return;
@@ -2895,7 +2896,26 @@ data() {
           this.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ (รหัสสินค้าและจำนวนที่สั่ง)');
           return;
         }
-        this.oeSaved = true;
+        this.fbLoading('กำลังบันทึกออร์เดอร์...');
+        try {
+          const res = await fetch(API + '/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
+            body: JSON.stringify({ ...this.oeForm, orderNo: '', items: this.oeItems }),
+          });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const data = await res.json();
+          if (data.ok) {
+            this.oeForm.orderNo = data.order.order_no;
+            this.oeSaved = true;
+            await this.loadOrders();
+            this.fbDone('บันทึกออร์เดอร์แล้ว — เพิ่มงานค้างดำเนินการ 1 รายการ');
+          } else {
+            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
+          }
+        } catch (e) {
+          this.fbFail('บันทึกออร์เดอร์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+        }
       },
       oePrintSlipNow() {
         window.print();

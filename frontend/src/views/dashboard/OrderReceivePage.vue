@@ -81,7 +81,7 @@
             <td><input type="number" min="0" v-model="row.orderedQty" placeholder="0" /></td>
             <td>
               <select v-model="row.unit">
-                <option v-for="opt in dash.frUnitOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option v-for="opt in dash.oeUnitOptions" :key="opt" :value="opt">{{ opt }}</option>
               </select>
             </td>
             <td>
