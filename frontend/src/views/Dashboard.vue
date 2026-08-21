@@ -2064,7 +2064,10 @@ data() {
           const dCus = await rCus.json();
           const map = (arr, src) => (arr || []).map(f => ({
             sku: f.sku, name: f.name || '', width: f.width || '', type: f.type || '', source: src,
-            label: `${f.sku} — ${f.name || f.type || ''} ${src === 'reg' ? '(ผ้าประจำ)' : '(ผ้าไม่ประจำ)'}`,
+            // ตัวเลือกแบบบรรทัดเดียวสำหรับ datalist (แสดงครั้งเดียว ไม่ซ้ำ) — คั่นด้วย em-dash / โคลอน
+            // (ไม่ชนกับ hyphen ในชื่อสี เช่น "Cotton Twill - White") เพื่อ parse รหัสกลับได้
+            display: `${f.sku} — ${f.name || f.type || ''}`.trim().replace(/ —\s*$/, ''),
+            colorText: `${f.sku} : ${f.name || f.type || ''}`.trim().replace(/ :\s*$/, ''),
           }));
           this.oeFabricOptions = [...map(dReg.fabrics, 'reg'), ...map(dIrr.items, 'irr')];
           this.oeCustomerOptions = (dCus.customers || [])
@@ -2076,9 +2079,15 @@ data() {
         } catch (e) { this.oeFabricOptions = []; this.oeCustomerOptions = []; }
       },
       oeOnSkuChange(row) {
-        const sku = (row.sku || '').trim();
+        // datalist ส่งค่าเต็ม "sku — name" กลับมา — แยกเอาเฉพาะรหัสไปเก็บ
+        const sku = (row.sku || '').split(' — ')[0].trim();
+        row.sku = sku;
         const f = this.oeFabricOptions.find(x => x.sku === sku);
         if (f && !row.width) row.width = f.width;
+      },
+      oeOnColorChange(row) {
+        // datalist ส่งค่าเต็ม "sku : name" กลับมา — แยกเอาเฉพาะรหัสสีไปเก็บ
+        row.colorCode = (row.colorCode || '').split(' : ')[0].trim();
       },
       genSort(colIdx) {
         if (this.genSortCol === colIdx) {

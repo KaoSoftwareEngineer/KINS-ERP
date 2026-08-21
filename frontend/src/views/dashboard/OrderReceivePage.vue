@@ -17,7 +17,7 @@
         <label>ลูกค้า</label>
         <input type="text" v-model="dash.oeForm.customer" list="oe-customer-list" placeholder="พิมพ์เพื่อค้นหาลูกค้า" autocomplete="off" />
         <datalist id="oe-customer-list">
-          <option v-for="c in dash.oeCustomerOptions" :key="c.name" :value="c.name">{{ c.label }}</option>
+          <option v-for="c in dash.oeCustomerOptions" :key="c.name" :value="c.name" />
         </datalist>
       </div>
       <div class="fr-field-group">
@@ -72,13 +72,8 @@
         <tbody>
           <tr v-for="(row, idx) in dash.oeItems" :key="row._key">
             <td>{{ row.no }}</td>
-            <td><input type="text" v-model="row.sku" list="oe-fabric-list" placeholder="เลือก/พิมพ์รหัสผ้า" @change="dash.oeOnSkuChange(row)" /></td>
-            <td>
-              <select v-model="row.colorCode">
-                <option value="">เลือก</option>
-                <option v-for="opt in dash.oeColorCodeOptions" :key="opt" :value="opt">{{ opt }}</option>
-              </select>
-            </td>
+            <td><input type="text" v-model="row.sku" list="oe-fabric-list" placeholder="พิมพ์รหัส/ชื่อผ้า" @change="dash.oeOnSkuChange(row)" /></td>
+            <td><input type="text" v-model="row.colorCode" list="oe-color-list" placeholder="พิมพ์รหัสสี" @change="dash.oeOnColorChange(row)" /></td>
             <td><input type="text" v-model="row.width" placeholder='เช่น 44"' /></td>
             <td><input type="text" v-model="row.availableQty" placeholder="0" /></td>
             <td><input type="number" min="0" v-model="row.orderedQty" placeholder="0" /></td>
@@ -120,7 +115,10 @@
         </tbody>
       </table>
       <datalist id="oe-fabric-list">
-        <option v-for="f in dash.oeFabricOptions" :key="f.sku" :value="f.sku">{{ f.label }}</option>
+        <option v-for="f in dash.oeFabricOptions" :key="'p'+f.sku" :value="f.display" />
+      </datalist>
+      <datalist id="oe-color-list">
+        <option v-for="f in dash.oeFabricOptions" :key="'c'+f.sku" :value="f.colorText" />
       </datalist>
     </div>
   </div>
