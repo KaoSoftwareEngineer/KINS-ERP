@@ -132,7 +132,8 @@ export default {
       try { const res = await fetch('/api/purchase-orders/next-no', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); if (d.ok) this.form.po_no = d.po_no; } catch (e) {}
     },
     async loadFabrics() {
-      try { const res = await fetch('/api/fabrics', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.fabrics = d.fabrics || []; } catch (e) {}
+      // หน้า PO ซื้อผ้าดิบ → ดึงจากตารางผ้าดิบ (/api/fabric-raw) ไม่ใช่ผ้าสำเร็จ
+      try { const res = await fetch('/api/fabric-raw', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.fabrics = d.items || []; } catch (e) {}
       try { const r2 = await fetch('/api/partners', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d2 = await r2.json(); if (d2.ok && d2.items.length) this.vendorOptions = d2.items.map(p => p.name); } catch (e) {}
     },
     async lookupSku(row) {
@@ -140,11 +141,8 @@ export default {
       const f = this.fabrics.find(x => (x.sku || '').toLowerCase() === row.sku.trim().toLowerCase());
       if (!f) return;
       row.name = f.name || ''; row.structure = f.structure || ''; row.composition = f.composition || ''; row.width = f.width || '';
-      try {
-        const res = await fetch(`/api/fabrics/${f.id}/shades`, { headers: { Authorization: 'Bearer ' + this.dash.token } });
-        const d = await res.json();
-        row.shadeOptions = (d.shades || []).map(s => s.name);
-      } catch (e) { row.shadeOptions = []; }
+      // ผ้าดิบไม่มีเฉดสี → กรอกรหัสสีเองในช่อง (ไม่มี dropdown)
+      row.shadeOptions = [];
     },
     async save() {
       if (!this.items.some(r => (r.sku || '').trim())) { this.dash.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ'); return; }

@@ -28,6 +28,15 @@
     </div>
   </div>
 
+  <!-- แจ้งเตือน: บัญชียังไม่ได้รับสิทธิ์ (role ว่าง) -->
+  <div v-if="!hasRole" class="dash-norole">
+    <span class="dash-norole-icon">⚠️</span>
+    <div>
+      <div class="dash-norole-title">บัญชีของคุณยังไม่ได้รับสิทธิ์การใช้งาน</div>
+      <div class="dash-norole-sub">กรุณาติดต่อผู้ดูแลระบบ (Admin) เพื่อกำหนดตำแหน่งและสิทธิ์การเข้าถึงเมนู — ตอนนี้เข้าได้เฉพาะหน้าแดชบอร์ดและตั้งค่า</div>
+    </div>
+  </div>
+
   <!-- My Tasks / Action Required -->
   <div v-if="cards.tasks" class="section dash-tasks">
     <div class="section-header">
@@ -318,6 +327,7 @@ export default {
       return tasks;
     },
     totalTasks() { return this.myTasks.reduce((s, t) => s + t.count, 0); },
+    hasRole() { const u = this.dash.currentUser; return !!(u && (u.role || '').trim()); },
   },
   methods: {
     loadCardPrefs() {
@@ -348,6 +358,12 @@ export default {
 .dash-customize-reset:hover { color: var(--text); border-color: var(--muted); }
 .dash-fade-enter-active, .dash-fade-leave-active { transition: opacity .15s, transform .15s; }
 .dash-fade-enter-from, .dash-fade-leave-to { opacity: 0; transform: translateY(-4px); }
+
+/* แจ้งเตือนบัญชีไม่มีสิทธิ์ */
+.dash-norole { display: flex; align-items: flex-start; gap: 12px; background: #fff8e6; border: 1px solid #f0c000; border-left: 4px solid #f0a000; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; }
+.dash-norole-icon { font-size: 22px; line-height: 1.2; }
+.dash-norole-title { font-weight: 700; font-size: 14px; color: #8a6d00; }
+.dash-norole-sub { font-size: 12.5px; color: #9a7b1a; margin-top: 3px; line-height: 1.55; }
 
 /* My Tasks / Action Required */
 .dash-tasks { margin-bottom: 18px; }
