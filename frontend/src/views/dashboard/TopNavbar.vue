@@ -23,7 +23,7 @@
           <span v-if="dash.pipelineBadgeCount('invoice-open') > 0" class="sidebar-notif-count">{{ dash.pipelineBadgeCount('invoice-open') }}</span>
         </button>
         <button class="sidebar-notif-item notif-vat" :title="'ใบกำกับภาษี (VAT) — ค้าง ' + dash.pipelineBadgeCount('vat-invoice') + ' รายการ'" @click="dash.currentPage = 'vat-invoice'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5z"/><path d="M14 2.5v5h5"/><line x1="14.5" y1="12" x2="9.5" y2="17.5"/><circle cx="9.7" cy="12.3" r="0.9"/><circle cx="14.3" cy="17.2" r="0.9"/></svg>
           <span v-if="dash.pipelineBadgeCount('vat-invoice') > 0" class="sidebar-notif-count">{{ dash.pipelineBadgeCount('vat-invoice') }}</span>
         </button>
       </div>
