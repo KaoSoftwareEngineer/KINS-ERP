@@ -244,16 +244,16 @@ export default {
 </script>
 
 <style scoped>
-.dy-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; margin-top: 6px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-.po-titlebar { background: transparent; color: var(--text); font-weight: 700; padding: 10px 20px 2px; font-size: 16px; }
-.po-head { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 10px 20px; background: transparent; border: none; border-bottom: 1px solid var(--field-border); }
+.dy-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; position: relative; margin-top: 6px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-titlebar { background: transparent; color: var(--text); font-weight: 700; padding: 7px 14px 2px; font-size: 13px; }
+.po-head { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 7px 14px; background: transparent; border: none; border-bottom: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 6px; }
 .po-field { display: flex; align-items: center; gap: 8px; }
 .po-field > label { min-width: 96px; text-align: right; color: var(--muted); font-size: 12.5px; }
-.po-field input, .po-field select { height: 32px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 140px; transition: border-color .2s, box-shadow .2s; }
+.po-field input, .po-field select { height: 32px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 140px; transition: border-color .2s, box-shadow .2s; }
 .po-field input:focus, .po-field select:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-ro { background: var(--field) !important; font-weight: 700; }
-.po-approve { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.po-approve { display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; }
 .dy-pick-btn { padding: 7px 14px; border: 1px solid var(--field-border); border-radius: 7px; background: var(--surface); color: var(--text); cursor: pointer; font-weight: 600; font-family: inherit; }
 .dy-pick-btn:hover { background: var(--field); }
 
@@ -279,7 +279,7 @@ export default {
 .po-item-table input:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-num { text-align: right; } .po-no { text-align: center; color: var(--muted); }
 .po-row-actions { display: flex; gap: 4px; justify-content: center; }
-.po-ic { width: 24px; height: 24px; border-radius: 50%; border: none; color: #fff; cursor: pointer; font-size: 14px; }
+.po-ic { width: 24px; height: 24px; border-radius: 50%; border: none; color: #fff; cursor: pointer; font-size: 12px; }
 .po-add { background: #1a9c54; } .po-del { background: #e03131; }
 .po-summary { margin-top: 8px; max-width: 560px; margin-left: auto; display: flex; flex-direction: column; gap: 4px; }
 .po-sum-row { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
@@ -288,7 +288,7 @@ export default {
 .po-sum-row input.po-num { width: 150px; }
 .po-sum-net input { font-weight: 700; }
 
-.dy-extra { display: flex; flex-wrap: wrap; gap: 8px 26px; padding: 10px 16px; border-top: 1px solid var(--field-border); }
+.dy-extra { display: flex; flex-wrap: wrap; gap: 8px 26px; padding: 7px 12px; border-top: 1px solid var(--field-border); }
 .dy-ex-col { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
 .dy-ex-col-wide { flex: 1; min-width: 240px; }
 .dy-ex-title { font-weight: 700; font-size: 12.5px; margin-bottom: 1px; }
@@ -301,10 +301,10 @@ export default {
 .dy-ex-col-wide select { padding: 4px 8px; border: 1px solid var(--field-border); border-radius: 5px; background: var(--surface); color: var(--text); }
 .dy-ex-col-wide textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--field-border); border-radius: 6px; font-family: inherit; font-size: 12.5px; background: var(--surface); color: var(--text); resize: vertical; }
 
-.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
-.po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
+.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
+.po-saved-msg { color: #1a9c54; font-size: 12px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
-.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
+.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
 .po-btn:hover { background: #dde1ea; border-color: #c7cede; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; border-color: #158045; }
@@ -313,9 +313,9 @@ export default {
 .dy-drawer-wrap { position: fixed; inset: 0; z-index: 3300; }
 .dy-drawer-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.4); }
 .dy-drawer { position: absolute; top: 0; right: 0; height: 100%; width: 560px; max-width: 92vw; background: var(--surface); box-shadow: -8px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
-.dy-drawer-head { background: #3c4453; color: #fff; padding: 13px 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-.dy-x { background: none; border: none; color: #fff; font-size: 17px; cursor: pointer; }
-.dy-drawer-search { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--field-border); }
+.dy-drawer-head { background: #3c4453; color: #fff; padding: 8px 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.dy-x { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
+.dy-drawer-search { display: flex; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--field-border); }
 .dy-drawer-search input, .dy-drawer-search select { padding: 7px 10px; border: 1px solid var(--field-border); border-radius: 6px; background: var(--surface); color: var(--text); }
 .dy-btn-search { padding: 7px 14px; border: 1px solid #3c4453; background: #3c4453; color: #fff; border-radius: 6px; cursor: pointer; font-family: inherit; }
 .dy-drawer-list { flex: 1; overflow-y: auto; padding: 8px 16px; }
@@ -324,7 +324,7 @@ export default {
 .dy-drawer-list td { padding: 6px; border-bottom: 1px solid var(--field-border); font-size: 12.5px; }
 .dy-select-btn { padding: 4px 12px; border: 1px solid #1a9c54; background: #1a9c54; color: #fff; border-radius: 5px; cursor: pointer; font-family: inherit; }
 .dy-empty { text-align: center; color: var(--muted); padding: 20px; }
-.dy-drawer-foot { padding: 12px 16px; border-top: 1px solid var(--field-border); text-align: right; }
+.dy-drawer-foot { padding: 8px 12px; border-top: 1px solid var(--field-border); text-align: right; }
 .dy-slide-enter-active, .dy-slide-leave-active { transition: opacity 0.2s; }
 .dy-slide-enter-from, .dy-slide-leave-to { opacity: 0; }
 /* ช่องกรอกที่ยังว่าง — ใส่พื้นเทาอ่อนให้มองเห็นชัด (ไม่ใช่ขาวกลืนพื้น) */

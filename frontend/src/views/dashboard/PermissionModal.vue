@@ -146,7 +146,7 @@ export default {
 
 /* ---- ตำแหน่งแนะนำ (chips) ---- */
 .pm-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 4px; }
-.pm-presets-label { font-size: 13px; color: var(--muted); }
+.pm-presets-label { font-size: 12px; color: var(--muted); }
 .pm-preset-btn {
   padding: 5px 13px; border: 1px solid var(--field-border); background: var(--field);
   color: var(--text); border-radius: 999px; font-size: 12.5px; cursor: pointer;
@@ -159,7 +159,7 @@ export default {
 .pm-action-col {
   border: 1px solid var(--field-border); border-radius: 10px; padding: 11px 13px; background: var(--surface);
 }
-.pm-action-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 7px; }
+.pm-action-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 7px; }
 
 /* ---- สิทธิ์เข้าถึงเมนู (การ์ดกลุ่มแบบ masonry) ---- */
 .pm-sec-flex { display: flex; align-items: center; }
@@ -178,7 +178,7 @@ export default {
 .pm-group-head {
   display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer;
   background: var(--field); border-bottom: 1px solid var(--field-border);
-  font-size: 13.5px; font-weight: 700; color: var(--text); user-select: none;
+  font-size: 12px; font-weight: 700; color: var(--text); user-select: none;
 }
 .pm-group-name { flex: 1; }
 .pm-group-count {
@@ -189,7 +189,7 @@ export default {
 
 /* ---- รายการติ๊ก ---- */
 .pm-item {
-  display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text);
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text);
   padding: 3px 0; cursor: pointer; user-select: none;
 }
 .pm-item input, .pm-group-head input {
@@ -197,7 +197,7 @@ export default {
 }
 
 /* ---- footer ---- */
-.pm-count { font-size: 13px; color: var(--muted); }
+.pm-count { font-size: 12px; color: var(--muted); }
 .pm-count strong { color: #2F65F6; }
 .pm-foot-spacer { flex: 1; }
 

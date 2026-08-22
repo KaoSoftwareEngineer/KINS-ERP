@@ -263,10 +263,10 @@ export default {
       if (!win) { alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์'); return; }
       win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ช่อง ${loc.location_code}</title>
         <style>body{font-family:'Noto Sans Thai',sans-serif;text-align:center;margin:20px}
-        .code{font-size:22px;font-weight:800;margin-bottom:6px}.sub{font-size:12px;color:#555;margin-bottom:10px}
-        img{width:240px;height:240px}.qtext{font-family:monospace;font-size:13px;margin-top:8px}
+        .code{font-size: 17px;font-weight:800;margin-bottom:6px}.sub{font-size:12px;color:#555;margin-bottom:10px}
+        img{width:240px;height:240px}.qtext{font-family:monospace;font-size: 12px;margin-top:8px}
         @media print{.no-print{display:none}}</style></head><body>
-        <div class="no-print" style="margin-bottom:10px"><button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer">🖨️ พิมพ์</button></div>
+        <div class="no-print" style="margin-bottom:10px"><button onclick="window.print()" style="padding:8px 20px;font-size: 12px;cursor:pointer">🖨️ พิมพ์</button></div>
         <div class="code">📍 ${loc.location_code}</div>
         <div class="sub">โซน ${loc.zone || '-'} · แร็ค ${loc.rack || '-'} · บิน ${loc.bin || '-'}</div>
         <img src="${qr}"/><div class="qtext">${loc.location_qr}</div>
@@ -346,10 +346,10 @@ export default {
 .zr-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 16px; }
 .zr-scroll::-webkit-scrollbar { width: 7px; }
 .zr-scroll::-webkit-scrollbar-thumb { background: var(--field-border); border-radius: 10px; }
-.zr-card { background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 12px 16px; }
-.zr-search { width: 100%; height: 38px; border: 1px solid var(--field-border); border-radius: 9px; background: var(--field); color: var(--text); font-size: 13px; padding: 0 12px 0 34px; font-family: inherit; }
+.zr-card { background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 8px 12px; }
+.zr-search { width: 100%; height: 38px; border: 1px solid var(--field-border); border-radius: 9px; background: var(--field); color: var(--text); font-size: 12px; padding: 0 12px 0 34px; font-family: inherit; }
 .zr-search:focus { outline: none; border-color: var(--brand); }
-.zr-bin { background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 12px 14px; transition: opacity .2s, box-shadow .2s, border-color .2s; }
+.zr-bin { background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 8px 10px; transition: opacity .2s, box-shadow .2s, border-color .2s; }
 .zr-dim { opacity: .35; }
 .zr-hit { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-soft); }
 .zr-bin-btn { font-size: 12px; width: 26px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--field-border); border-radius: 6px; background: var(--field); color: var(--text); cursor: pointer; }
@@ -363,12 +363,12 @@ export default {
 .zr-low-badge { font-size: 9.5px; font-weight: 700; color: #fff; background: #f5731f; padding: 1px 6px; border-radius: 20px; }
 .zr-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
 .zr-modal { background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; width: 100%; max-width: 440px; overflow: hidden; }
-.zr-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--field-border); }
-.zr-modal-head button { font-size: 16px; color: var(--muted); background: none; border: none; cursor: pointer; }
-.zr-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--field-border); }
+.zr-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 9px 13px; border-bottom: 1px solid var(--field-border); }
+.zr-modal-head button { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; }
+.zr-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 13px; border-top: 1px solid var(--field-border); }
 .zr-field { display: flex; flex-direction: column; gap: 4px; }
 .zr-field label { font-size: 12px; color: var(--muted); font-weight: 600; }
-.zr-field input { height: 38px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--text); font-size: 13px; padding: 0 10px; font-family: inherit; }
+.zr-field input { height: 38px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--text); font-size: 12px; padding: 0 10px; font-family: inherit; }
 .zr-field input:focus { outline: none; border-color: var(--brand); }
 .zr-btn-add { background: #1a9c54; color: #fff; border: 1px solid #1a9c54; border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
 .zr-btn-add:hover { background: #158045; }

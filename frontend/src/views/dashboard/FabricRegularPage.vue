@@ -218,6 +218,12 @@
           <div class="erp-field"><label>หน่วย</label>
             <select v-model="dash.frNewItem.unit"><option v-for="opt in dash.frUnitOptions" :key="opt" :value="opt">{{ opt }}</option></select>
           </div>
+          <div class="erp-field"><label>กลุ่มผ้า</label>
+            <select v-model="dash.frNewItem.groupId">
+              <option value="">— ไม่ระบุกลุ่ม —</option>
+              <option v-for="g in dash.frGroupOptions" :key="g.id" :value="g.id">{{ g.name }}</option>
+            </select>
+          </div>
         </div>
         <div class="erp-sec-title"><span class="erp-sec-bar"></span>รายละเอียดเพิ่มเติม</div>
         <div class="erp-grid">

@@ -194,21 +194,21 @@ export default {
 </script>
 
 <style scoped>
-.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .po-titlebar { background: transparent; color: var(--text); font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 .po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 20px; border-bottom: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
 .po-head-col-wide { flex: 1; min-width: 220px; }
 .po-field { display: flex; align-items: flex-start; gap: 8px; }
 .po-field > label { min-width: 96px; text-align: right; padding-top: 6px; color: var(--muted); font-size: 12px; font-weight: 600; }
-.po-field input, .po-field select { height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 150px; transition: border-color .2s, box-shadow .2s; }
-.po-field textarea { width: 100%; resize: vertical; padding: 8px 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); }
+.po-field input, .po-field select { height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 150px; transition: border-color .2s, box-shadow .2s; }
+.po-field textarea { width: 100%; resize: vertical; padding: 8px 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); }
 .po-field input:focus, .po-field select:focus, .po-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-ro { background: var(--field) !important; font-weight: 700; }
 .dy-pick-btn { padding: 7px 14px; border: 1px solid var(--field-border); border-radius: 7px; background: var(--surface); color: var(--text); cursor: pointer; font-weight: 600; font-family: inherit; }
 .dy-pick-btn:hover { background: var(--field); }
 
-.po-items { padding: 12px 16px; min-height: 120px; overflow-x: auto; }
+.po-items { padding: 8px 12px; min-height: 120px; overflow-x: auto; }
 .po-item-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
 .po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; letter-spacing: .3px; border-right: 1px solid rgba(255,255,255,.18); white-space: nowrap; }
 .po-item-table th:last-child { border-right: none; }
@@ -224,10 +224,10 @@ export default {
 .po-ic svg { width: 15px; height: 15px; }
 .po-del { color: #e03131; } .po-del:hover { background: #fdeaea; border-color: #e03131; }
 
-.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
-.po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
+.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
+.po-saved-msg { color: #1a9c54; font-size: 12px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
-.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
+.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
 .po-btn:hover { background: #dde1ea; border-color: #c7cede; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; border-color: #158045; }
@@ -242,9 +242,9 @@ export default {
 .dy-drawer-wrap { position: fixed; inset: 0; z-index: 3300; }
 .dy-drawer-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.4); }
 .dy-drawer { position: absolute; top: 0; right: 0; height: 100%; width: 520px; max-width: 92vw; background: var(--surface); box-shadow: -8px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
-.dy-drawer-head { background: #3c4453; color: #fff; padding: 14px 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-.dy-x { background: none; border: none; color: #fff; font-size: 17px; cursor: pointer; }
-.dy-drawer-search { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--field-border); }
+.dy-drawer-head { background: #3c4453; color: #fff; padding: 9px 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.dy-x { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
+.dy-drawer-search { display: flex; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--field-border); }
 .dy-drawer-search input { flex: 1; padding: 8px 10px; border: 1px solid var(--field-border); border-radius: 6px; background: var(--field); color: var(--text); font-family: inherit; }
 .dy-drawer-list { flex: 1; overflow-y: auto; padding: 8px 16px; }
 .dy-drawer-list table { width: 100%; border-collapse: collapse; }
@@ -252,7 +252,7 @@ export default {
 .dy-drawer-list td { padding: 6px; border-bottom: 1px solid var(--field-border); font-size: 12.5px; }
 .dy-select-btn { padding: 4px 12px; border: 1px solid #1a9c54; background: #1a9c54; color: #fff; border-radius: 5px; cursor: pointer; font-family: inherit; }
 .dy-empty { text-align: center; color: var(--muted); padding: 20px; }
-.dy-drawer-foot { padding: 12px 16px; border-top: 1px solid var(--field-border); text-align: right; }
+.dy-drawer-foot { padding: 8px 12px; border-top: 1px solid var(--field-border); text-align: right; }
 .dy-slide-enter-active, .dy-slide-leave-active { transition: opacity 0.2s; }
 .dy-slide-enter-from, .dy-slide-leave-to { opacity: 0; }
 </style>

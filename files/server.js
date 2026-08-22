@@ -689,7 +689,7 @@ async function makeInNo() {
   return `${prefix}-${String(n + 1).padStart(3, '0')}`;
 }
 // เชื่อม WMS: เขียนม้วนผ้า (rolls) ที่รับเข้า → ตาราง fabric_rolls เพื่อให้สแกน QR ย้ายเข้าแร็คได้
-async function insertFabricRolls(items) {
+async function insertFabricRolls(items, inNo) {
   for (const it of (items || [])) {
     const sku = (it.sku || '').trim();
     if (!sku || !Array.isArray(it.rolls) || it.rolls.length === 0) continue;
@@ -725,9 +725,9 @@ async function insertFabricRolls(items) {
       const y = Number(roll.yards) || 0;
       try {
         await mysqlPool.query(
-          `INSERT INTO fabric_rolls (roll_qr_code, product_id, color_id, lot_no, initial_yards, current_yards, status, received_at)
-           VALUES (?, ?, ?, ?, ?, ?, 'available', NOW())`,
-          [roll.barcode, fab.id, colorId, it.lot || null, y, y]
+          `INSERT INTO fabric_rolls (roll_qr_code, product_id, color_id, lot_no, initial_yards, current_yards, status, received_at, receipt_no)
+           VALUES (?, ?, ?, ?, ?, ?, 'available', NOW(), ?)`,
+          [roll.barcode, fab.id, colorId, it.lot || null, y, y, inNo || '']
         );
       } catch (e) { /* บาร์โค้ดซ้ำ (uq_roll_qr) → ข้าม */ }
     }
@@ -762,7 +762,7 @@ app.post('/api/finished-receipts', auth, wrap(async (req, res) => {
       items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
     }
   );
-  await insertFabricRolls(b.items);
+  await insertFabricRolls(b.items, in_no);
   res.json({ ok: true, message: 'บันทึกเอกสารรับผ้าสำเร็จแล้ว', id: info.insertId, in_no });
 }));
 
@@ -833,7 +833,7 @@ app.post('/api/dyed-receipts', auth, wrap(async (req, res) => {
       items_json: JSON.stringify(Array.isArray(b.items) ? b.items : []),
     }
   );
-  await insertFabricRolls(b.items);
+  await insertFabricRolls(b.items, in_no);
   res.json({ ok: true, message: 'บันทึกเอกสารรับผ้าย้อมแล้ว', id: info.insertId, in_no });
 }));
 
@@ -1106,7 +1106,7 @@ app.post('/api/vat-product-groups', auth, wrap(async (req, res) => {
 // ============================================================
 app.get('/api/fabric-regular-group', auth, wrap(async (req, res) => {
   const [groups] = await mysqlPool.query('SELECT * FROM fabric_regular_group ORDER BY name ASC');
-  const [shades] = await mysqlPool.query('SELECT id, group_id, name, fabric_cost, dye_cost FROM fabric_regular_group_shades ORDER BY id ASC');
+  const [shades] = await mysqlPool.query('SELECT id, group_id, name, color_code, rack, image_name, fabric_cost, dye_cost FROM fabric_regular_group_shades ORDER BY id ASC');
   const byGroup = {};
   shades.forEach(s => { (byGroup[s.group_id] = byGroup[s.group_id] || []).push(s); });
   const items = groups.map(g => ({ ...g, shades: byGroup[g.id] || [], colors: (byGroup[g.id] || []).length }));
@@ -1168,10 +1168,11 @@ app.put('/api/fabric-regular-group/:id/shades', auth, wrap(async (req, res) => {
   await mysqlPool.query('DELETE FROM fabric_regular_group_shades WHERE group_id = ?', [gid]);
   for (const item of rows) {
     const name = (item.name || '').trim();
-    if (!name) continue;
+    const colorCode = (item.color_code || '').trim();
+    if (!name && !colorCode) continue;
     await mysqlPool.query(
-      'INSERT INTO fabric_regular_group_shades (group_id, name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?)',
-      [gid, name, Number(item.fabric_cost) || 0, Number(item.dye_cost) || 0]
+      'INSERT INTO fabric_regular_group_shades (group_id, name, color_code, rack, image_name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [gid, name, colorCode, (item.rack || '').trim(), (item.image_name || '').trim(), Number(item.fabric_cost) || 0, Number(item.dye_cost) || 0]
     );
   }
   const [shades] = await mysqlPool.query('SELECT * FROM fabric_regular_group_shades WHERE group_id = ? ORDER BY id ASC', [gid]);
@@ -1262,8 +1263,8 @@ app.post('/api/fabrics', auth, wrap(async (req, res) => {
   }
 
   const [info] = await mysqlPool.query(
-    `INSERT INTO fabrics (sku, type, name, structure, composition, width, finishing, weight, unit, description, production_days, image_name, colors, substitute, active)
-     VALUES (:sku, :type, :name, :structure, :composition, :width, :finishing, :weight, :unit, :description, :production_days, :image_name, :colors, :substitute, :active)`,
+    `INSERT INTO fabrics (sku, type, name, structure, composition, width, finishing, weight, unit, description, production_days, image_name, colors, substitute, active, group_id)
+     VALUES (:sku, :type, :name, :structure, :composition, :width, :finishing, :weight, :unit, :description, :production_days, :image_name, :colors, :substitute, :active, :group_id)`,
     {
       sku, type, width,
       name: b.name || '',
@@ -1278,6 +1279,7 @@ app.post('/api/fabrics', auth, wrap(async (req, res) => {
       colors: b.colors ? Number(b.colors) : 1,
       substitute: b.substitute ? 1 : 0,
       active: b.active === false ? 0 : 1,
+      group_id: b.group_id ? Number(b.group_id) : null,
     }
   );
 
@@ -1359,7 +1361,7 @@ app.put('/api/fabrics/:id', auth, wrap(async (req, res) => {
        sku=:sku, type=:type, name=:name, structure=:structure, composition=:composition,
        width=:width, finishing=:finishing, weight=:weight, unit=:unit, description=:description,
        production_days=:production_days, image_name=:image_name, colors=:colors,
-       substitute=:substitute, active=:active
+       substitute=:substitute, active=:active, group_id=:group_id
      WHERE id=:id`,
     {
       id, sku, type, width,
@@ -1375,6 +1377,7 @@ app.put('/api/fabrics/:id', auth, wrap(async (req, res) => {
       colors: b.colors ? Number(b.colors) : 1,
       substitute: b.substitute ? 1 : 0,
       active: b.active === false ? 0 : 1,
+      group_id: b.group_id ? Number(b.group_id) : null,
     }
   );
 
@@ -1414,10 +1417,11 @@ app.put('/api/fabrics/:fabricId/shades', auth, wrap(async (req, res) => {
     await conn.query('DELETE FROM fabric_shades WHERE fabric_id = ?', [fabricId]);
     for (const item of rows) {
       const name = (item.name || '').trim();
-      if (!name) continue;
+      const colorCode = (item.color_code || '').trim();
+      if (!name && !colorCode) continue;
       await conn.query(
-        'INSERT INTO fabric_shades (fabric_id, name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?)',
-        [fabricId, name, Number(item.fabric_cost) || 0, Number(item.dye_cost) || 0]
+        'INSERT INTO fabric_shades (fabric_id, name, color_code, rack, image_name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [fabricId, name, colorCode, (item.rack || '').trim(), (item.image_name || '').trim(), Number(item.fabric_cost) || 0, Number(item.dye_cost) || 0]
       );
     }
     const [[{ n }]] = await conn.query('SELECT COUNT(*) AS n FROM fabric_shades WHERE fabric_id = ?', [fabricId]);
@@ -1559,10 +1563,11 @@ app.put('/api/fabric-irregular/:itemId/shades', auth, wrap(async (req, res) => {
     await conn.query('DELETE FROM fabric_irregular_shades WHERE item_id = ?', [itemId]);
     for (const row of rows) {
       const name = (row.name || '').trim();
-      if (!name) continue;
+      const colorCode = (row.color_code || '').trim();
+      if (!name && !colorCode) continue;
       await conn.query(
-        'INSERT INTO fabric_irregular_shades (item_id, name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?)',
-        [itemId, name, Number(row.fabric_cost) || 0, Number(row.dye_cost) || 0]
+        'INSERT INTO fabric_irregular_shades (item_id, name, color_code, rack, image_name, fabric_cost, dye_cost) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [itemId, name, colorCode, (row.rack || '').trim(), (row.image_name || '').trim(), Number(row.fabric_cost) || 0, Number(row.dye_cost) || 0]
       );
     }
     const [[{ n }]] = await conn.query('SELECT COUNT(*) AS n FROM fabric_irregular_shades WHERE item_id = ?', [itemId]);
@@ -2070,6 +2075,16 @@ app.get('/api/fabric-stock', auth, wrap(async (req, res) => {
 //  body: { order_id, order_no, issue_date, issue_type, customer, payment_term, salesperson, note,
 //          finish_order, lines:[{ sku, color_code, color_id, product_id, width, yards, barcode, clear_stock }] }
 // ------------------------------------------------------------
+// เลขที่ใบเบิกถัดไป (OUT{yymm}-{seq}) — สำหรับโชว์ในฟอร์มก่อนบันทึก
+app.get('/api/order-issue/next-no', auth, wrap(async (req, res) => {
+  const ym = new Date().toISOString().slice(2, 7).replace('-', '');
+  const prefix = `OUT${ym}-`;
+  const [[mx]] = await mysqlPool.query('SELECT gi_no FROM goods_issues WHERE gi_no LIKE ? ORDER BY LENGTH(gi_no) DESC, gi_no DESC LIMIT 1', [prefix + '%']);
+  let seq = 1;
+  if (mx && mx.gi_no) { const m = String(mx.gi_no).match(/-(\d+)$/); if (m) seq = Number(m[1]) + 1; }
+  res.json({ ok: true, gi_no: `${prefix}${String(seq).padStart(4, '0')}` });
+}));
+
 app.post('/api/order-issue', auth, wrap(async (req, res) => {
   const b = req.body || {};
   const rawLines = Array.isArray(b.lines) ? b.lines : [];
@@ -2085,10 +2100,25 @@ app.post('/api/order-issue', auth, wrap(async (req, res) => {
     // เลขที่ใบเบิก OUT{yymm}-{seq}
     const ym = new Date().toISOString().slice(2, 7).replace('-', '');
     const prefix = `OUT${ym}-`;
-    const [[mx]] = await conn.query('SELECT gi_no FROM goods_issues WHERE gi_no LIKE ? ORDER BY LENGTH(gi_no) DESC, gi_no DESC LIMIT 1', [prefix + '%']);
-    let giSeq = 1;
-    if (mx && mx.gi_no) { const m = String(mx.gi_no).match(/-(\d+)$/); if (m) giSeq = Number(m[1]) + 1; }
-    const giNo = (b.gi_no || '').trim() || `${prefix}${String(giSeq).padStart(4, '0')}`;
+    let giNo;
+    const wanted = (b.gi_no || '').trim();
+    if (wanted) {
+      // เลขที่ส่งมา (ล้อกับเลขออร์เดอร์ OR→OUT) — ถ้าซ้ำ (เบิกออร์เดอร์เดิมหลายครั้ง) เติมท้าย -2, -3
+      giNo = wanted;
+      let suffix = 1;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const [[dup]] = await conn.query('SELECT gi_no FROM goods_issues WHERE gi_no = ? LIMIT 1', [giNo]);
+        if (!dup) break;
+        suffix += 1;
+        giNo = `${wanted}-${suffix}`;
+      }
+    } else {
+      const [[mx]] = await conn.query('SELECT gi_no FROM goods_issues WHERE gi_no LIKE ? ORDER BY LENGTH(gi_no) DESC, gi_no DESC LIMIT 1', [prefix + '%']);
+      let giSeq = 1;
+      if (mx && mx.gi_no) { const m = String(mx.gi_no).match(/-(\d+)$/); if (m) giSeq = Number(m[1]) + 1; }
+      giNo = `${prefix}${String(giSeq).padStart(4, '0')}`;
+    }
     const issueDate = b.issue_date || new Date().toISOString().slice(0, 10);
 
     const [giInfo] = await conn.query(
@@ -2109,47 +2139,50 @@ app.post('/api/order-issue', auth, wrap(async (req, res) => {
       const prod = await resolveProductBySku(conn, sku);
       if (!prod) throw { httpCode: 400, message: `ไม่พบผ้ารหัส ${sku}` };
       const productId = prod.id;
-      const colorId = line.color_id ? Number(line.color_id) : null;
+      let colorId = line.color_id ? Number(line.color_id) : null;
+      const rollQr = (line.roll_qr || '').toString().trim();
 
-      // ตรวจบาร์โค้ดผ้า (ถ้ายิงมา) ว่าตรงกับผ้า+สีของบรรทัดนี้ไหม
-      if (line.barcode) {
+      // ตรวจบาร์โค้ดผ้า (ถ้ายิงมา ในโหมด FIFO) ว่าตรงกับผ้า+สีของบรรทัดนี้ไหม
+      // โหมดสแกนม้วน (rollQr) ข้ามการตรวจนี้ เพราะ barcode ที่ยิงคือ QR ม้วน ไม่ใช่บาร์โค้ดผ้า
+      if (!rollQr && line.barcode) {
         const expect = fabricBarcode(productId, colorId);
         if (String(line.barcode).trim() !== expect) {
           throw { httpCode: 400, message: `รหัสไม่ถูกต้อง — บาร์โค้ดที่ยิงไม่ตรงกับผ้า ${sku}` };
         }
       }
 
-      // ดึงม้วนแบบ FIFO (เก่าก่อน)
-      const rparams = [productId];
-      let rwhere = "product_id = ? AND status <> 'depleted' AND current_yards > 0";
-      if (colorId) { rwhere += ' AND color_id = ?'; rparams.push(colorId); }
-      const [rolls] = await conn.query(
-        `SELECT roll_id, current_yards, location_id, status FROM fabric_rolls WHERE ${rwhere} ORDER BY roll_id ASC`, rparams
-      );
-      const totalAvail = rolls.reduce((s, r) => s + Number(r.current_yards), 0);
-      if (totalAvail < yards) {
-        throw { httpCode: 400, message: `สต็อกไม่พอ: ${sku}${line.color_name ? ' (' + line.color_name + ')' : ''} เหลือ ${totalAvail} หลา ต้องใช้ ${yards} หลา` };
-      }
+      const issueNote = b.order_no ? ('ตัดจ่ายออเดอร์ ' + b.order_no) : 'ตัดจ่าย';
 
-      // ตัด FIFO ข้ามม้วน
-      let remaining = yards;
-      for (const roll of rolls) {
-        if (remaining <= 0) break;
-        const before = Number(roll.current_yards);
-        const take = Math.min(before, remaining);
-        let after = Math.round((before - take) * 100) / 100;
-        remaining = Math.round((remaining - take) * 100) / 100;
-        let newStatus = after <= 0 ? 'depleted' : 'in_use';
-        // เคลียร์สต็อก: ตัดม้วนสุดท้ายที่แตะแล้วเศษที่เหลือถือว่าหมด
-        let adjusted = 0;
-        if (line.clear_stock && remaining <= 0 && after > 0) {
-          adjusted = after; after = 0; newStatus = 'depleted';
+      if (rollQr) {
+        // ---- โหมดสแกนม้วน: หักหลาจากม้วนที่สแกนโดยตรง ----
+        const [[roll]] = await conn.query(
+          `SELECT roll_id, current_yards, location_id, status, product_id, color_id FROM fabric_rolls WHERE roll_qr_code = ?`, [rollQr]
+        );
+        if (!roll) throw { httpCode: 400, message: `ไม่พบม้วนผ้ารหัส ${rollQr}` };
+        if (Number(roll.product_id) !== Number(productId)) {
+          throw { httpCode: 400, message: `ม้วน ${rollQr} ไม่ตรงกับผ้า ${sku}` };
         }
+        if (colorId && roll.color_id && Number(roll.color_id) !== Number(colorId)) {
+          throw { httpCode: 400, message: `ม้วน ${rollQr} เป็นสีอื่น ไม่ตรงกับรายการนี้` };
+        }
+        // ถ้าบรรทัดไม่ได้ระบุสี ใช้สีของม้วนแทน (สำหรับบันทึก/label)
+        if (!colorId && roll.color_id) colorId = Number(roll.color_id);
+
+        const before = Number(roll.current_yards);
+        if (yards > before) {
+          throw { httpCode: 400, message: `ตัดเกินหลาคงเหลือของม้วน ${rollQr} (เหลือ ${before} หลา ต้องใช้ ${yards} หลา)` };
+        }
+        let after = Math.round((before - yards) * 100) / 100;
+        let newStatus = after <= 0 ? 'depleted' : 'in_use';
+        // เคลียร์สต็อก: เศษที่เหลือของม้วนนี้ถือว่าหมด
+        let adjusted = 0;
+        if (line.clear_stock && after > 0) { adjusted = after; after = 0; newStatus = 'depleted'; }
+
         await conn.query('UPDATE fabric_rolls SET current_yards = ?, status = ? WHERE roll_id = ?', [after, newStatus, roll.roll_id]);
         await conn.query(
           `INSERT INTO stock_transactions (roll_id, txn_type, yards_change, yards_before, yards_after, from_location_id, ref_type, ref_no, note, created_by)
            VALUES (:roll_id,'issue',:change,:before,:after,:loc,'issue',:ref,:note,:by)`,
-          { roll_id: roll.roll_id, change: -take, before, after, loc: roll.location_id, ref: giNo, note: b.order_no ? ('ตัดจ่ายออเดอร์ ' + b.order_no) : 'ตัดจ่าย', by: req.userId }
+          { roll_id: roll.roll_id, change: -yards, before, after: line.clear_stock ? 0 : after, loc: roll.location_id, ref: giNo, note: issueNote, by: req.userId }
         );
         if (adjusted > 0) {
           await conn.query(
@@ -2157,6 +2190,46 @@ app.post('/api/order-issue', auth, wrap(async (req, res) => {
              VALUES (:roll_id,'adjust',:change,:before,0,:loc,'clear',:ref,'เคลียร์สต็อกเศษผ้า',:by)`,
             { roll_id: roll.roll_id, change: -adjusted, before: adjusted, loc: roll.location_id, ref: giNo, by: req.userId }
           );
+        }
+      } else {
+        // ---- โหมด FIFO: ตัดจากม้วนเก่าก่อน ข้ามม้วนตามจำนวน ----
+        const rparams = [productId];
+        let rwhere = "product_id = ? AND status <> 'depleted' AND current_yards > 0";
+        if (colorId) { rwhere += ' AND color_id = ?'; rparams.push(colorId); }
+        const [rolls] = await conn.query(
+          `SELECT roll_id, current_yards, location_id, status FROM fabric_rolls WHERE ${rwhere} ORDER BY roll_id ASC`, rparams
+        );
+        const totalAvail = rolls.reduce((s, r) => s + Number(r.current_yards), 0);
+        if (totalAvail < yards) {
+          throw { httpCode: 400, message: `สต็อกไม่พอ: ${sku}${line.color_name ? ' (' + line.color_name + ')' : ''} เหลือ ${totalAvail} หลา ต้องใช้ ${yards} หลา` };
+        }
+
+        let remaining = yards;
+        for (const roll of rolls) {
+          if (remaining <= 0) break;
+          const before = Number(roll.current_yards);
+          const take = Math.min(before, remaining);
+          let after = Math.round((before - take) * 100) / 100;
+          remaining = Math.round((remaining - take) * 100) / 100;
+          let newStatus = after <= 0 ? 'depleted' : 'in_use';
+          // เคลียร์สต็อก: ตัดม้วนสุดท้ายที่แตะแล้วเศษที่เหลือถือว่าหมด
+          let adjusted = 0;
+          if (line.clear_stock && remaining <= 0 && after > 0) {
+            adjusted = after; after = 0; newStatus = 'depleted';
+          }
+          await conn.query('UPDATE fabric_rolls SET current_yards = ?, status = ? WHERE roll_id = ?', [after, newStatus, roll.roll_id]);
+          await conn.query(
+            `INSERT INTO stock_transactions (roll_id, txn_type, yards_change, yards_before, yards_after, from_location_id, ref_type, ref_no, note, created_by)
+             VALUES (:roll_id,'issue',:change,:before,:after,:loc,'issue',:ref,:note,:by)`,
+            { roll_id: roll.roll_id, change: -take, before, after, loc: roll.location_id, ref: giNo, note: issueNote, by: req.userId }
+          );
+          if (adjusted > 0) {
+            await conn.query(
+              `INSERT INTO stock_transactions (roll_id, txn_type, yards_change, yards_before, yards_after, from_location_id, ref_type, ref_no, note, created_by)
+               VALUES (:roll_id,'adjust',:change,:before,0,:loc,'clear',:ref,'เคลียร์สต็อกเศษผ้า',:by)`,
+              { roll_id: roll.roll_id, change: -adjusted, before: adjusted, loc: roll.location_id, ref: giNo, by: req.userId }
+            );
+          }
         }
       }
 
@@ -2673,6 +2746,117 @@ app.post('/api/payments', auth, wrap(async (req, res) => {
 // ============================================================
 //  รายงานสินค้าคงคลัง (stock inventory) — group ต่อ ผ้า+สี จาก fabric_rolls
 // ============================================================
+// ============================================================
+//  แดชบอร์ด — สถิติจริงจากฐานข้อมูล (KPI / แนวโน้ม / สัดส่วน / ออร์เดอร์ล่าสุด)
+// ============================================================
+app.get('/api/dashboard/stats', auth, wrap(async (req, res) => {
+  const year = Number(req.query.year) || new Date().getFullYear();
+  const ymNow = new Date().toISOString().slice(0, 7);      // YYYY-MM
+
+  // ---- KPI ----
+  // รายได้/ยอดขาย: จากใบเบิกสินค้า (goods_issue_items) = ของที่ตัดจ่ายจริง
+  const [[rev]] = await mysqlPool.query(`
+    SELECT COALESCE(SUM(gi2.yards_cut),0) AS yards
+    FROM goods_issue_items gi2
+    JOIN goods_issues g ON g.gi_id = gi2.gi_id
+    WHERE DATE_FORMAT(g.issue_date,'%Y-%m') = ?`, [ymNow]);
+  // เดือนก่อนหน้า (ใช้เทียบ % เพิ่ม/ลด)
+  const dPrev = new Date(); dPrev.setDate(1); dPrev.setMonth(dPrev.getMonth() - 1);
+  const ymPrev = dPrev.toISOString().slice(0, 7);
+
+  let inv = { amt: 0, n: 0 };
+  let invPrev = { amt: 0 };
+  try {
+    const [[row]] = await mysqlPool.query(`
+      SELECT COALESCE(SUM(net_total),0) AS amt, COUNT(*) AS n
+      FROM sale_invoices WHERE DATE_FORMAT(invoice_date,'%Y-%m') = ?`, [ymNow]);
+    if (row) inv = row;
+    const [[rowP]] = await mysqlPool.query(`
+      SELECT COALESCE(SUM(net_total),0) AS amt
+      FROM sale_invoices WHERE DATE_FORMAT(invoice_date,'%Y-%m') = ?`, [ymPrev]);
+    if (rowP) invPrev = rowP;
+  } catch (e) { /* ยังไม่มีตาราง/คอลัมน์ → ใช้ 0 */ }
+  const [[ordAll]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM orders');
+  const [[ordMonth]] = await mysqlPool.query(
+    "SELECT COUNT(*) AS n FROM orders WHERE DATE_FORMAT(COALESCE(created_at, NOW()),'%Y-%m') = ?", [ymNow]);
+  const [[ordWait]] = await mysqlPool.query("SELECT COUNT(*) AS n FROM orders WHERE status <> 'Prepared'");
+  const [[ordUrgent]] = await mysqlPool.query("SELECT COUNT(*) AS n FROM orders WHERE urgent = 1 AND status <> 'Prepared'");
+  const [[usr]] = await mysqlPool.query('SELECT COUNT(*) AS n FROM users');
+  const [[stock]] = await mysqlPool.query(
+    "SELECT COALESCE(SUM(current_yards),0) AS yards, COUNT(*) AS rolls FROM fabric_rolls WHERE status <> 'depleted'");
+
+  // ---- แนวโน้มยอดขายรายเดือน (หลาที่ตัดจ่าย) ปีที่เลือก + ปีก่อนหน้า ----
+  const monthly = async (y) => {
+    const [rows] = await mysqlPool.query(`
+      SELECT MONTH(g.issue_date) AS m, COALESCE(SUM(gi2.yards_cut),0) AS v
+      FROM goods_issue_items gi2 JOIN goods_issues g ON g.gi_id = gi2.gi_id
+      WHERE YEAR(g.issue_date) = ? GROUP BY MONTH(g.issue_date)`, [y]);
+    const arr = Array(12).fill(0);
+    rows.forEach(r => { arr[(r.m || 1) - 1] = Number(r.v) || 0; });
+    return arr;
+  };
+  const trendCurrent = await monthly(year);
+  const trendPrev = await monthly(year - 1);
+
+  // ---- ยอดขายรายวัน 30 วันล่าสุด (สำหรับ export รายวัน/สัปดาห์) ----
+  const [daily] = await mysqlPool.query(`
+    SELECT DATE(g.issue_date) AS d, COALESCE(SUM(gi2.yards_cut),0) AS v
+    FROM goods_issue_items gi2 JOIN goods_issues g ON g.gi_id = gi2.gi_id
+    WHERE g.issue_date >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
+    GROUP BY DATE(g.issue_date) ORDER BY d ASC`);
+
+  // ---- ปริมาณการขาย/สต็อก แยกเป็น ผ้าประจำ / ผ้าไม่ประจำ / ผ้าดิบ ----
+  // แยกจากตารางต้นทางของรหัสสินค้า: อยู่ใน fabric_raw = ผ้าดิบ, fabric_irregular = ผ้าไม่ประจำ, นอกนั้น = ผ้าประจำ
+  const [volRows] = await mysqlPool.query(`
+    SELECT
+      CASE
+        WHEN f.sku IN (SELECT sku FROM fabric_raw)        THEN 'ผ้าดิบ'
+        WHEN f.sku IN (SELECT sku FROM fabric_irregular)  THEN 'ผ้าไม่ประจำ'
+        ELSE 'ผ้าประจำ'
+      END AS label,
+      COALESCE(SUM(r.current_yards),0) AS v
+    FROM fabric_rolls r LEFT JOIN fabrics f ON f.id = r.product_id
+    WHERE r.status <> 'depleted'
+    GROUP BY label`);
+  // ให้ครบ 3 ประเภทเสมอ (ที่ไม่มีสต็อกให้เป็น 0)
+  const volMap = { 'ผ้าประจำ': 0, 'ผ้าไม่ประจำ': 0, 'ผ้าดิบ': 0 };
+  volRows.forEach(r => { volMap[r.label] = Number(r.v) || 0; });
+  const volume3 = Object.keys(volMap).map(k => ({ label: k, value: volMap[k] }));
+
+  // ---- ออร์เดอร์ล่าสุด (ตารางสถานะคำสั่งซื้อ) ----
+  const [recentOrders] = await mysqlPool.query(
+    'SELECT order_no, customer, salesperson, status, ordered_qty, withdrawn_qty FROM orders ORDER BY id DESC LIMIT 6');
+
+  // ---- กิจกรรมล่าสุด (จากการเคลื่อนไหวสต็อกจริง) ----
+  const [acts] = await mysqlPool.query(`
+    SELECT t.txn_type, t.yards_change, t.ref_no, t.note, t.created_at,
+           f.sku AS product_sku, u.name AS user_name
+    FROM stock_transactions t
+    LEFT JOIN fabric_rolls r ON r.roll_id = t.roll_id
+    LEFT JOIN fabrics f ON f.id = r.product_id
+    LEFT JOIN users u ON u.id = t.created_by
+    ORDER BY t.txn_id DESC LIMIT 8`);
+
+  res.json({
+    ok: true,
+    kpi: {
+      revenueYards: Number(rev.yards) || 0,
+      invoiceAmount: Number(inv && inv.amt) || 0,
+      invoiceAmountPrev: Number(invPrev && invPrev.amt) || 0,
+      invoiceCount: Number(inv && inv.n) || 0,
+      ordersTotal: ordAll.n, ordersThisMonth: ordMonth.n,
+      ordersWaiting: ordWait.n, ordersUrgent: ordUrgent.n,
+      users: usr.n,
+      stockYards: Number(stock.yards) || 0, stockRolls: stock.rolls,
+    },
+    trend: { year, current: trendCurrent, previous: trendPrev },
+    daily: daily.map(d => ({ date: (d.d instanceof Date ? d.d.toISOString().slice(0, 10) : String(d.d)), value: Number(d.v) || 0 })),
+    volume: volume3,
+    recentOrders,
+    activities: acts,
+  });
+}));
+
 app.get('/api/reports/stock-inventory', auth, wrap(async (req, res) => {
   const q = (req.query.q || '').toString().trim();
   const sku = (req.query.sku || '').toString().trim();
@@ -2685,23 +2869,75 @@ app.get('/api/reports/stock-inventory', auth, wrap(async (req, res) => {
   if (q) { where.push('(f.sku LIKE ? OR f.name LIKE ? OR s.name LIKE ?)'); params.push('%' + q + '%', '%' + q + '%', '%' + q + '%'); }
   if (sku) { where.push('f.sku LIKE ?'); params.push('%' + sku + '%'); }
   if (color) { where.push('s.name LIKE ?'); params.push('%' + color + '%'); }
-  if (group) { where.push('f.type LIKE ?'); params.push('%' + group + '%'); }
+  if (group) { where.push('f.group_id = ?'); params.push(Number(group)); }
   if (width) { where.push('f.width LIKE ?'); params.push('%' + width + '%'); }
   if (warehouse) { where.push('l.location_code LIKE ?'); params.push('%' + warehouse + '%'); }
   const [rows] = await mysqlPool.query(`
-    SELECT r.product_id, r.color_id, f.sku, f.name, f.type, f.width, s.name AS shade,
+    SELECT r.product_id, r.color_id, f.sku, f.name, f.type, f.width,
+           s.name AS shade, s.color_code AS color_code,
            COUNT(*) AS folds, COALESCE(SUM(r.current_yards),0) AS total_yards
     FROM fabric_rolls r
     LEFT JOIN fabrics f ON f.id = r.product_id
     LEFT JOIN fabric_shades s ON s.id = r.color_id
     LEFT JOIN warehouse_locations l ON l.location_id = r.location_id
     WHERE ${where.join(' AND ')}
-    GROUP BY r.product_id, r.color_id, f.sku, f.name, f.type, f.width, s.name
+    GROUP BY r.product_id, r.color_id, f.sku, f.name, f.type, f.width, s.name, s.color_code
     ORDER BY f.sku ASC, s.name ASC
   `, params);
+  // ---- ยอดที่ยังอยู่นอกคลัง (WIP) ต่อรหัสสินค้า ----
+  //  ระหว่างทอ  = PO ผ้าดิบ (po_type='raw') ที่ยังไม่มีใบรับอ้างถึง
+  //  ที่โรงงาน  = ใบสั่งย้อมที่ยังไม่มีใบรับผ้าย้อมอ้างถึง
+  //  ระหว่างผลิต = PO ผ้าสำเร็จ (po_type='finished') ที่ยังไม่รับเข้า
+  const wip = {};                                   // { sku: { weaving, factory, production } }
+  const addWip = (sku, field, qty) => {
+    const k = (sku || '').trim();
+    if (!k || !(Number(qty) > 0)) return;
+    if (!wip[k]) wip[k] = { weaving: 0, factory: 0, production: 0 };
+    wip[k][field] += Number(qty);
+  };
+  const parseJson = (s) => { try { return JSON.parse(s || '[]'); } catch (e) { return []; } };
+  try {
+    // เอกสารที่ "รับเข้าแล้ว" (ใช้ตัดออกจาก WIP)
+    const [[recv]] = await mysqlPool.query(`
+      SELECT
+        (SELECT GROUP_CONCAT(DISTINCT po_ref)    FROM raw_receipts      WHERE po_ref <> '')    AS raw_refs,
+        (SELECT GROUP_CONCAT(DISTINCT po_ref)    FROM finished_receipts WHERE po_ref <> '')    AS fin_refs,
+        (SELECT GROUP_CONCAT(DISTINCT order_ref) FROM dyed_receipts     WHERE order_ref <> '') AS dye_refs`);
+    const toSet = (s) => new Set(String(s || '').split(',').map(x => x.trim()).filter(Boolean));
+    const rawDone = toSet(recv && recv.raw_refs);
+    const finDone = toSet(recv && recv.fin_refs);
+    const dyeDone = toSet(recv && recv.dye_refs);
+
+    const [pos] = await mysqlPool.query('SELECT po_no, po_type, items_json FROM purchase_orders');
+    pos.forEach(po => {
+      const done = po.po_type === 'raw' ? rawDone.has(po.po_no) : finDone.has(po.po_no);
+      if (done) return;
+      parseJson(po.items_json).forEach(it => addWip(it.sku, po.po_type === 'raw' ? 'weaving' : 'production', it.qty));
+    });
+
+    const [dyes] = await mysqlPool.query('SELECT dye_no, product_json, items_json FROM dye_orders');
+    dyes.forEach(d => {
+      if (dyeDone.has(d.dye_no)) return;
+      let prodSku = '';
+      try { prodSku = (JSON.parse(d.product_json || '{}') || {}).sku || ''; } catch (e) {}
+      parseJson(d.items_json).forEach(it => addWip(prodSku || it.sku, 'factory', it.qty));
+    });
+  } catch (e) { /* ไม่มีตาราง/ข้อมูลผิดรูป → WIP เป็น 0 */ }
+
+  const items = rows.map(r => {
+    const w = wip[(r.sku || '').trim()] || { weaving: 0, factory: 0, production: 0 };
+    return { ...r, wip_weaving: w.weaving, wip_factory: w.factory, wip_production: w.production };
+  });
   const totalFolds = rows.reduce((a, x) => a + Number(x.folds || 0), 0);
   const totalYards = rows.reduce((a, x) => a + Number(x.total_yards || 0), 0);
-  res.json({ ok: true, total: rows.length, items: rows, summary: { folds: totalFolds, yards: totalYards } });
+  const sumOf = (f) => items.reduce((a, x) => a + Number(x[f] || 0), 0);
+  res.json({
+    ok: true, total: items.length, items,
+    summary: {
+      folds: totalFolds, yards: totalYards,
+      production: sumOf('wip_production'), factory: sumOf('wip_factory'), weaving: sumOf('wip_weaving'),
+    },
+  });
 }));
 // รายละเอียดม้วนของผ้า+สีที่เลือก
 app.get('/api/reports/stock-inventory/rolls', auth, wrap(async (req, res) => {
@@ -2710,7 +2946,7 @@ app.get('/api/reports/stock-inventory/rolls', auth, wrap(async (req, res) => {
   const cond = colorId != null ? 'r.color_id = ?' : 'r.color_id IS NULL';
   const params = colorId != null ? [productId, colorId] : [productId];
   const [rows] = await mysqlPool.query(`
-    SELECT r.roll_id, r.roll_qr_code, r.lot_no, r.initial_yards, r.current_yards, r.received_at, r.status,
+    SELECT r.roll_id, r.roll_qr_code, r.receipt_no, r.lot_no, r.initial_yards, r.current_yards, r.received_at, r.status, r.note,
            l.location_code, l.rack
     FROM fabric_rolls r
     LEFT JOIN warehouse_locations l ON l.location_id = r.location_id
@@ -2728,8 +2964,8 @@ app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   if (!roll) return res.status(404).json({ ok: false, message: 'ไม่พบม้วนผ้ารหัส ' + rollQr });
   const before = Number(roll.current_yards);
   const status = newYards <= 0 ? 'depleted' : roll.status;
-  await mysqlPool.query('UPDATE fabric_rolls SET current_yards = ?, lot_no = ?, status = ? WHERE roll_id = ?',
-    [newYards, (req.body.lot_no || roll.lot_no || ''), status, roll.roll_id]);
+  await mysqlPool.query('UPDATE fabric_rolls SET current_yards = ?, lot_no = ?, note = ?, status = ? WHERE roll_id = ?',
+    [newYards, (req.body.lot_no || roll.lot_no || ''), (req.body.note != null ? String(req.body.note) : (roll.note || '')), status, roll.roll_id]);
   await mysqlPool.query(
     `INSERT INTO stock_transactions (roll_id, txn_type, yards_change, yards_before, yards_after, from_location_id, ref_type, note, created_by)
      VALUES (:roll_id, 'adjust', :change, :before, :after, :loc, 'adjust', :note, :by)`,

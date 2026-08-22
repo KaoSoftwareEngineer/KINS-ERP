@@ -120,7 +120,7 @@ export default {
 <style scoped>
 .sh-wrap { padding: 4px 2px 40px; }
 .sh-card { background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; overflow: hidden; }
-.sh-input { height: 36px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--text); font-size: 13px; padding: 0 10px; font-family: inherit; }
+.sh-input { height: 36px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--text); font-size: 12px; padding: 0 10px; font-family: inherit; }
 .sh-input:focus { outline: none; border-color: var(--brand); }
 .sh-btn { height: 36px; padding: 0 14px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--text); font-size: 12.5px; cursor: pointer; }
 .sh-btn:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }

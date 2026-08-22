@@ -170,14 +170,14 @@ export default {
 </script>
 
 <style scoped>
-.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .po-titlebar { background: transparent; color: var(--text); font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 
 .rt-scan { padding: 16px 20px; border-bottom: 1px solid var(--field-border); }
 .rt-scan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; }
 .rt-field { display: flex; flex-direction: column; gap: 5px; }
 .rt-field > label { font-size: 12px; color: var(--muted); font-weight: 600; }
-.rt-field input { height: 40px; padding: 0 12px; border: 1px solid var(--field-border); border-radius: 9px; font-size: 14px; font-family: inherit; background: var(--field); color: var(--text); transition: border-color .2s, box-shadow .2s; }
+.rt-field input { height: 40px; padding: 0 12px; border: 1px solid var(--field-border); border-radius: 9px; font-size: 12px; font-family: inherit; background: var(--field); color: var(--text); transition: border-color .2s, box-shadow .2s; }
 .rt-field input:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); background: var(--surface); }
 .rt-field input:disabled { opacity: .55; cursor: not-allowed; }
 .rt-ro { background: var(--field) !important; font-weight: 700; }
@@ -187,7 +187,7 @@ export default {
 .rt-rack-status.ok { color: #1a9c54; }
 .rt-rack-status.bad { color: #e03131; }
 
-.po-items { padding: 12px 16px; min-height: 140px; }
+.po-items { padding: 8px 12px; min-height: 140px; }
 .po-item-table { width: 100%; border-collapse: collapse; }
 .po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; letter-spacing: .3px; border-right: 1px solid rgba(255,255,255,.18); }
 .po-item-table th:last-child { border-right: none; }
@@ -200,17 +200,17 @@ export default {
 .po-num { text-align: right; }
 .po-no { text-align: center; color: var(--muted); }
 .po-empty { text-align: center; color: var(--muted); padding: 30px; }
-.po-foot-row td { padding: 10px 8px; border-top: 2px solid var(--field-border); font-weight: 700; font-size: 13px; }
+.po-foot-row td { padding: 10px 8px; border-top: 2px solid var(--field-border); font-weight: 700; font-size: 12px; }
 .po-foot-label { text-align: right; color: var(--muted); }
 .po-row-actions { display: flex; justify-content: center; }
 .po-ic { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--field-border); background: var(--field); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; transition: background .15s, border-color .15s; }
 .po-ic svg { width: 15px; height: 15px; }
 .po-del { color: #e03131; } .po-del:hover { background: #fdeaea; border-color: #e03131; }
 
-.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
-.po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
+.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
+.po-saved-msg { color: #1a9c54; font-size: 12px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
-.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
+.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; border-color: #158045; }
 .po-btn-save:disabled { opacity: .5; cursor: not-allowed; }

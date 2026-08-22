@@ -620,6 +620,8 @@ async function initTables() {
       updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  // ผูกผ้ากับ "กลุ่มผ้า" (fabric_regular_group) — ใช้เป็นตัวกรองในรายงานสินค้าคงคลัง
+  await ensureColumn('fabrics', 'group_id', 'INT NULL');
 
   // ---- เฉดสีของผ้าประจำ ----
   await pool.query(`
@@ -633,6 +635,20 @@ async function initTables() {
       FOREIGN KEY (fabric_id) REFERENCES fabrics(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  // เฉดสี/รหัสสี ให้ครบตามหน้าจอ: รหัสสี(color_code) / แร็กซ์(rack) / รูป(image_name)
+  // เพิ่มทั้งเฉดสีรายผ้า (fabric_shades) และเฉดสีต้นแบบของกลุ่ม (group_shades) เพราะ "รหัสดึงมาจากกลุ่ม"
+  await ensureColumn('fabric_shades', 'color_code', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_shades', 'rack', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_shades', 'image_name', "VARCHAR(255) DEFAULT ''");
+  await ensureColumn('fabric_regular_group_shades', 'color_code', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_regular_group_shades', 'rack', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_regular_group_shades', 'image_name', "VARCHAR(255) DEFAULT ''");
+  await ensureColumn('fabric_irregular_group_shades', 'color_code', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_irregular_group_shades', 'rack', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_irregular_group_shades', 'image_name', "VARCHAR(255) DEFAULT ''");
+  await ensureColumn('fabric_irregular_shades', 'color_code', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_irregular_shades', 'rack', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('fabric_irregular_shades', 'image_name', "VARCHAR(255) DEFAULT ''");
 
   // ---- ผ้าไม่ประจำ (โครงสร้างเดียวกับผ้าประจำ) ----
   await pool.query(`
@@ -870,6 +886,9 @@ async function initTables() {
         REFERENCES warehouse_locations(location_id) ON DELETE SET NULL ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  // เลขที่รับสินค้า (IN) ที่ทำให้ม้วนนี้เกิด + หมายเหตุรายม้วน — โชว์ในรายงานสินค้าคงคลัง
+  await ensureColumn('fabric_rolls', 'receipt_no', "VARCHAR(50) DEFAULT ''");
+  await ensureColumn('fabric_rolls', 'note', "VARCHAR(255) DEFAULT ''");
 
   // ประวัติเคลื่อนไหวสต็อก (ย้ายช่อง / ตัดหลา)
   await pool.query(`

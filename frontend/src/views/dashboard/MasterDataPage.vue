@@ -158,7 +158,7 @@ export default {
 
 <style scoped>
 .md-actions { display: flex; gap: 5px; }
-.md-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 13px; }
+.md-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 12px; }
 .md-edit:hover { background: #eef2ff; border-color: #c7d2fe; }
 .md-del:hover { background: #fef2f2; border-color: #fecaca; }
 </style>

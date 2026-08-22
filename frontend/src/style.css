@@ -84,13 +84,14 @@ html[data-theme="dark"] {
   --brand-soft:   #1c2748;
   --primary:      #6b83ff;
   --primary-2:    #3b5bfe;
-  --page:         #0d1220;
-  --surface:      #161d31;
-  --panel-grad:   linear-gradient(150deg, #2a3fd6 0%, #14205e 100%);
-  --text:         #e8ecf6;
-  --muted:        #8b95ac;
-  --field:        #1f2740;
-  --field-border: #2c3654;
+  /* โทนดำเทากลาง (neutral) — ไม่อมน้ำเงินเหมือนเดิม */
+  --page:         #0b0b0d;
+  --surface:      #151517;
+  --panel-grad:   linear-gradient(150deg, #2a2a2e 0%, #131315 100%);
+  --text:         #ececee;
+  --muted:        #9a9aa2;
+  --field:        #1d1d20;
+  --field-border: #2c2c31;
   --shadow:       0 24px 60px rgba(0, 0, 0, .4);
   --danger:       #ff6b6f;
   --ok:           #35c98a;
@@ -100,10 +101,10 @@ html[data-theme="dark"] {
   --chart-3:      #7c5cdb;
   --chart-4:      #d97706;
   --chart-5:      #0891b2;
-  --pink-soft:    #3a2430;
-  --purple-soft:  #2a2350;
-  --blue-soft:    #1b2b4d;
-  --orange-soft:  #3a2c10;
+  --pink-soft:    #2e1d24;
+  --purple-soft:  #241f33;
+  --blue-soft:    #1a2333;
+  --orange-soft:  #2e2412;
 }
 
 * { box-sizing: border-box; }
@@ -119,6 +120,12 @@ body {
 
 button, input, select, textarea {
   font-family: inherit;
+}
+
+/* ป้องกัน dropdown ของ <datalist> (เช่น ช่องคู่ค้า/ลูกค้า) ขึ้นเป็นพื้นดำมองไม่เห็น
+   เมื่อเครื่อง/เบราว์เซอร์อยู่ในโหมดมืด ให้บังคับ popup ของ datalist เป็นโทนสว่างเสมอ */
+input[list] {
+  color-scheme: light;
 }
 
 /* ตัวเลขในตาราง/ช่องกรอก/KPI/กราฟ แสดงแบบความกว้างเท่ากัน (Tabular Numbers) หลักตัวเลขตรงกัน */

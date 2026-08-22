@@ -159,7 +159,7 @@ export default {
 </script>
 
 <style scoped>
-.bc-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.bc-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .bc-titlebar { font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 
 .bc-scan { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; padding: 16px 20px; border-bottom: 1px solid var(--field-border); }
@@ -169,8 +169,8 @@ export default {
 .bc-scan-input:focus-within { border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); background: var(--surface); }
 .bc-scan-icon { display: flex; align-items: center; padding: 0 10px 0 14px; color: var(--muted); }
 .bc-scan-icon svg { width: 20px; height: 20px; }
-.bc-scan-input input { flex: 1; height: 46px; border: none; background: transparent; font-size: 15px; font-family: inherit; color: var(--text); outline: none; padding: 0 6px; }
-.bc-scan-btn { height: 46px; padding: 0 22px; border: none; background: #1e3a8a; color: #fff; font-weight: 600; font-size: 14px; font-family: inherit; cursor: pointer; transition: background .15s; }
+.bc-scan-input input { flex: 1; height: 46px; border: none; background: transparent; font-size: 12.5px; font-family: inherit; color: var(--text); outline: none; padding: 0 6px; }
+.bc-scan-btn { height: 46px; padding: 0 22px; border: none; background: #1e3a8a; color: #fff; font-weight: 600; font-size: 12px; font-family: inherit; cursor: pointer; transition: background .15s; }
 .bc-scan-btn:hover { background: #172b6b; }
 .bc-print-field { display: flex; flex-direction: column; gap: 6px; }
 .bc-print-field > label { font-size: 12px; color: var(--muted); font-weight: 600; }
@@ -182,9 +182,9 @@ export default {
 .bc-body { padding: 22px 20px; min-height: 300px; }
 .bc-empty, .bc-notfound { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 60px 20px; color: var(--muted); text-align: center; }
 .bc-empty svg { width: 64px; height: 64px; opacity: .35; }
-.bc-empty p { font-size: 14px; }
+.bc-empty p { font-size: 12px; }
 .bc-notfound span { width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #fdeaea; color: #e03131; font-size: 26px; font-weight: 700; }
-.bc-notfound p { font-size: 15px; color: var(--text); }
+.bc-notfound p { font-size: 12.5px; color: var(--text); }
 .bc-notfound small { font-size: 12px; }
 
 .bc-result { display: grid; grid-template-columns: 300px 1fr; gap: 18px; align-items: start; }
@@ -196,9 +196,9 @@ export default {
 .bc-image-ph svg { width: 48px; height: 48px; opacity: .4; }
 .bc-image-ph span { font-size: 12px; }
 .bc-main-info { display: flex; flex-direction: column; gap: 6px; align-items: center; }
-.bc-sku { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: .3px; }
-.bc-name { font-size: 13px; color: var(--muted); }
-.bc-color { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.bc-sku { font-size: 14px; font-weight: 800; color: var(--text); letter-spacing: .3px; }
+.bc-name { font-size: 12px; color: var(--muted); }
+.bc-color { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
 .bc-color-dot { width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa, #60a5fa); }
 .bc-status { margin-top: 4px; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .bc-status-available { background: #e7f6ee; color: #158045; }
@@ -207,21 +207,21 @@ export default {
 .bc-status-depleted { background: #f1f3f5; color: #868e96; }
 .bc-status-hold { background: #fdeaea; color: #c92a2a; }
 
-.bc-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+.bc-card-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
 .bc-mt { margin-top: 20px; }
 .bc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; }
 .bc-item { display: flex; flex-direction: column; gap: 3px; }
 .bc-lbl { font-size: 11.5px; color: var(--muted); font-weight: 600; }
-.bc-val { font-size: 14px; color: var(--text); font-weight: 600; }
-.bc-mono { font-family: 'Courier New', monospace; font-size: 13px; }
+.bc-val { font-size: 12px; color: var(--text); font-weight: 600; }
+.bc-mono { font-family: 'Courier New', monospace; font-size: 12px; }
 .bc-qty-row { display: flex; gap: 12px; }
-.bc-qty { flex: 1; background: var(--surface); border: 1px solid var(--field-border); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.bc-qty { flex: 1; background: var(--surface); border: 1px solid var(--field-border); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
 .bc-qty-lbl { font-size: 11.5px; color: var(--muted); font-weight: 600; }
-.bc-qty-val { font-size: 24px; font-weight: 800; color: var(--text); }
+.bc-qty-val { font-size: 18px; font-weight: 800; color: var(--text); }
 .bc-qty-unit { font-size: 11px; color: var(--muted); }
 .bc-qty-stock { background: #e7f6ee; border-color: #1a9c54; }
 .bc-qty-stock .bc-qty-val { color: #158045; }
-.bc-loc { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 0 12px; align-items: center; background: var(--surface); border: 1px solid var(--field-border); border-radius: 10px; padding: 14px 16px; }
+.bc-loc { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 0 12px; align-items: center; background: var(--surface); border: 1px solid var(--field-border); border-radius: 10px; padding: 9px 12px; }
 .bc-loc svg { grid-row: span 2; width: 30px; height: 30px; color: #1e3a8a; }
 .bc-loc-code { font-size: 18px; font-weight: 800; color: var(--text); }
 .bc-loc-sub { font-size: 12px; color: var(--muted); }

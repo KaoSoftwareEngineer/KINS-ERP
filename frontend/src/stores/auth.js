@@ -61,6 +61,9 @@ export const useAuthStore = defineStore('auth', {
       if (allowed === null) return true;
       if (['dashboard', 'analytics', 'settings'].includes(key)) return true;
       if (typeof key === 'string' && key.startsWith('grp.')) return true;
+      // หน้าย่อยใช้สิทธิ์ของหน้าแม่ (เช่น จัดออร์เดอร์ → หน้าตัดผ้า)
+      const subPageParent = { 'order-fulfill-detail': 'order-fulfill' };
+      if (subPageParent[key]) return allowed.has(subPageParent[key]);
       return allowed.has(key);
     },
     canAccessAny(keys) {

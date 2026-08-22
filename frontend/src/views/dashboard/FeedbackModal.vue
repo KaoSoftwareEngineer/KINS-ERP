@@ -61,13 +61,13 @@ export default {
   font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
 }
 .fb-card {
-  background: #fff; border-radius: 16px;
+  background: var(--surface); border-radius: 16px;
   padding: 30px 34px; min-width: 240px; max-width: 90vw;
   box-shadow: 0 18px 50px rgba(0,0,0,0.25);
   display: flex; flex-direction: column; align-items: center; gap: 16px;
   text-align: center;
 }
-.fb-text { font-size: 17px; font-weight: 600; color: #1e293b; }
+.fb-text { font-size: 12.5px; font-weight: 600; color: #1e293b; }
 
 /* ---- สปินเนอร์ ---- */
 .fb-spinner {
@@ -104,12 +104,12 @@ export default {
 /* ---- กล่องยืนยัน ---- */
 .fb-confirm { padding: 26px 30px; gap: 12px; max-width: 360px; }
 .fb-confirm-icon { font-size: 40px; line-height: 1; }
-.fb-confirm-title { font-size: 18px; font-weight: 700; color: #1e293b; }
-.fb-confirm-msg { font-size: 14.5px; color: #64748b; line-height: 1.5; }
+.fb-confirm-title { font-size: 14px; font-weight: 700; color: #1e293b; }
+.fb-confirm-msg { font-size: 12px; color: #64748b; line-height: 1.5; }
 .fb-confirm-actions { display: flex; gap: 12px; margin-top: 8px; width: 100%; }
 .fb-btn {
-  flex: 1; padding: 10px 16px; border: none; border-radius: 9px;
-  font-size: 15px; font-weight: 700; cursor: pointer;
+  flex: 1; padding: 7px 12px; border: none; border-radius: 9px;
+  font-size: 12.5px; font-weight: 700; cursor: pointer;
   font-family: inherit; transition: background 0.15s;
 }
 .fb-btn-cancel { background: #e2e8f0; color: #334155; }
@@ -127,6 +127,6 @@ export default {
 :global([data-theme="dark"]) .fb-card,
 :global(.dark) .fb-card { background: #1e293b; }
 :global([data-theme="dark"]) .fb-text,
-:global([data-theme="dark"]) .fb-confirm-title { color: #f1f5f9; }
-:global([data-theme="dark"]) .fb-btn-cancel { background: #334155; color: #e2e8f0; }
+:global([data-theme="dark"]) .fb-confirm-title { color: #ececee; }
+:global([data-theme="dark"]) .fb-btn-cancel { background: #2c2c31; color: #d8d8dc; }
 </style>

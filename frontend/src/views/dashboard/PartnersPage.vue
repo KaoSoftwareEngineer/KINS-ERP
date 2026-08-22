@@ -245,7 +245,7 @@ export default {
 
 <style scoped>
 .ptn-actions { display: flex; gap: 5px; }
-.ptn-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 13px; }
+.ptn-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 12px; }
 .ptn-edit:hover { background: #eef2ff; border-color: #c7d2fe; }
 .ptn-del:hover { background: #fef2f2; border-color: #fecaca; }
 
@@ -258,14 +258,14 @@ export default {
 .ptn-modal { background: var(--surface); border-radius: 14px; width: 860px; max-width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
 .ptn-modal-head {
   background: #3c4453; color: #fff;
-  padding: 15px 24px; font-size: 16px; font-weight: 700;
+  padding: 15px 24px; font-size: 13px; font-weight: 700;
   display: flex; align-items: center; justify-content: space-between;
 }
 .ptn-head-ic { margin-right: 6px; }
-.ptn-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+.ptn-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; font-size: 12.5px; cursor: pointer; }
 .ptn-x:hover { background: rgba(255,255,255,.3); }
 .ptn-modal-body { padding: 22px 30px; overflow-y: auto; }
-.ptn-sec-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
+.ptn-sec-title { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
 .ptn-sec-title:not(:first-child) { margin-top: 22px; }
 .ptn-sec-bar { width: 4px; height: 16px; border-radius: 2px; background: #1e3a8a; display: inline-block; }
 .ptn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
@@ -275,14 +275,14 @@ export default {
 .ptn-req { color: #a82a3a; }
 .ptn-field input, .ptn-field select, .ptn-field textarea {
   height: 38px; padding: 0 12px; border: 1px solid var(--field-border); border-radius: 9px;
-  font-size: 13.5px; font-family: inherit; background: var(--surface); color: var(--text);
+  font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text);
   transition: border-color .2s, box-shadow .2s;
 }
 .ptn-field textarea { height: auto; padding: 9px 12px; resize: vertical; }
 .ptn-field input:focus, .ptn-field select:focus, .ptn-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .ptn-field input.ptn-err { border-color: #a82a3a; box-shadow: 0 0 0 3px rgba(168,42,58,.12); }
-.ptn-modal-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 14px 24px; border-top: 1px solid var(--field-border); background: var(--field); }
-.ptn-btn { padding: 10px 26px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.ptn-modal-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 9px 17px; border-top: 1px solid var(--field-border); background: var(--field); }
+.ptn-btn { padding: 10px 26px; border: none; border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
 .ptn-btn-cancel { background: #e2e8f0; color: #334155; }
 .ptn-btn-cancel:hover { background: #cbd5e1; }
 .ptn-btn-save { background: #1a9c54; color: #fff; }

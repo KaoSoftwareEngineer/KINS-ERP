@@ -324,7 +324,7 @@ export default {
           .sheet { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
           .st { border: 1px solid #333; border-radius: 6px; padding: 8px; text-align: center; page-break-inside: avoid; }
           .st-head { min-height: 34px; }
-          .st-sku { font-size: 14px; font-weight: 800; }
+          .st-sku { font-size: 12px; font-weight: 800; }
           .st-name { font-size: 10px; color: #444; line-height: 1.1; }
           .st-qr { width: 100%; max-width: 130px; aspect-ratio: 1/1; object-fit: contain; margin: 4px auto; display: block; }
           .st-info { text-align: left; font-size: 10.5px; line-height: 1.35; }
@@ -332,7 +332,7 @@ export default {
           @media print { .no-print { display: none; } }
         </style></head><body>
         <div class="no-print" style="margin-bottom:10px;text-align:center">
-          <button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer">🖨️ พิมพ์</button>
+          <button onclick="window.print()" style="padding:8px 20px;font-size: 12px;cursor:pointer">🖨️ พิมพ์</button>
         </div>
         <div class="sheet">${stickers}</div>
         </body></html>`);
@@ -345,13 +345,13 @@ export default {
 <style scoped>
 .grp-wrap { padding: 4px 2px 40px; }
 .grp-card { background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
-.grp-card-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.grp-card-title { font-size: 12px; font-weight: 700; margin-bottom: 12px; }
 .grp-field { display: flex; flex-direction: column; gap: 4px; }
 .grp-field label { font-size: 12px; color: var(--muted); font-weight: 600; }
 .grp-field input, .grp-field select,
 .grp-table input, .grp-table select {
   height: 36px; border: 1px solid var(--field-border); border-radius: 8px;
-  background: var(--field); color: var(--text); font-size: 13px; padding: 0 10px; width: 100%;
+  background: var(--field); color: var(--text); font-size: 12px; padding: 0 10px; width: 100%;
   font-family: inherit;
 }
 .grp-field input:focus, .grp-field select:focus,
@@ -361,14 +361,14 @@ export default {
 .grp-table thead th:first-child { border-top-left-radius: 8px; }
 .grp-table thead th:last-child { border-top-right-radius: 8px; }
 .grp-table tbody td { padding: 6px 8px; border-bottom: 1px solid var(--field-border); vertical-align: middle; }
-.grp-table tfoot td { padding: 10px 8px; border-top: 2px solid var(--field-border); font-size: 13px; }
+.grp-table tfoot td { padding: 10px 8px; border-top: 2px solid var(--field-border); font-size: 12px; }
 .grp-table input, .grp-table select { height: 32px; font-size: 12.5px; }
 .grp-row-del { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); color: var(--danger); cursor: pointer; }
 .grp-row-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-.grp-btn-primary { background: #1a9c54; color: #fff; border: 1px solid #1a9c54; border-radius: 9px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.grp-btn-primary { background: #1a9c54; color: #fff; border: 1px solid #1a9c54; border-radius: 9px; padding: 6px 13px; font-size: 12px; font-weight: 600; cursor: pointer; }
 .grp-btn-primary:hover { background: #158045; }
 .grp-btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 .grp-btn-add { background: var(--brand-soft); color: var(--brand); border: 1px solid var(--brand); border-radius: 8px; padding: 6px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-.grp-btn-ghost { background: var(--field); color: var(--text); border: 1px solid var(--field-border); border-radius: 9px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
+.grp-btn-ghost { background: var(--field); color: var(--text); border: 1px solid var(--field-border); border-radius: 9px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
 .grp-sticker { border: 1px solid var(--field-border); border-radius: 10px; padding: 8px; text-align: center; background: var(--field); }
 </style>

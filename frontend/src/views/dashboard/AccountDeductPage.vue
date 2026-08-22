@@ -99,13 +99,13 @@ export default {
 </script>
 
 <style scoped>
-.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .po-titlebar { font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 .ad-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; padding: 20px; border-bottom: 1px solid var(--field-border); }
 .ad-left { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .ad-field { display: flex; flex-direction: column; gap: 5px; }
 .ad-field > label { font-size: 12px; color: var(--muted); font-weight: 600; }
-.ad-field input, .ad-field select { height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--field); color: var(--text); min-width: 150px; }
+.ad-field input, .ad-field select { height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--field); color: var(--text); min-width: 150px; }
 .ad-field input:focus, .ad-field select:focus { outline: none; border-color: #2F65F6; background: var(--surface); }
 .ad-range { display: flex; align-items: center; gap: 6px; }
 .ad-range input { min-width: 130px; }
@@ -114,15 +114,15 @@ export default {
 .ad-search:hover { background: #172b6b; }
 .ad-right { display: flex; flex-direction: column; gap: 8px; }
 .ad-sum { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
-.ad-sum > label { font-size: 13px; color: var(--muted); min-width: 70px; text-align: right; }
-.ad-sum input { height: 34px; width: 160px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; text-align: right; font-size: 13px; font-weight: 600; background: var(--field); color: var(--text); }
+.ad-sum > label { font-size: 12px; color: var(--muted); min-width: 70px; text-align: right; }
+.ad-sum input { height: 34px; width: 160px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; text-align: right; font-size: 12px; font-weight: 600; background: var(--field); color: var(--text); }
 .ad-sum-remain input { color: #158045; font-weight: 700; border-color: #1a9c54; background: #e7f6ee; }
 .ad-body { padding: 20px; }
 .ad-deduct-box { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
-.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
-.po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
+.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
+.po-saved-msg { color: #1a9c54; font-size: 12px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
-.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); }
+.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; }
 </style>

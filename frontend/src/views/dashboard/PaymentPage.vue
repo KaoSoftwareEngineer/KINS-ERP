@@ -100,9 +100,9 @@ export default {
 </script>
 
 <style scoped>
-.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .po-titlebar { font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
-.po-items { padding: 12px 16px; overflow-x: auto; }
+.po-items { padding: 8px 12px; overflow-x: auto; }
 .po-item-table { width: 100%; border-collapse: collapse; min-width: 1200px; }
 .po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; border-right: 1px solid rgba(255,255,255,.18); white-space: nowrap; }
 .po-item-table th:last-child { border-right: none; }
@@ -115,7 +115,7 @@ export default {
 .pm-upload { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px dashed var(--field-border); border-radius: 8px; cursor: pointer; color: var(--muted); background: var(--field); }
 .pm-upload:hover { border-color: #2F65F6; color: #2F65F6; }
 .pm-upload svg { width: 20px; height: 20px; }
-.pm-img-name { font-size: 16px; }
+.pm-img-name { font-size: 13px; }
 .po-foot-row td { padding: 9px 8px; border-top: 2px solid var(--field-border); font-weight: 700; font-size: 12.5px; }
 .po-foot-label { text-align: right; color: var(--muted); }
 .po-row-actions { display: flex; gap: 5px; justify-content: center; }
@@ -123,10 +123,10 @@ export default {
 .po-ic svg { width: 15px; height: 15px; }
 .po-add { color: #1a9c54; } .po-add:hover { background: #e7f6ee; border-color: #1a9c54; }
 .po-del { color: #e03131; } .po-del:hover { background: #fdeaea; border-color: #e03131; }
-.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
-.po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
+.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
+.po-saved-msg { color: #1a9c54; font-size: 12px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
-.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); }
+.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); }
 .po-btn-save, .po-btn-new { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover, .po-btn-new:hover { background: #158045; }
 .po-page input:not([type="checkbox"]):not([type="file"]), .po-page select { background: var(--field); }

@@ -158,7 +158,7 @@ export default {
 
 <style scoped>
 .ni-actions { display: flex; gap: 5px; }
-.ni-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 13px; }
+.ni-ic { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); cursor: pointer; font-size: 12px; }
 .ni-edit:hover { background: #eef2ff; border-color: #c7d2fe; }
 .ni-del:hover { background: #fef2f2; border-color: #fecaca; }
 </style>

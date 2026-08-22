@@ -213,7 +213,7 @@ export default {
           h1 { font-size: 20px; margin: 0; letter-spacing: 1px; }
           .company { text-align: center; border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 6px; }
           .company .sub { font-size: 11px; line-height: 1.5; }
-          .title { text-align: center; font-size: 17px; font-weight: bold; margin: 14px 0; }
+          .title { text-align: center; font-size: 14px; font-weight: bold; margin: 14px 0; }
           .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 20px; margin-bottom: 10px; }
           .meta div { font-size: 12.5px; }
           .lbl { font-weight: bold; display: inline-block; min-width: 120px; }
@@ -278,7 +278,7 @@ export default {
 .sc-field label { font-size: 12px; color: var(--muted); font-weight: 600; }
 .sc-field input, .sc-table input, .sc-mini {
   height: 34px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--text);
-  font-size: 13px; padding: 0 9px; width: 100%; font-family: inherit;
+  font-size: 12px; padding: 0 9px; width: 100%; font-family: inherit;
 }
 .sc-mini { height: 30px; width: auto; }
 .sc-field input:focus, .sc-table input:focus, .sc-mini:focus { outline: none; border-color: var(--brand); }
@@ -288,9 +288,9 @@ export default {
 .sc-table input { height: 30px; font-size: 12.5px; }
 .sc-row-del { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--surface); color: var(--danger); cursor: pointer; }
 .sc-row-del:hover { background: var(--danger); color: #fff; }
-.sc-btn-primary { background: #1a9c54; color: #fff; border: 1px solid #1a9c54; border-radius: 9px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.sc-btn-primary { background: #1a9c54; color: #fff; border: 1px solid #1a9c54; border-radius: 9px; padding: 6px 13px; font-size: 12px; font-weight: 600; cursor: pointer; }
 .sc-btn-primary:disabled { opacity: .6; }
-.sc-btn-print { background: #1e3a8a; color: #fff; border: 1px solid #1e3a8a; border-radius: 9px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.sc-btn-print { background: #1e3a8a; color: #fff; border: 1px solid #1e3a8a; border-radius: 9px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
 .sc-btn-add { background: var(--brand-soft); color: var(--brand); border: 1px solid var(--brand); border-radius: 8px; padding: 6px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-.sc-btn-ghost { background: var(--field); color: var(--text); border: 1px solid var(--field-border); border-radius: 9px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
+.sc-btn-ghost { background: var(--field); color: var(--text); border: 1px solid var(--field-border); border-radius: 9px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
 </style>

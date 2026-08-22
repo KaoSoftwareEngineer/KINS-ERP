@@ -205,59 +205,60 @@ export default {
   display: flex; align-items: flex-start; justify-content: space-between;
   flex-wrap: wrap; gap: 14px; margin: 14px 0 20px;
 }
-.set-topbar-title h1 { font-size: 24px; font-weight: 700; color: var(--text); }
-.set-subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.set-topbar-title h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+.set-subtitle { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 .set-import-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .set-import-btn {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 18px; border-radius: 9px; border: 1px solid #1a9c54;
-  background: #1a9c54; color: #fff; font-size: 13px; font-weight: 600;
+  padding: 6px 13px; border-radius: 8px; border: 1px solid #1a9c54;
+  background: #1a9c54; color: #fff; font-size: 12px; font-weight: 600;
   cursor: pointer; font-family: inherit; transition: background .15s, box-shadow .15s;
   box-shadow: 0 2px 6px rgba(26,156,84,.25);
 }
 .set-import-btn:hover { background: #158045; border-color: #158045; box-shadow: 0 3px 10px rgba(26,156,84,.35); }
-.set-import-ic { font-size: 15px; }
+.set-import-ic { font-size: 12px; }
 
 /* ============ กริดการ์ด ============ */
 .set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .set-card-wide { grid-column: 1 / -1; }
-.set-card { padding: 20px 22px; }
+.set-card { padding: 9px 12px; }
 
 .set-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.set-card-head h2 { font-size: 16px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
-.set-ic { font-size: 17px; }
+.set-card-head h2 { font-size: 12px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.set-ic { font-size: 12px; }
 
-.set-msg { font-size: 13px; color: var(--ok); margin-bottom: 12px; }
+.set-msg { font-size: 12px; color: var(--ok); margin-bottom: 12px; }
 .set-msg.is-error { color: var(--danger); }
 
 /* ---- โปรไฟล์ (โหมดดู) ---- */
-.set-profile { display: flex; align-items: center; gap: 20px; }
+/* จัดรูปโปรไฟล์ชิดบน ให้ตรงแนวกับชื่อ (ดูเป็นระเบียบกว่ากึ่งกลาง) */
+.set-profile { display: flex; align-items: flex-start; gap: 14px; }
 .set-avatar {
-  width: 76px; height: 76px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+  width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
   background: var(--brand); color: #fff; display: grid; place-items: center;
-  font-size: 28px; font-weight: 700; box-shadow: 0 4px 12px rgba(47,101,246,.25);
+  font-size: 14px; font-weight: 700; box-shadow: 0 2px 8px rgba(47,101,246,.22);
 }
 .set-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .set-profile-body { flex: 1; min-width: 0; }
-.set-profile-name { font-size: 19px; font-weight: 700; color: var(--text); }
+.set-profile-name { font-size: 12px; font-weight: 700; color: var(--text); }
 .set-role-badge {
   display: inline-block; margin-top: 5px; padding: 3px 12px; border-radius: 20px;
-  background: rgba(124,58,237,.12); color: #7c3aed; font-size: 12.5px; font-weight: 600;
+  background: rgba(124,58,237,.12); color: #7c3aed; font-size: 11px; font-weight: 600;
 }
 .set-info-grid {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px;
-  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--field-border);
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--field-border);
 }
 .set-info { display: flex; flex-direction: column; gap: 2px; }
-.set-info-lbl { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
-.set-info-val { font-size: 14px; color: var(--text); font-weight: 600; word-break: break-word; }
+.set-info-lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.set-info-val { font-size: 12px; color: var(--text); font-weight: 600; word-break: break-word; }
 
 /* ---- โปรไฟล์ (โหมดแก้ไข) ---- */
 .set-avatar-edit { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
 .set-upload-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--field-border);
-  background: var(--field); color: var(--text); font-size: 13px; font-weight: 600;
+  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--field-border);
+  background: var(--field); color: var(--text); font-size: 12px; font-weight: 600;
   cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s;
 }
 .set-upload-btn:hover { border-color: #2F65F6; color: #2F65F6; background: rgba(47,101,246,.06); }
@@ -267,22 +268,22 @@ export default {
 /* ---- แถวความปลอดภัย / แจ้งเตือน ---- */
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .set-row-info { min-width: 0; }
-.set-row-title { font-weight: 600; color: var(--text); font-size: 14px; }
-.set-row-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.set-row-title { font-weight: 600; color: var(--text); font-size: 12px; }
+.set-row-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
 /* ---- toggle switch ---- */
-.set-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; cursor: pointer; }
+.set-switch { position: relative; display: inline-block; width: 32px; height: 18px; flex-shrink: 0; cursor: pointer; }
 .set-switch input { opacity: 0; width: 0; height: 0; }
 .set-switch-slider {
-  position: absolute; inset: 0; border-radius: 24px; background: var(--field-border);
+  position: absolute; inset: 0; border-radius: 18px; background: var(--field-border);
   transition: background .2s;
 }
 .set-switch-slider::before {
-  content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px;
+  content: ''; position: absolute; height: 13px; width: 13px; left: 2.5px; top: 2.5px;
   background: #fff; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
 }
 .set-switch input:checked + .set-switch-slider { background: #17a06a; }
-.set-switch input:checked + .set-switch-slider::before { transform: translateX(20px); }
+.set-switch input:checked + .set-switch-slider::before { transform: translateX(14px); }
 
 @media (max-width: 760px) {
   .set-grid { grid-template-columns: 1fr; }
@@ -294,7 +295,7 @@ export default {
 .erp-modal-wide { width: 600px; max-width: 96vw; }
 
 /* หัวขั้นตอน + เลขลำดับ */
-.imp-step-title { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.imp-step-title { font-size: 12px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .imp-step-no {
   display: inline-grid; place-items: center; width: 22px; height: 22px; flex-shrink: 0;
   border-radius: 50%; background: #2F65F6; color: #fff; font-size: 12px; font-weight: 700;
@@ -303,15 +304,15 @@ export default {
 /* dropzone ลาก-วางไฟล์ */
 .imp-dropzone {
   display: flex; align-items: center; gap: 16px;
-  padding: 22px 24px; border: 2px dashed var(--field-border); border-radius: 12px;
+  padding: 16px 18px; border: 2px dashed var(--field-border); border-radius: 12px;
   background: var(--field); cursor: pointer; transition: border-color .18s, background .18s;
 }
 .imp-dropzone:hover { border-color: #2F65F6; background: rgba(47,101,246,.05); }
 .imp-dropzone.dragging { border-color: #2F65F6; background: rgba(47,101,246,.1); }
 .imp-dropzone.has-file { border-style: solid; border-color: #17a06a; background: rgba(23,160,106,.07); }
-.imp-dz-icon { font-size: 34px; line-height: 1; flex-shrink: 0; }
+.imp-dz-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
 .imp-dz-text { display: flex; flex-direction: column; gap: 3px; }
-.imp-dz-main { font-size: 14.5px; color: var(--text); }
+.imp-dz-main { font-size: 12px; color: var(--text); }
 .imp-dz-main strong { color: #2F65F6; }
 .imp-dz-file { color: #17a06a; font-weight: 700; word-break: break-all; }
 .imp-dz-sub { font-size: 12px; color: var(--muted); }
@@ -319,7 +320,7 @@ export default {
 .imp-hint { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 10px 2px 0; }
 
 .imp-preview-label {
-  font-size: 13.5px; font-weight: 700; color: var(--text);
+  font-size: 12px; font-weight: 700; color: var(--text);
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   margin: 22px 0 8px;
 }

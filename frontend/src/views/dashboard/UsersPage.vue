@@ -8,12 +8,15 @@
     </div>
   </div>
 
-  <div class="section usr-card">
-    <div class="section-header">
+  <div class="section" style="margin-top: 12px;">
+    <div class="section-header" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
       <h2>👥 {{ dash.t[dash.lang].totalMembers }} {{ dash.members.length }} {{ dash.lang === 'th' ? 'คน' : 'People' }}</h2>
       <button class="btn-small">{{ dash.t[dash.lang].filter }}</button>
     </div>
-    <div class="usr-table-wrap">
+  </div>
+
+  <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
+    <div class="fr-table-scroll">
     <table class="fr-table">
       <thead>
         <tr>
@@ -120,21 +123,13 @@ export default {
 /* เว้นระยะหัวหน้าจากขอบบน + ย่อปุ่มค้นหาให้พอดี */
 .header { margin-top: 14px; align-items: center; }
 
-/* การ์ดครอบตาราง + ธีมหัวเข้ม (เหมือนหน้าสิทธิ์การเข้าใช้งาน) */
-.usr-card { padding: 18px 20px 16px; }
-.usr-card .section-header { margin-bottom: 14px; }
-.usr-table-wrap {
-  border: 1px solid var(--field-border); border-radius: 10px;
-  overflow: hidden; overflow-x: auto;
-}
-.usr-table-wrap .fr-table { border: none; }
-.usr-table-wrap .fr-table tbody tr:last-child td { border-bottom: none; }
+/* ตารางเต็มความกว้างมาตรฐาน (ใช้ section.fr-table-section + fr-table-scroll เหมือนทุกหน้า) */
 .header-actions .fr-btn-search {
-  padding: 6px 16px; font-size: 13px; line-height: 1.2;
+  padding: 6px 16px; font-size: 12px; line-height: 1.2;
 }
 .pm-role-select {
-  padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 7px;
-  font-size: 13.5px; font-family: inherit; background: #fff; color: #334155;
+  padding: 5px 10px; border: 1px solid var(--field-border); border-radius: 7px;
+  font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text);
   cursor: pointer; max-width: 200px;
 }
 .pm-role-select:focus { outline: none; border-color: #1e40ff; }
@@ -149,9 +144,9 @@ export default {
 .us-edit:hover { background: #e0e7ff; }
 .us-del { background: #fef2f2; color: #a82a3a; border-color: #fecaca; }
 .us-del:hover { background: #fee2e2; }
-.us-role-text { font-size: 13px; color: var(--text); }
+.us-role-text { font-size: 12px; color: var(--text); }
 .us-self-tag { font-size: 11.5px; color: #2F65F6; font-weight: 600; margin-left: 4px; cursor: help; }
-.us-locked { font-size: 14px; opacity: .5; }
+.us-locked { font-size: 12px; opacity: .5; }
 .us-perm-note { font-size: 12px; color: #a82a3a; margin-right: 8px; }
 
 /* โมดัลแก้ไข */
@@ -160,29 +155,29 @@ export default {
   background: rgba(15,23,42,0.5); padding: 20px;
   font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
 }
-.us-modal { background: #fff; border-radius: 12px; width: 420px; max-width: 100%; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
-.us-modal-head { background: #1e40ff; color: #fff; padding: 13px 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-.us-x { background: none; border: none; color: #fff; font-size: 17px; cursor: pointer; }
+.us-modal { background: var(--surface); border-radius: 12px; width: 420px; max-width: 100%; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
+.us-modal-head { background: #1e40ff; color: #fff; padding: 8px 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.us-x { background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; }
 .us-modal-body { padding: 18px 20px; }
-.us-lbl { display: block; font-size: 13px; font-weight: 600; color: #334155; margin: 10px 0 4px; }
+.us-lbl { display: block; font-size: 12px; font-weight: 600; color: #334155; margin: 10px 0 4px; }
 .us-lbl:first-child { margin-top: 0; }
 .us-hint { font-weight: 400; color: #94a3b8; font-size: 12px; }
 .us-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .us-input {
   width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 7px;
-  font-size: 14px; font-family: inherit; outline: none;
+  font-size: 12px; font-family: inherit; outline: none;
 }
 .us-input:focus { border-color: #1e40ff; box-shadow: 0 0 0 3px rgba(30,64,255,0.12); }
-.us-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+.us-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 8px 14px; border-top: 1px solid #e2e8f0; background: #f8fafc; }
 .us-btn-cancel { padding: 8px 18px; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; font-weight: 700; cursor: pointer; font-family: inherit; }
 .us-btn-save { padding: 8px 18px; border: none; border-radius: 8px; background: #1a9c54; color: #fff; font-weight: 700; cursor: pointer; font-family: inherit; }
 .us-btn-save:hover { background: #158045; }
 .us-fade-enter-active, .us-fade-leave-active { transition: opacity 0.2s; }
 .us-fade-enter-from, .us-fade-leave-to { opacity: 0; }
 
-:global([data-theme="dark"]) .us-modal { background: #1e293b; }
-:global([data-theme="dark"]) .us-lbl { color: #e2e8f0; }
-:global([data-theme="dark"]) .us-input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
-:global([data-theme="dark"]) .us-modal-foot { background: #172033; border-top-color: #334155; }
-:global([data-theme="dark"]) .us-btn-cancel { background: #334155; color: #e2e8f0; }
+:global([data-theme="dark"]) .us-modal { background: #1a1a1d; }
+:global([data-theme="dark"]) .us-lbl { color: #d8d8dc; }
+:global([data-theme="dark"]) .us-input { background: #0f0f11; border-color: #2c2c31; color: #ececee; }
+:global([data-theme="dark"]) .us-modal-foot { background: #151517; border-top-color: #2c2c31; }
+:global([data-theme="dark"]) .us-btn-cancel { background: #2c2c31; color: #d8d8dc; }
 </style>

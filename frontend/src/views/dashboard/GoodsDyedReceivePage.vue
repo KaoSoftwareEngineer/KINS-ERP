@@ -452,7 +452,7 @@ export default {
             <tr><td colspan="4"><b>รวม</b></td><td><b>${this.totalFold}</b></td><td><b>${this.totalQty.toFixed(2)}</b></td><td></td><td><b>${this.subtotal.toFixed(2)}</b></td></tr>
           </tbody>
         </table>
-        <div style="text-align:right;font-size:13px;margin-top:10px"><b>ยอดสุทธิ :</b> ${this.netTotal.toFixed(2)} บาท</div>
+        <div style="text-align:right;font-size: 12px;margin-top:10px"><b>ยอดสุทธิ :</b> ${this.netTotal.toFixed(2)} บาท</div>
         <div class="foot"><div><b>ผู้รับสินค้า :</b> ____________________</div><div><b>D'finest Fabric</b></div></div>
         </body></html>`);
       win.document.close();
@@ -462,7 +462,7 @@ export default {
 </script>
 
 <style scoped>
-.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.po-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; position: relative; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
 .po-titlebar { background: transparent; color: var(--text); font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 .po-head { display: flex; flex-wrap: wrap; gap: 22px; padding: 20px; background: transparent; border: none; border-bottom: 1px solid var(--field-border); }
 .po-head-col { display: flex; flex-direction: column; gap: 8px; }
@@ -470,20 +470,20 @@ export default {
 .po-field { display: flex; align-items: flex-start; gap: 8px; }
 .po-field > label { min-width: 96px; text-align: right; padding-top: 6px; color: var(--muted); font-size: 12px; font-weight: 600; }
 .po-field input, .po-field select {
-  height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px;
+  height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px;
   font-family: inherit; background: var(--surface); color: var(--text); min-width: 150px;
   transition: border-color .2s, box-shadow .2s;
 }
 .po-field textarea {
   width: 100%; resize: vertical; padding: 8px 10px; border: 1px solid var(--field-border); border-radius: 8px;
-  font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text);
+  font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text);
 }
 .po-field input:focus, .po-field select:focus, .po-field textarea:focus {
   outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12);
 }
 .po-ro { background: var(--field) !important; font-weight: 700; }
 
-.po-items { padding: 12px 16px; }
+.po-items { padding: 8px 12px; }
 .po-item-table { width: 100%; border-collapse: collapse; }
 .po-item-table th { text-align: center; font-size: 12px; color: #fff; background: #3c4453; padding: 10px 8px; font-weight: 600; letter-spacing: .3px; border-right: 1px solid rgba(255,255,255,.18); }
 .po-item-table th:last-child { border-right: none; }
@@ -510,10 +510,10 @@ export default {
 .po-sum-row input.po-num { width: 150px; }
 .po-sum-net input { font-weight: 700; }
 
-.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
-.po-saved-msg { color: #1a9c54; font-size: 13px; font-weight: 600; }
+.po-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; }
+.po-saved-msg { color: #1a9c54; font-size: 12px; font-weight: 600; }
 .po-footer-btns { display: flex; gap: 10px; margin-left: auto; }
-.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
+.po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); transition: background .2s, border-color .2s; }
 .po-btn:hover { background: #dde1ea; border-color: #c7cede; }
 .po-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover { background: #158045; border-color: #158045; }
@@ -533,7 +533,7 @@ export default {
 .fd-drawer { position: absolute; top: 0; right: 0; height: 100%; width: 440px; max-width: 94vw; background: var(--surface); box-shadow: -8px 0 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
 .fd-head { background: #3c4453; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
 .fd-head-txt { display: flex; flex-direction: column; gap: 2px; }
-.fd-head-title { font-weight: 700; font-size: 15px; }
+.fd-head-title { font-weight: 700; font-size: 12.5px; }
 .fd-head-sub { font-size: 12px; color: rgba(255,255,255,.7); }
 .fd-x { background: rgba(255,255,255,.12); border: none; color: #fff; width: 30px; height: 30px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background .15s; }
 .fd-x:hover { background: rgba(255,255,255,.24); }
@@ -545,23 +545,23 @@ export default {
 .fd-row-head { margin-bottom: 2px; }
 .fd-row-head > div { font-size: 11px; color: var(--muted); font-weight: 600; text-align: center; }
 .fd-c-per, .fd-c-cnt, .fd-c-sum { min-width: 0; }
-.fd-num { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; text-align: right; font-family: inherit; background: var(--field); color: var(--text); transition: border-color .15s, background .15s; }
+.fd-num { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; text-align: right; font-family: inherit; background: var(--field); color: var(--text); transition: border-color .15s, background .15s; }
 .fd-num:focus { outline: none; border-color: #2F65F6; background: var(--surface); box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .fd-ro { background: var(--field); font-weight: 700; color: var(--text); }
 .fd-c-act { display: flex; justify-content: center; }
 .fd-mini { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--field-border); background: var(--field); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s; }
 .fd-mini svg { width: 15px; height: 15px; }
 .fd-mini-del { color: #e03131; } .fd-mini-del:hover { background: #fdeaea; border-color: #e03131; }
-.fd-add-btn { margin-top: 12px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border: 1px dashed var(--field-border); border-radius: 9px; background: transparent; color: #2F65F6; font-weight: 600; font-size: 13px; font-family: inherit; cursor: pointer; transition: background .15s, border-color .15s; }
+.fd-add-btn { margin-top: 12px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border: 1px dashed var(--field-border); border-radius: 9px; background: transparent; color: #2F65F6; font-weight: 600; font-size: 12px; font-family: inherit; cursor: pointer; transition: background .15s, border-color .15s; }
 .fd-add-btn:hover { background: #e9f0fe; border-color: #2F65F6; }
 .fd-add-btn svg { width: 15px; height: 15px; }
 .fd-summary { margin-top: 18px; display: flex; gap: 10px; }
-.fd-sum-item { flex: 1; background: var(--field); border: 1px solid var(--field-border); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.fd-sum-item { flex: 1; background: var(--field); border: 1px solid var(--field-border); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
 .fd-sum-lbl { font-size: 11.5px; color: var(--muted); font-weight: 600; }
-.fd-sum-val { font-size: 20px; font-weight: 700; color: var(--text); }
+.fd-sum-val { font-size: 14px; font-weight: 700; color: var(--text); }
 .fd-sum-main { background: #e7f6ee; border-color: #1a9c54; }
 .fd-sum-main .fd-sum-val { color: #158045; }
-.fd-foot-bar { padding: 14px 20px; border-top: 1px solid var(--field-border); display: flex; justify-content: flex-end; gap: 10px; background: var(--field); }
+.fd-foot-bar { padding: 9px 14px; border-top: 1px solid var(--field-border); display: flex; justify-content: flex-end; gap: 10px; background: var(--field); }
 .fd-slide-enter-active, .fd-slide-leave-active { transition: opacity 0.2s; }
 .fd-slide-enter-from, .fd-slide-leave-to { opacity: 0; }
 </style>

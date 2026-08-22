@@ -44,6 +44,7 @@ import StockGenericPage from './dashboard/StockGenericPage.vue';
 import VatGenericPage from './dashboard/VatGenericPage.vue';
 import OrderReceivePage from './dashboard/OrderReceivePage.vue';
 import OrderFulfillPage from './dashboard/OrderFulfillPage.vue';
+import OrderFulfillDetailPage from './dashboard/OrderFulfillDetailPage.vue';
 import OrderGenericPage from './dashboard/OrderGenericPage.vue';
 import CustAccGenericPage from './dashboard/CustAccGenericPage.vue';
 import PartnerAccGenericPage from './dashboard/PartnerAccGenericPage.vue';
@@ -51,6 +52,7 @@ import ReportGenericPage from './dashboard/ReportGenericPage.vue';
 import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
+import QRCode from 'qrcode';
 import CustomerEditModal from './dashboard/CustomerEditModal.vue';
 import ShadeModal from './dashboard/ShadeModal.vue';
 import FeedbackModal from './dashboard/FeedbackModal.vue';
@@ -110,6 +112,7 @@ export default {
     VatGenericPage,
     OrderReceivePage,
     OrderFulfillPage,
+    OrderFulfillDetailPage,
     OrderGenericPage,
     CustAccGenericPage,
     PartnerAccGenericPage,
@@ -491,6 +494,19 @@ data() {
         ofFilters: {
           date: '', customer: '', salesperson: '', search: '', sku: '', colorCode: '', status: '', urgent: false,
         },
+        // ===== หน้าจัดออร์เดอร์/ตัดผ้า (order-fulfill-detail) — เปิดจากปุ่มกรรไกร =====
+        ofDetail: {
+          order: null,                       // ออร์เดอร์ที่กำลังจัด (อ้างอิงตัวจริงใน ofOrders)
+          issueNo: '',                       // เลขที่ใบเบิก OUT{yymm}-xxxx (ดึงจาก backend)
+          issueDate: '',                     // วันที่เบิก
+          issueType: 'ขาย',                  // ประเภทการเบิก
+          remark: '',
+          scanInput: '',                     // ช่องยิง QR ม้วน (ด้านบน)
+          scanY: '', scanM: '',              // หลา/เมตร ของม้วนล่าสุดที่สแกน
+          rows: [],                          // แถวรายการตัด
+          saving: false, savedMsg: '',
+        },
+        ofIssueTypeOptions: ['ขาย', 'ตัวอย่าง', 'เคลม', 'ภายใน'],
         ofSalespersonOptions: ['ปั๊ม', 'นายกิตติ มั่นคง', 'นางสาวปิยะดา สุขใจ'],
         ofColorCodeOptions: ['C-01', 'C-02', 'C-03', 'C-04', 'C-05'],
         ofStatusOptions: ['Waiting to prepare', 'Preparing', 'Prepared', 'Cancelled'],
@@ -786,8 +802,9 @@ data() {
         frNewItem: {
           type: '', sku: '', name: '', structure: '', composition: '', width: '',
           finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
-          imageName: '', substitute: 'no', active: true,
+          imageName: '', substitute: 'no', active: true, groupId: '',
         },
+        frGroupOptions: [],   // รายชื่อกลุ่มผ้า (fabric_regular_group) สำหรับ dropdown เลือกกลุ่ม
         frItems: [],
         frPage: 1,
         frPageSize: 50,
@@ -859,6 +876,7 @@ data() {
         settingsEditMsg: { type: '', text: '' },
         members: [],
         // Dashboard stats
+        dashStats: null,   // สถิติจริงจาก /api/dashboard/stats
         totalRevenue: '3,468.96',
         monthlySales: 82,
         totalOrders: 12,
@@ -895,6 +913,8 @@ data() {
         topnavNotifOpen: false,
         topnavNotifCount: 2,
         lowStockRolls: [],
+        // ลายเซ็นการแจ้งเตือนที่ "เปิดอ่านแล้ว" — ถ้าตรงกับของปัจจุบัน = ไม่มีอะไรใหม่ (ซ่อนตัวเลข)
+        notifSeenKey: localStorage.getItem('notifSeenKey') || '',
         lowStockThreshold: 50,
         // ปริมาณการขาย (Sales Volume) — ข้อมูลตัวอย่าง รอเชื่อมข้อมูลจริง
         dashVolumeData: [
@@ -1284,7 +1304,15 @@ data() {
       frAllSelectedOnPage() {
         return this.frPagedItems.length > 0 && this.frPagedItems.every(i => this.frSelected.includes(i.sku));
       },
+      // ลายเซ็นของการแจ้งเตือนชุดปัจจุบัน (เปลี่ยนเมื่อมีอะไรอัปเดตใหม่)
+      notifKey() {
+        const acts = (this.recentActivities || []).slice(0, 4).map(a => a.thTitle + '|' + a.time).join('~');
+        const low = (this.lowStockRolls || []).map(r => r.roll_qr_code || r.roll_id).join(',');
+        return `${this.topnavNotifCount || 0}#${low}#${acts}`;
+      },
       notifCount() {
+        // เปิดอ่านแล้วและยังไม่มีอะไรใหม่ → ไม่ต้องโชว์ตัวเลข
+        if (this.notifSeenKey && this.notifSeenKey === this.notifKey) return 0;
         return (this.topnavNotifCount || 0) + this.lowStockRolls.length;
       },
       genCurrentTable() {
@@ -1420,7 +1448,10 @@ data() {
       frVisibleShadeRows() {
         const q = this.frShadeSearch.trim().toLowerCase();
         if (!q) return this.frShadeRows;
-        return this.frShadeRows.filter(row => row.name.toLowerCase().includes(q));
+        return this.frShadeRows.filter(row =>
+          (row.name || '').toLowerCase().includes(q) ||
+          (row.color_code || '').toLowerCase().includes(q)
+        );
       },
       oeSlipItems() {
         return this.oeItems.filter(row => row.sku.trim());
@@ -1778,6 +1809,7 @@ data() {
       this.loadMembers();
       this.loadOrders();
       this.loadLowStock();
+      this.loadDashboardStats();   // สถิติจริงของแดชบอร์ด
       this.loadMe();      // โหลด role ตัวเองล่าสุด (โปรไฟล์/สิทธิ์)
       this.loadRoles();   // โหลดบทบาท+สิทธิ์จาก MySQL
       this.loadMasterData();  // โหลดข้อมูลผ้า (master data) สำหรับ dropdown ในฟอร์มผ้า
@@ -2040,6 +2072,77 @@ data() {
         XLSX.writeFile(wb, `ผ้าประจำ-${new Date().toISOString().slice(0, 10)}.xlsx`);
       },
       // ============ แจ้งเตือนผ้าใกล้หมด (แสดงในกระดิ่ง) ============
+      // โหลดสถิติจริงของแดชบอร์ด แล้วเติมค่าเข้าช่องต่างๆ (KPI/กราฟ/สัดส่วน/ออร์เดอร์/กิจกรรม)
+      async loadDashboardStats() {
+        try {
+          const res = await fetch(API + '/api/dashboard/stats?year=' + (this.dashTrendYear || new Date().getFullYear()), {
+            headers: { Authorization: 'Bearer ' + this.token },
+          });
+          if (res.status === 401) { this.sessionExpired(); return; }
+          const d = await res.json();
+          if (!d.ok) return;
+          this.dashStats = d;
+          const k = d.kpi || {};
+          const nf = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+          // KPI 4 ช่องบน — ใช้ข้อมูลจริง
+          this.totalRevenue = nf(k.invoiceAmount);          // รายได้เดือนนี้ (จากอินวอยซ์)
+          this.monthlySales = Math.round(k.revenueYards);   // ยอดขายเดือนนี้ (หลาที่ตัดจ่ายจริง)
+          this.totalOrders = k.ordersWaiting || 0;          // คำสั่งซื้อที่กำลังประมวลผล
+          this.totalSalesAmount = nf(k.stockYards);         // สินค้าคงคลัง (หลา)
+          this.newUsersThisMonth = k.users || 0;
+
+          // กราฟแนวโน้ม — เติมข้อมูลจริงรายเดือน (ปีที่เลือก + ปีก่อนหน้า)
+          const t = d.trend || {};
+          const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+          const toSeries = (arr) => MONTHS.map((label, i) => ({ label, value: Number((arr || [])[i]) || 0 }));
+          const hasReal = (t.current || []).some(v => Number(v) > 0) || (t.previous || []).some(v => Number(v) > 0);
+          if (hasReal) {
+            this.dashSalesByYear = {
+              ...this.dashSalesByYear,
+              [t.year - 1]: toSeries(t.previous),
+              [t.year]: toSeries(t.current),
+            };
+          }
+
+          // สัดส่วนปริมาณการขาย — จากสต็อกจริงแยกตามชนิดผ้า
+          const vol = d.volume || [];
+          const volTotal = vol.reduce((s, v) => s + Number(v.value || 0), 0);
+          if (vol.length) {
+            // แสดงครบ 3 ประเภท (ผ้าประจำ/ผ้าไม่ประจำ/ผ้าดิบ) — ที่ยังไม่มีสต็อกให้เป็น 0%
+            this.dashVolumeData = vol.map(v => ({
+              label: v.label,
+              value: volTotal > 0 ? Math.round((Number(v.value) / volTotal) * 100) : 0,
+              yards: Number(v.value) || 0,
+            }));
+          }
+
+          // กิจกรรมล่าสุด — จากการเคลื่อนไหวสต็อกจริง
+          const typeText = { issue: 'ตัดจ่ายสินค้า', cut: 'ตัดหลา', move: 'ย้ายสินค้า', adjust: 'ปรับปรุงสต็อก', receive: 'รับสินค้าเข้า' };
+          const icons = { issue: '📤', cut: '✂️', move: '🚚', adjust: '⚖️', receive: '📥' };
+          const acts = (d.activities || []).map(a => {
+            const t = typeText[a.txn_type] || a.txn_type;
+            const sku = a.product_sku ? ' — ' + a.product_sku : '';
+            const yd = a.yards_change ? ` (${Number(a.yards_change).toFixed(2)} หลา)` : '';
+            return {
+              icon: icons[a.txn_type] || '📝',
+              thTitle: t + sku + yd,
+              enTitle: t + sku + yd,
+              time: this.dashTimeAgo(a.created_at) + (a.user_name ? ' · ' + a.user_name : ''),
+            };
+          });
+          if (acts.length) this.recentActivities = acts;
+        } catch (e) { /* โหลดไม่ได้ → คงค่าเดิมไว้ */ }
+      },
+      // แปลงเวลาเป็น "เมื่อ x ที่แล้ว"
+      dashTimeAgo(ts) {
+        if (!ts) return '-';
+        const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+        if (diff < 60) return 'เมื่อสักครู่';
+        if (diff < 3600) return `เมื่อ ${Math.floor(diff / 60)} นาทีที่แล้ว`;
+        if (diff < 86400) return `เมื่อ ${Math.floor(diff / 3600)} ชั่วโมงที่แล้ว`;
+        return `เมื่อ ${Math.floor(diff / 86400)} วันที่แล้ว`;
+      },
       async loadLowStock() {
         try {
           const res = await fetch(API + '/api/low-stock?threshold=' + this.lowStockThreshold, {
@@ -2144,6 +2247,7 @@ data() {
       },
       async frLoadItems() {
         this.frLoading = true;
+        this.frLoadGroups();
         try {
           const res = await fetch(API + '/api/fabrics', {
             headers: { Authorization: 'Bearer ' + this.token },
@@ -2167,6 +2271,7 @@ data() {
             imageName: row.image_name || '',
             active: !!row.active,
             substitute: !!row.substitute,
+            groupId: row.group_id || '',
           }));
         } catch (e) {
           this.frItems = [];
@@ -2174,13 +2279,21 @@ data() {
           this.frLoading = false;
         }
       },
+      async frLoadGroups() {
+        try {
+          const res = await fetch(API + '/api/fabric-regular-group', { headers: { Authorization: 'Bearer ' + this.token } });
+          if (res.status === 401) { this.sessionExpired(); return; }
+          const d = await res.json();
+          if (d.ok) this.frGroupOptions = d.items || [];
+        } catch (e) { /* ปล่อยว่าง */ }
+      },
       frOpenAdd() {
         this.frModalMode = 'add';
         this.frEditingId = null;
         this.frNewItem = {
           type: '', sku: '', name: '', structure: '', composition: '', width: '',
           finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
-          imageName: '', substitute: 'no', active: true,
+          imageName: '', substitute: 'no', active: true, groupId: '',
         };
         this.frShowAddModal = true;
       },
@@ -2193,6 +2306,7 @@ data() {
           weight: item.weight, unit: item.unit || 'หลา', description: item.description || '',
           productionDays: item.productionDays || '', imageName: item.imageName || '',
           substitute: item.substitute ? 'yes' : 'no', active: item.active,
+          groupId: item.groupId || '',
         };
         this.frShowAddModal = true;
       },
@@ -2227,7 +2341,10 @@ data() {
         this.frShadeKeySeq += 1;
         return {
           _key: this.frShadeKeySeq,
+          color_code: base ? (base.color_code || '') : '',
           name: base ? base.name : '',
+          rack: base ? (base.rack || '') : '',
+          image_name: base ? (base.image_name || '') : '',
           fabric_cost: base ? base.fabric_cost : '',
           dye_cost: base ? base.dye_cost : '',
         };
@@ -2510,8 +2627,16 @@ data() {
       ofHandleBarcodeEnter() {
         const code = this.ofBarcodeInput.trim();
         if (!code) return;
-        this.ofFilters.search = code;
         this.ofBarcodeInput = '';
+        // สแกน QR เลขออร์เดอร์จากใบสั่งตัด → เปิดหน้าตัดของออร์เดอร์นั้นเลย
+        const order = this.ofOrders.find((o) => o.orderNo === code);
+        if (order) {
+          if (order.status === 'Prepared') { this.fbFail(`ออร์เดอร์ ${code} จัดครบแล้ว`); return; }
+          this.ofFulfillOrder(order);
+          return;
+        }
+        // ไม่ตรงเลขออร์เดอร์ → ใช้เป็นคำค้นหาปกติ
+        this.ofFilters.search = code;
       },
       ofStatusClass(status) {
         if (status === 'Prepared') return 'of-status-prepared';
@@ -2556,6 +2681,14 @@ data() {
           this.fbDone('บันทึกแล้ว');
         } catch (e) {
           this.fbFail('อัปเดตออร์เดอร์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+        }
+      },
+      // เปิด/ปิดกล่องแจ้งเตือน — เปิดแล้วถือว่าอ่านแล้ว (ตัวเลขหาย จนกว่าจะมีอัปเดตใหม่)
+      toggleNotif() {
+        this.topnavNotifOpen = !this.topnavNotifOpen;
+        if (this.topnavNotifOpen) {
+          this.notifSeenKey = this.notifKey;
+          try { localStorage.setItem('notifSeenKey', this.notifSeenKey); } catch (e) {}
         }
       },
       pipelineBadgeCount(key) {
@@ -2668,7 +2801,8 @@ data() {
           if (res.status === 401) { this.sessionExpired(); return; }
           const data = await res.json();
           const rows = (data.shades || []).map(s => this.frNewShadeRow({
-            name: s.name, fabric_cost: s.fabric_cost, dye_cost: s.dye_cost,
+            color_code: s.color_code, name: s.name, rack: s.rack, image_name: s.image_name,
+            fabric_cost: s.fabric_cost, dye_cost: s.dye_cost,
           }));
           this.frShadeRows = rows.length ? rows : [this.frNewShadeRow()];
         } catch (e) {
@@ -2702,8 +2836,15 @@ data() {
       async frSaveShades() {
         if (!this.frShadeFabric) return;
         const shades = this.frShadeRows
-          .filter(r => (r.name || '').trim())
-          .map(r => ({ name: r.name.trim(), fabric_cost: Number(r.fabric_cost) || 0, dye_cost: Number(r.dye_cost) || 0 }));
+          .filter(r => (r.name || '').trim() || (r.color_code || '').trim())
+          .map(r => ({
+            color_code: (r.color_code || '').trim(),
+            name: (r.name || '').trim(),
+            rack: (r.rack || '').trim(),
+            image_name: (r.image_name || '').trim(),
+            fabric_cost: Number(r.fabric_cost) || 0,
+            dye_cost: Number(r.dye_cost) || 0,
+          }));
         this.fbLoading('กำลังบันทึกเฉดสี...');
         try {
           const res = await fetch(API + this.frShadeFabric.apiPath, {
@@ -2734,7 +2875,10 @@ data() {
         this.frShadeKeySeq += 1;
         return {
           _key: this.frShadeKeySeq,
+          color_code: base ? (base.color_code || '') : '',
           name: base ? base.name : '',
+          rack: base ? (base.rack || '') : '',
+          image_name: base ? (base.image_name || '') : '',
           fabric_cost: base ? base.fabric_cost : '',
           dye_cost: base ? base.dye_cost : '',
         };
@@ -2954,8 +3098,16 @@ data() {
       ofHandleBarcodeEnter() {
         const code = this.ofBarcodeInput.trim();
         if (!code) return;
-        this.ofFilters.search = code;
         this.ofBarcodeInput = '';
+        // สแกน QR เลขออร์เดอร์จากใบสั่งตัด → เปิดหน้าตัดของออร์เดอร์นั้นเลย
+        const order = this.ofOrders.find((o) => o.orderNo === code);
+        if (order) {
+          if (order.status === 'Prepared') { this.fbFail(`ออร์เดอร์ ${code} จัดครบแล้ว`); return; }
+          this.ofFulfillOrder(order);
+          return;
+        }
+        // ไม่ตรงเลขออร์เดอร์ → ใช้เป็นคำค้นหาปกติ
+        this.ofFilters.search = code;
       },
       ofStatusClass(status) {
         if (status === 'Prepared') return 'of-status-prepared';
@@ -2974,20 +3126,234 @@ data() {
           (order.note ? `\nหมายเหตุ: ${order.note}` : '')
         );
       },
-      ofPrintOrder(order) {
-        alert(`พิมพ์ใบจัดออร์เดอร์ ${order.orderNo} (ตัวอย่าง — ยังไม่เชื่อมต่อระบบพิมพ์จริง)`);
+      // ปุ่มพิมพ์ → ออกใบสั่งตัดผ้า (cutting slip) ให้พนักงานตัดถือไปตัด แล้วกลับมาสแกนที่หน้าจัดออร์เดอร์
+      async ofPrintOrder(order) {
+        const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const items = order.items || [];
+        // ไอคอน Pack: ไม้แบน = สี่เหลี่ยม, ไม้กลม = วงกลม
+        const packIcon = (pack) => {
+          const p = String(pack || '');
+          if (p.includes('แบน')) return '<span style="display:inline-block;width:34px;height:16px;background:#c9ccd3;border:1px solid #8b90a0;border-radius:2px"></span>';
+          if (p.includes('กลม')) return '<span style="display:inline-block;width:20px;height:20px;background:#c9ccd3;border:1px solid #8b90a0;border-radius:50%"></span>';
+          return esc(p);
+        };
+        const rows = items.map((it) => {
+          const yard = (Number(it.pendingQty) || 0);
+          return `<tr>
+            <td class="c-name">${esc(it.sku)}</td>
+            <td class="c-detail">${esc(it.colorCode)}</td>
+            <td class="c-pack">${packIcon(it.pack)}</td>
+            <td class="c-yard">${yard % 1 === 0 ? yard : yard.toFixed(2)}</td>
+          </tr>`;
+        }).join('');
+
+        let qrImg = '';
+        try { qrImg = await QRCode.toDataURL(order.orderNo || '', { width: 170, margin: 1 }); } catch (e) {}
+
+        const win = window.open('', '_blank', 'width=420,height=680');
+        if (!win) { this.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
+        win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>ใบสั่งตัด ${esc(order.orderNo)}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, 'Noto Sans Thai', sans-serif; margin: 0; padding: 18px; color: #111; }
+            .slip { max-width: 340px; margin: 0 auto; }
+            .cust { font-size: 14px; margin-bottom: 8px; }
+            .ohead { display: flex; justify-content: space-between; font-size: 13px; padding-bottom: 8px; border-bottom: 2px solid #111; }
+            table { width: 100%; border-collapse: collapse; margin-top: 0; }
+            th, td { border: 1px solid #111; padding: 6px 5px; font-size: 12.5px; text-align: center; }
+            th { font-weight: 600; }
+            .c-name { width: 66px; }
+            .c-detail { text-align: center; }
+            .c-pack { width: 52px; }
+            .c-yard { width: 46px; }
+            .total-row td { font-weight: 600; padding: 7px 5px; }
+            .remark-row td { text-align: left; height: 34px; }
+            .remark-label { width: 66px; font-weight: 600; }
+            .qr { text-align: center; margin-top: 22px; }
+            .qr img { width: 150px; height: 150px; }
+            @media print { .no-print { display: none; } body { padding: 6px; } }
+          </style></head><body>
+          <div class="no-print" style="text-align:center;margin-bottom:12px">
+            <button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer">🖨️ พิมพ์</button>
+          </div>
+          <div class="slip">
+            <div class="cust">${esc(order.customer)}</div>
+            <div class="ohead"><span>Order No. ${esc(order.orderNo)}</span><span>${esc(order.date)}</span></div>
+            <table>
+              <thead><tr><th>Name</th><th>Detail</th><th>Pack</th><th>Yard</th></tr></thead>
+              <tbody>
+                ${rows}
+                <tr class="total-row"><td colspan="4">Total WholeSale - ${items.length} Pieces</td></tr>
+                <tr class="remark-row"><td class="remark-label">Remark</td><td colspan="3"></td></tr>
+              </tbody>
+            </table>
+            <div class="qr">${qrImg ? `<img src="${qrImg}" alt="QR ${esc(order.orderNo)}"/>` : ''}</div>
+          </div>
+          </body></html>`);
+        win.document.close();
       },
-      ofFulfillOrder(order) {
+      // กดปุ่มกรรไกร → เปิดหน้าจัดออร์เดอร์/ตัดผ้า พร้อมดึงข้อมูลออร์เดอร์มาเติม
+      async ofFulfillOrder(order) {
         if (order.status === 'Prepared') {
           this.fbFail('ออร์เดอร์นี้จัดครบแล้ว');
           return;
         }
-        if (!confirm(`ยืนยันตัดสินค้าสำหรับออร์เดอร์ ${order.orderNo}?`)) return;
-        if (order.status === 'Waiting to prepare') {
-          order.status = 'Preparing';
-        } else if (order.status === 'Preparing') {
-          order.withdrawnQty = order.orderedQty;
-          order.status = 'Prepared';
+        // สร้างแถวรายการตัดจากรายการในออร์เดอร์ (เฉพาะที่ยังค้างเบิก)
+        const rows = (order.items || [])
+          .map((it, i) => {
+            const pending = Math.max(0, (Number(it.pendingQty) || 0) - (Number(it.withdrawQty) || 0));
+            return {
+              _key: i + 1,
+              sku: it.sku || '',
+              colorCode: it.colorCode || '',
+              colorId: it.colorId || null,
+              width: it.width || '',
+              pendingQty: pending,          // จำนวนค้างเบิก
+              withdrawnQty: Number(it.withdrawQty) || 0, // จำนวนที่เบิกไปแล้ว
+              unit: it.unit || 'หลา',
+              pack: it.pack || '',
+              finalOrder: false,            // จบออร์เดอร์
+              rollQr: '',                   // QR ม้วนที่สแกน (บาร์โค้ด)
+              cutQty: null,                 // จำนวนที่ตัด
+              clearStock: false,            // เคลียร์สต็อก
+            };
+          })
+          .filter((r) => r.sku);
+        if (rows.length === 0) { this.fbFail('ออร์เดอร์นี้ไม่มีรายการสินค้าให้จัด'); return; }
+
+        this.ofDetail.order = order;
+        this.ofDetail.rows = rows;
+        this.ofDetail.issueDate = new Date().toISOString().slice(0, 10);
+        this.ofDetail.issueType = 'ขาย';
+        this.ofDetail.remark = '';
+        this.ofDetail.scanInput = '';
+        this.ofDetail.scanY = '';
+        this.ofDetail.scanM = '';
+        this.ofDetail.savedMsg = '';
+        // เลขที่เบิกสินค้าล้อกับเลขออร์เดอร์: OR2608-008 → OUT2608-008
+        const on = (order.orderNo || '').trim();
+        if (/^OR\d/.test(on)) {
+          this.ofDetail.issueNo = on.replace(/^OR/, 'OUT');
+        } else {
+          this.ofDetail.issueNo = '';
+          // ออร์เดอร์ที่ไม่ได้ขึ้นต้น OR → ดึงเลขใบเบิกถัดไปมาแทน
+          try {
+            const res = await fetch(API + '/api/order-issue/next-no', { headers: { Authorization: 'Bearer ' + this.token } });
+            if (res.status === 401) { this.sessionExpired(); return; }
+            const d = await res.json();
+            if (d.ok) this.ofDetail.issueNo = d.gi_no;
+          } catch (e) { /* ได้เลขจริงตอนบันทึก */ }
+        }
+        this.currentPage = 'order-fulfill-detail';
+      },
+      // ยิง QR ม้วนที่ช่องด้านบน → หาม้วน แล้วจับคู่กับแถวรายการ (เติมบาร์โค้ด + โชว์หลา/เมตร)
+      async ofDetailScan() {
+        const qr = (this.ofDetail.scanInput || '').trim();
+        if (!qr) return;
+        try {
+          const res = await fetch(API + '/api/fabric-rolls/lookup?qr=' + encodeURIComponent(qr), {
+            headers: { Authorization: 'Bearer ' + this.token },
+          });
+          if (res.status === 401) { this.sessionExpired(); return; }
+          const d = await res.json();
+          // ไม่พบม้วน → toast แดง (แบบตอนล็อกอิน)
+          if (!d.ok || !d.roll) {
+            this.ui.toast('ไม่พบข้อมูล หรือ QR ไม่ถูกต้อง', 'error', { title: 'การแจ้งเตือน' });
+            this.ofDetail.scanInput = '';
+            return;
+          }
+          const roll = d.roll;
+          const yards = Number(roll.current_yards) || 0;
+          this.ofDetail.scanY = yards.toFixed(2);
+          this.ofDetail.scanM = (yards * 0.9144).toFixed(2);
+          // จับคู่แถว: ตรงรหัสสินค้า (+สีถ้ามี) และยังไม่ถูกจับคู่
+          const sku = roll.product_sku || '';
+          let row = this.ofDetail.rows.find((r) => r.sku === sku && !r.rollQr && (!roll.color_name || !r.colorCode || r.colorCode.includes(roll.color_name)));
+          if (!row) row = this.ofDetail.rows.find((r) => r.sku === sku && !r.rollQr);
+          // ม้วนนี้ไม่ตรงกับผ้าในออร์เดอร์ที่เปิดอยู่ → toast แดง
+          if (!row) {
+            this.ui.toast('QR ไม่ตรงกับผ้าในออร์เดอร์นี้', 'error', { title: 'การแจ้งเตือน' });
+            this.ofDetail.scanY = ''; this.ofDetail.scanM = '';
+            this.ofDetail.scanInput = '';
+            return;
+          }
+          // สแกนถูก → แถวขึ้นเขียว + toast เขียว
+          row.rollQr = qr;
+          row.colorId = roll.color_id || row.colorId;
+          if (!(Number(row.cutQty) > 0)) {
+            // เสนอจำนวนที่ตัด = น้อยกว่าระหว่างค้างเบิกกับหลาในม้วน
+            row.cutQty = Math.min(row.pendingQty || yards, yards);
+          }
+          this.ui.toast(`พบม้วน ${sku} — คงเหลือ ${yards.toFixed(2)} หลา`, 'success', { title: 'สแกนสำเร็จ' });
+        } catch (e) {
+          this.ui.toast('ค้นหาม้วนไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์', 'error', { title: 'การแจ้งเตือน' });
+        } finally {
+          this.ofDetail.scanInput = '';
+        }
+      },
+      ofDetailBack() {
+        this.currentPage = 'order-fulfill';
+      },
+      // บันทึกการตัดจ่าย → POST /api/order-issue (หักสต็อกจริง + อัปเดตออร์เดอร์)
+      async ofDetailSave() {
+        const d = this.ofDetail;
+        if (!d.order) return;
+        const lines = d.rows
+          .filter((r) => r.sku && Number(r.cutQty) > 0)
+          .map((r) => ({
+            sku: r.sku,
+            color_code: r.colorCode,
+            color_id: r.colorId || null,
+            color_name: r.colorCode || '',
+            width: r.width,
+            unit: r.unit,
+            pack: r.pack,
+            roll_qr: r.rollQr || '',
+            yards: Number(r.cutQty),
+            clear_stock: !!r.clearStock,
+          }));
+        if (lines.length === 0) { this.fbFail('กรุณาระบุจำนวนที่ตัดอย่างน้อย 1 รายการ'); return; }
+        const finishOrder = d.rows.some((r) => r.finalOrder);
+        d.saving = true;
+        this.fbLoading('กำลังตัดจ่ายสินค้า...');
+        try {
+          const res = await fetch(API + '/api/order-issue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
+            body: JSON.stringify({
+              order_id: d.order.id,
+              order_no: d.order.orderNo,
+              gi_no: d.issueNo,               // เลขใบเบิกล้อกับเลขออร์เดอร์ (OR→OUT)
+              issue_date: d.issueDate,
+              issue_type: d.issueType,
+              customer: d.order.customer,
+              payment_term: d.order.paymentTerm,
+              salesperson: d.order.salesperson,
+              note: d.remark,
+              finish_order: finishOrder,
+              lines,
+            }),
+          });
+          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
+          const out = await res.json();
+          if (!out.ok) { this.fbFail(out.message || 'ตัดจ่ายไม่สำเร็จ'); return; }
+          d.issueNo = out.gi_no || d.issueNo;
+          d.savedMsg = out.message || 'ตัดจ่ายเรียบร้อยแล้ว';
+          this.fbDone('บันทึกแล้ว');
+          await this.loadOrders();               // รีเฟรชสถานะ/ยอดเบิก
+          setTimeout(() => { this.currentPage = 'order-fulfill'; }, 800);
+        } catch (e) {
+          this.fbFail('ตัดจ่ายไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+        } finally {
+          d.saving = false;
+        }
+      },
+      // เปิด/ปิดกล่องแจ้งเตือน — เปิดแล้วถือว่าอ่านแล้ว (ตัวเลขหาย จนกว่าจะมีอัปเดตใหม่)
+      toggleNotif() {
+        this.topnavNotifOpen = !this.topnavNotifOpen;
+        if (this.topnavNotifOpen) {
+          this.notifSeenKey = this.notifKey;
+          try { localStorage.setItem('notifSeenKey', this.notifSeenKey); } catch (e) {}
         }
       },
       pipelineBadgeCount(key) {
@@ -3109,7 +3475,8 @@ data() {
           if (res.status === 401) { this.sessionExpired(); return; }
           const data = await res.json();
           const rows = (data.shades || []).map(s => this.frNewShadeRow({
-            name: s.name, fabric_cost: s.fabric_cost, dye_cost: s.dye_cost,
+            color_code: s.color_code, name: s.name, rack: s.rack, image_name: s.image_name,
+            fabric_cost: s.fabric_cost, dye_cost: s.dye_cost,
           }));
           this.frShadeRows = rows.length ? rows : [this.frNewShadeRow()];
         } catch (e) {
@@ -3143,8 +3510,15 @@ data() {
       async frSaveShades() {
         if (!this.frShadeFabric) return;
         const shades = this.frShadeRows
-          .filter(r => (r.name || '').trim())
-          .map(r => ({ name: r.name.trim(), fabric_cost: Number(r.fabric_cost) || 0, dye_cost: Number(r.dye_cost) || 0 }));
+          .filter(r => (r.name || '').trim() || (r.color_code || '').trim())
+          .map(r => ({
+            color_code: (r.color_code || '').trim(),
+            name: (r.name || '').trim(),
+            rack: (r.rack || '').trim(),
+            image_name: (r.image_name || '').trim(),
+            fabric_cost: Number(r.fabric_cost) || 0,
+            dye_cost: Number(r.dye_cost) || 0,
+          }));
         this.fbLoading('กำลังบันทึกเฉดสี...');
         try {
           const res = await fetch(API + this.frShadeFabric.apiPath, {
@@ -3201,6 +3575,7 @@ data() {
           image_name: this.frNewItem.imageName,
           substitute: this.frNewItem.substitute === 'yes',
           active: this.frNewItem.active,
+          group_id: this.frNewItem.groupId || null,
         };
         this.fbLoading('กำลังบันทึก...');
         try {
@@ -3429,15 +3804,21 @@ data() {
       frPullShadesFromGroup() {
         const g = this.frShadeGroups.find(x => String(x.id) === String(this.frShadeGroupSel));
         if (!g) { this.fbFail('กรุณาเลือกกลุ่มผ้าก่อน'); return; }
-        const existing = new Set(this.frShadeRows.map(r => (r.name || '').trim()).filter(Boolean));
+        // กันซ้ำด้วย "รหัสสี" ก่อน (ถ้ามี) ไม่งั้นใช้ชื่อเฉดสี
+        const keyOf = (o) => ((o.color_code || '').trim() || (o.name || '').trim());
+        const existing = new Set(this.frShadeRows.map(keyOf).filter(Boolean));
         let added = 0;
         (g.shades || []).forEach(s => {
-          const nm = (s.name || '').trim();
-          if (!nm || existing.has(nm)) return;
+          const k = keyOf(s);
+          if (!k || existing.has(k)) return;
           const row = this.frNewShadeRow();
-          row.name = nm; row.fabric_cost = s.fabric_cost || 0; row.dye_cost = s.dye_cost || 0;
+          row.color_code = (s.color_code || '').trim();
+          row.name = (s.name || '').trim();
+          row.rack = (s.rack || '').trim();
+          row.image_name = (s.image_name || '').trim();
+          row.fabric_cost = s.fabric_cost || 0; row.dye_cost = s.dye_cost || 0;
           this.frShadeRows.push(row);
-          existing.add(nm); added += 1;
+          existing.add(k); added += 1;
         });
         if (added > 0) this.fbDone(`ดึงเฉดสีมา ${added} รายการ`);
         else this.fbFail('ไม่มีเฉดสีใหม่ให้ดึง (อาจมีอยู่แล้ว)');
@@ -3521,6 +3902,30 @@ data() {
         }
       },
       dashExportPeriodRows(granularity) {
+        // ถ้ามียอดขายรายวันจริงจาก DB → ใช้ของจริง (รายวัน/รายสัปดาห์)
+        const real = (this.dashStats && this.dashStats.daily) || [];
+        if (real.length && (granularity === 'day' || granularity === 'week')) {
+          if (granularity === 'day') {
+            return real.map(r => {
+              const [y, m, dd] = r.date.split('-');
+              return { period: `${dd}/${m}/${y}`, sales: Math.round(r.value) };
+            });
+          }
+          // รวมเป็นรายสัปดาห์ (จันทร์–อาทิตย์)
+          const buckets = new Map();
+          real.forEach(r => {
+            const dt = new Date(r.date + 'T00:00:00');
+            const monday = new Date(dt);
+            monday.setDate(dt.getDate() - ((dt.getDay() + 6) % 7));
+            const key = monday.toISOString().slice(0, 10);
+            const end = new Date(monday); end.setDate(monday.getDate() + 6);
+            const fmt = (x) => `${String(x.getDate()).padStart(2, '0')}/${String(x.getMonth() + 1).padStart(2, '0')}/${x.getFullYear()}`;
+            const cur = buckets.get(key) || { period: `${fmt(monday)} - ${fmt(end)}`, sales: 0 };
+            cur.sales += Number(r.value) || 0;
+            buckets.set(key, cur);
+          });
+          return [...buckets.values()].map(b => ({ ...b, sales: Math.round(b.sales) }));
+        }
         const year = this.dashTrendYear;
         const months = this.dashSalesByYear[year] || [];
         const rows = [];
@@ -3600,12 +4005,46 @@ data() {
         const activitySheet = XLSX.utils.aoa_to_sheet(activityAoa);
         activitySheet['!cols'] = [{ wch: 28 }, { wch: 28 }];
         XLSX.utils.book_append_sheet(wb, activitySheet, 'กิจกรรมล่าสุด');
+
+        // ---- ชีท 5: ออร์เดอร์ล่าสุด (ข้อมูลจริง) ----
+        const ords = (this.dashStats && this.dashStats.recentOrders) || [];
+        if (ords.length) {
+          const ordAoa = [['เลขที่ออร์เดอร์', 'ลูกค้า', 'พนักงานขาย', 'จำนวนที่สั่ง', 'จำนวนที่เบิก', 'สถานะ'],
+            ...ords.map(o => [o.order_no, o.customer, o.salesperson, Number(o.ordered_qty) || 0, Number(o.withdrawn_qty) || 0, o.status])];
+          const ordSheet = XLSX.utils.aoa_to_sheet(ordAoa);
+          ordSheet['!cols'] = [{ wch: 16 }, { wch: 24 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 18 }];
+          XLSX.utils.book_append_sheet(wb, ordSheet, 'ออร์เดอร์ล่าสุด');
+        }
 
         const suffix = granularity === 'day' ? 'รายวัน' : granularity === 'week' ? 'รายสัปดาห์' : 'รายเดือน';
         const today = new Date().toISOString().slice(0, 10);
         XLSX.writeFile(wb, `Dashboard-${suffix}-${this.dashTrendYear}-${today}.xlsx`);
       },
       dashExportPeriodRows(granularity) {
+        // ถ้ามียอดขายรายวันจริงจาก DB → ใช้ของจริง (รายวัน/รายสัปดาห์)
+        const real = (this.dashStats && this.dashStats.daily) || [];
+        if (real.length && (granularity === 'day' || granularity === 'week')) {
+          if (granularity === 'day') {
+            return real.map(r => {
+              const [y, m, dd] = r.date.split('-');
+              return { period: `${dd}/${m}/${y}`, sales: Math.round(r.value) };
+            });
+          }
+          // รวมเป็นรายสัปดาห์ (จันทร์–อาทิตย์)
+          const buckets = new Map();
+          real.forEach(r => {
+            const dt = new Date(r.date + 'T00:00:00');
+            const monday = new Date(dt);
+            monday.setDate(dt.getDate() - ((dt.getDay() + 6) % 7));
+            const key = monday.toISOString().slice(0, 10);
+            const end = new Date(monday); end.setDate(monday.getDate() + 6);
+            const fmt = (x) => `${String(x.getDate()).padStart(2, '0')}/${String(x.getMonth() + 1).padStart(2, '0')}/${x.getFullYear()}`;
+            const cur = buckets.get(key) || { period: `${fmt(monday)} - ${fmt(end)}`, sales: 0 };
+            cur.sales += Number(r.value) || 0;
+            buckets.set(key, cur);
+          });
+          return [...buckets.values()].map(b => ({ ...b, sales: Math.round(b.sales) }));
+        }
         const year = this.dashTrendYear;
         const months = this.dashSalesByYear[year] || [];
         const rows = [];
@@ -3685,6 +4124,16 @@ data() {
         const activitySheet = XLSX.utils.aoa_to_sheet(activityAoa);
         activitySheet['!cols'] = [{ wch: 28 }, { wch: 28 }];
         XLSX.utils.book_append_sheet(wb, activitySheet, 'กิจกรรมล่าสุด');
+
+        // ---- ชีท 5: ออร์เดอร์ล่าสุด (ข้อมูลจริง) ----
+        const ords = (this.dashStats && this.dashStats.recentOrders) || [];
+        if (ords.length) {
+          const ordAoa = [['เลขที่ออร์เดอร์', 'ลูกค้า', 'พนักงานขาย', 'จำนวนที่สั่ง', 'จำนวนที่เบิก', 'สถานะ'],
+            ...ords.map(o => [o.order_no, o.customer, o.salesperson, Number(o.ordered_qty) || 0, Number(o.withdrawn_qty) || 0, o.status])];
+          const ordSheet = XLSX.utils.aoa_to_sheet(ordAoa);
+          ordSheet['!cols'] = [{ wch: 16 }, { wch: 24 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 18 }];
+          XLSX.utils.book_append_sheet(wb, ordSheet, 'ออร์เดอร์ล่าสุด');
+        }
 
         const suffix = granularity === 'day' ? 'รายวัน' : granularity === 'week' ? 'รายสัปดาห์' : 'รายเดือน';
         const today = new Date().toISOString().slice(0, 10);
@@ -4075,10 +4524,7 @@ data() {
       </teleport>
 
       <div class="sidebar-footer">
-        <div class="user-mini">
-          <div class="name">{{ currentUser.name || (lang === 'th' ? 'ผู้ใช้งาน' : 'User') }}</div>
-          <div class="email">{{ currentUser.email }}</div>
-        </div>
+        <!-- ชื่อ/อีเมลผู้ใช้ แสดงที่โปรไฟล์มุมขวาบนแล้ว ไม่ต้องซ้ำตรงนี้ -->
         <button class="logout-btn" @click="logout">{{ t[lang].logout }}</button>
       </div>
     </aside>
@@ -4179,6 +4625,7 @@ data() {
 
       <!-- ============ จัดออร์เดอร์ (Order Fulfillment) ============ -->
       <OrderFulfillPage v-else-if="currentPage === 'order-fulfill'" />
+      <OrderFulfillDetailPage v-else-if="currentPage === 'order-fulfill-detail'" />
 
       <!-- ============ จัดการออร์เดอร์ (เมนูย่อยทั้ง 4 หน้า) ============ -->
       <InvoiceOpenPage v-else-if="currentPage === 'invoice-open'" />
@@ -4238,12 +4685,14 @@ data() {
   /* ---- Language แบบบานพับออกข้าง ---- */
   .lang-flyout-container { position: relative; }
   .lang-flyout-btn {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    min-width: 130px; padding: 9px 12px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    width: 100%; min-width: 0; padding: 5px 8px; border-radius: 7px;
     border: 1px solid var(--field-border); background: var(--surface);
-    color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
+    color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer;
+    white-space: nowrap;              /* อยู่แถวเดียว ไม่ตกบรรทัด */
     transition: background .2s, border-color .2s;
   }
+  .lang-flyout-label { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; }
   .lang-flyout-btn:hover { background: var(--field); border-color: var(--brand); }
   .lang-flyout-code { color: var(--brand); font-weight: 700; margin-left: 2px; }
   .lang-flyout-caret { font-size: 9px; opacity: .6; transition: transform .2s; }
@@ -4261,7 +4710,7 @@ data() {
   @keyframes langFlyIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
 
   /* ลูกศร › สำหรับเมนูย่อยซ้อน */
-  .menu-chevron-right { margin-left: auto; font-size: 18px; opacity: 1; font-weight: 800; color: var(--brand); }
+  .menu-chevron-right { margin-left: auto; font-size: 14px; opacity: 1; font-weight: 800; color: var(--brand); }
   .submenu-item.submenu-group-header { font-weight: 600; }
   /* เมนูย่อยซ้อน (cascading) ลอยออกข้าง */
   .nested-flyout-backdrop { position: fixed; inset: 0; z-index: 2999; }
@@ -4274,14 +4723,14 @@ data() {
     animation: langFlyIn .16s ease;
   }
   .nested-flyout-item {
-    padding: 9px 13px; border-radius: 7px; font-size: 13.5px; color: var(--text);
+    padding: 6px 10px; border-radius: 7px; font-size: 12px; color: var(--text);
     cursor: pointer; transition: background .15s;
   }
   .nested-flyout-item:hover { background: var(--field); }
   .nested-flyout-item.active { background: var(--brand-soft); color: var(--brand-2); font-weight: 600; }
   .lang-flyout-item {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 9px 12px; border-radius: 7px; font-size: 13.5px; color: var(--text);
+    padding: 6px 10px; border-radius: 7px; font-size: 12px; color: var(--text);
     cursor: pointer; transition: background .15s;
   }
   .lang-flyout-item:hover { background: var(--field); }
@@ -4290,13 +4739,13 @@ data() {
   .sidebar-notif-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
   }
   .sidebar-notif-item {
     position: relative;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
     border: 1px solid var(--field-border);
     cursor: pointer;
     display: grid;
@@ -4304,7 +4753,7 @@ data() {
     transition: transform .15s ease, background .15s ease, border-color .15s ease;
     flex-shrink: 0;
   }
-  .sidebar-notif-item svg { width: 19px; height: 19px; display: block; }
+  .sidebar-notif-item svg { width: 14px; height: 14px; display: block; }
   .sidebar-notif-item:hover { transform: translateY(-2px); border-color: currentColor; }
   .sidebar-notif-item:active { transform: translateY(0); }
   .sidebar-notif-item.notif-fulfill,
@@ -4315,15 +4764,15 @@ data() {
   .sidebar-notif-item.notif-vat:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
   .sidebar-notif-count {
     position: absolute;
-    top: -5px;
-    right: -5px;
-    min-width: 16px;
-    height: 16px;
+    top: -4px;
+    right: -4px;
+    min-width: 14px;
+    height: 14px;
     padding: 0 4px;
     border-radius: 20px;
     background: var(--danger);
     color: #fff;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -4417,7 +4866,7 @@ data() {
 
   .theme-toggle {
     position: relative;
-    width: 40px; height: 40px; border-radius: 8px;
+    width: 28px; height: 28px; border-radius: 7px;
     border: 1px solid var(--field-border);
     background: var(--surface); color: var(--muted);
     cursor: pointer;
@@ -4452,7 +4901,7 @@ data() {
   }
   .mobile-menu-btn:hover { background: var(--field); }
   .mobile-menu-btn svg { width: 20px; height: 20px; }
-  .mobile-topbar .brand-text { font-weight: 700; font-size: 15px; color: var(--text); }
+  .mobile-topbar .brand-text { font-weight: 700; font-size: 13px; color: var(--text); }
 
   .sidebar-backdrop {
     display: none;
@@ -4464,7 +4913,7 @@ data() {
 
   .app-wrapper {
     display: grid;
-    grid-template-columns: 230px 1fr;
+    grid-template-columns: 196px 1fr;
     min-height: 100vh;
     gap: 0;
     position: relative;
@@ -4474,10 +4923,10 @@ data() {
   .sidebar {
     background: var(--surface);
     border-right: 1px solid var(--field-border);
-    padding: 16px 11px;
+    padding: 12px 9px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
     position: sticky;
     top: 0;
     max-height: 100vh;
@@ -4487,30 +4936,30 @@ data() {
   .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding-bottom: 16px;
+    gap: 9px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--field-border);
   }
-  .sidebar-logo .icon { width: 32px; height: 32px; background: var(--brand); border-radius: 8px; }
-  .sidebar-logo .text { font-weight: 700; font-size: 16px; color: var(--text); }
+  .sidebar-logo .icon { width: 26px; height: 26px; background: var(--brand); border-radius: 7px; }
+  .sidebar-logo .text { font-weight: 700; font-size: 14px; color: var(--text); }
 
-  .sidebar-menu { display: flex; flex-direction: column; gap: 3px; }
+  .sidebar-menu { display: flex; flex-direction: column; gap: 2px; }
   .menu-item {
-    padding: 8px 11px;
-    border-radius: 9px;
+    padding: 6px 9px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 13.5px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text);
     transition: background .2s, color .2s;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     border: 1px solid transparent;
   }
   .menu-item:hover { background: var(--field); color: var(--text); }
   .menu-item.active { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
-  .menu-item svg { width: 18px; height: 18px; }
+  .menu-item svg { width: 15px; height: 15px; }
 
   .sidebar-divider { height: 1px; background: var(--field-border); }
 
@@ -4525,35 +4974,36 @@ data() {
   .submenu {
     display: flex;
     flex-direction: column;
-    margin: 6px 0 8px 10px;
-    padding: 6px;
+    margin: 4px 0 6px 8px;
+    padding: 4px;
     background: var(--surface);
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--field-border);
     box-shadow: 0 8px 20px rgba(20, 30, 70, .10), 0 1px 3px rgba(20, 30, 70, .06);
   }
+  /* เมนูย่อยทุกชั้น = ขนาดเดียวกับเมนูหลัก (12px) */
   .submenu-item {
     display: flex;
     align-items: center;
-    gap: 9px;
-    padding: 6.5px 11px;
-    font-size: 13px;
+    gap: 8px;
+    padding: 6px 9px;
+    font-size: 12px;
     border-radius: 8px;
-    font-size: 13.5px;
     font-weight: 500;
     color: var(--text);
     cursor: pointer;
     transition: background .15s, color .15s;
     border-bottom: 1px solid var(--field-border);
   }
+  .submenu-item svg { width: 15px; height: 15px; }
   .submenu-item:last-child { border-bottom: none; }
   .submenu-item:hover { background: var(--field); }
   .submenu-item.active { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
 
   .submenu-item.submenu-group-header { justify-content: space-between; }
   .submenu-item.submenu-group-header.has-open-child:not(.active) { color: var(--brand); font-weight: 600; }
-  .submenu-nested { margin: 4px 0 4px 14px; box-shadow: none; }
-  .submenu-nested .submenu-item { font-size: 12.5px; }
+  .submenu-nested { margin: 3px 0 3px 10px; box-shadow: none; }
+  .submenu-nested .submenu-item { font-size: 12px; }
 
 
   .submenu-item.submenu-group-header { justify-content: space-between; }
@@ -4572,7 +5022,7 @@ data() {
 
   .sidebar-footer {
     border-top: 1px solid var(--field-border);
-    padding-top: 16px;
+    padding-top: 10px;
     margin-top: auto;
   }
   .user-mini {
@@ -4587,12 +5037,12 @@ data() {
 
   .logout-btn {
     width: 100%;
-    padding: 10px 14px;
+    padding: 7px 12px;
     border: 1px solid var(--field-border);
     background: transparent;
     color: var(--muted);
-    border-radius: 10px;
-    font-size: 13px;
+    border-radius: 8px;
+    font-size: 12px;
     cursor: pointer;
     transition: background .2s, color .2s, border-color .2s;
   }
@@ -4651,12 +5101,12 @@ data() {
   .dash-fit .header-actions { gap: 10px; }
   .dash-fit .header-actions .btn-small { padding: 8px 14px; }
   .btn-small {
-    padding: 10px 18px;
+    padding: 6px 13px;
     border: 1px solid var(--field-border);
     background: var(--surface);
     color: var(--text);
-    border-radius: 10px;
-    font-size: 13px;
+    border-radius: 8px;
+    font-size: 12px;
     cursor: pointer;
     transition: background .2s, border-color .2s;
   }
@@ -4718,7 +5168,7 @@ data() {
   .main-content.fr-tight .fr-page-compact .header h1 { line-height: 1.1; }
   .main-content.fr-tight .fr-page-compact > .section:first-of-type { margin-top: 6px !important; }
   .fr-page-compact .header h1 { font-size: 18px; }
-  .fr-page-compact .section-header h2 { font-size: 14.5px; }
+  .fr-page-compact .section-header h2 { font-size: 13px; }
   .fr-page-compact .section:not(.fr-table-section) {
     padding: 12px 16px;
   }
@@ -4750,7 +5200,7 @@ data() {
   /* ให้ตารางแสดง ~15 แถวพอดีจอ — บีบตัวหนังสือ/แถว และจัดพื้นที่ด้านบนให้กระชับ
      (ไม่ตั้ง min-height เพื่อไม่ให้ดันแถบเปลี่ยนหน้าตกขอบ — ใช้ flex เติมพื้นที่ที่เหลือแทน) */
   .main-content.fr-tight .fr-table thead th { padding: 7px 12px; font-size: 11px; }
-  .main-content.fr-tight .fr-table tbody td { padding: 5px 12px; font-size: 12px; }
+  .main-content.fr-tight .fr-table tbody td { padding: 3px 12px; font-size: 12px; }
   .main-content.fr-tight .fr-td-wrap { -webkit-line-clamp: 1; }
   /* ตัวกรองด้านบนกระชับลง */
   .main-content.fr-tight .fr-page-compact .section:not(.fr-table-section) { padding: 8px 14px; }
@@ -4766,7 +5216,7 @@ data() {
   .main-content.fr-tight .fr-btn-util { padding: 6px 12px; font-size: 12px; }
   .main-content.fr-tight .btn-small { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
   .main-content.fr-tight .fr-bulk-btn { height: 28px; padding: 0 10px; font-size: 12px; }
-  .main-content.fr-tight .fr-action-btn { width: 26px; height: 26px; }
+  .main-content.fr-tight .fr-action-btn { width: 24px; height: 24px; }
   .main-content.fr-tight .xl-pagination { margin-top: 8px; font-size: 12px; }
   .dash-fit {
     display: flex;
@@ -4774,7 +5224,9 @@ data() {
     gap: 8px;
     flex: 1;
     min-height: 0;
+    overflow: hidden;          /* ฟิกให้พอดี 1 หน้าจอ — เนื้อหาที่เกินเลื่อนในกล่องของมันเอง */
   }
+
   .dash-fit .header {
     flex-shrink: 0;
     align-items: flex-start;
@@ -4783,22 +5235,26 @@ data() {
   .dash-fit .header p { display: none; }
   .dash-fit .header-actions .btn-small { padding: 6px 12px; font-size: 12px; }
   .dash-fit .stats-grid { flex-shrink: 0; gap: 10px; }
-  .dash-fit .stats-grid .stat-card { padding: 20px 26px; min-height: 118px; }
-  .dash-fit .stats-grid .stat-icon { width: 34px; height: 34px; border-radius: 10px; margin-bottom: 8px; }
+  .dash-fit .stats-grid .stat-card { padding: 14px 18px; min-height: 92px; }
+  .dash-fit .stats-grid .stat-icon { width: 34px; height: 34px; border-radius: 10px; top: 12px; right: 14px; margin-bottom: 0; }
   .dash-fit .stats-grid .stat-icon svg { width: 16px; height: 16px; }
   .dash-fit .stats-grid .label { font-size: 11.5px; }
   .dash-fit .stats-grid .value { font-size: 27px; margin: 4px 0; }
   .dash-fit .stats-grid .detail { font-size: 11.5px; }
   /* หน้าแรกพอดีจอเดียว — แถวกราฟ/กิจกรรมยืดเต็มพื้นที่ที่เหลือ (การ์ดสถิติเตี้ยลงเพื่อเผื่อที่ให้กราฟ) */
-  .dash-fit .dash-flex-row { flex: 1; min-height: 0; margin-top: 0; }
+  .dash-fit .dash-flex-row { flex: 1 1 0; min-height: 0; margin-top: 0; }
+  /* กล่องในแถวที่ยืดหด: เนื้อหาเกินให้เลื่อนในกล่อง ไม่ดันทั้งหน้า */
+  .dash-fit .dash-flex-row > .section { min-height: 0; display: flex; flex-direction: column; }
+  .dash-fit .dash-scroll-body { flex: 1; min-height: 0; overflow-y: auto; }
+  .dash-fit .dash-activity-row .section { overflow: hidden; }   /* แบ่งพื้นที่ที่เหลือให้พอดีจอ */
   .dash-fit .dash-cards-grid-compact { flex-shrink: 0; margin-top: 0; gap: 10px; }
-  .dash-fit .stats-grid .stat-card { min-height: 96px; padding: 14px 22px; }
+  .dash-fit .stats-grid .stat-card { min-height: 84px; padding: 12px 16px; }
   .dash-fit .stats-grid .value { font-size: 24px; }
   .dash-chart-section {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;   /* ไม่ตัด/ไม่ให้กราฟล้นมาทับข้อความใต้กราฟ */
     padding: 14px 18px;
   }
   .dash-chart-section .section-header,
@@ -4807,7 +5263,7 @@ data() {
     padding-bottom: 8px;
   }
   .dash-chart-section .section-header h2,
-  .dash-list-section .section-header h2 { font-size: 14px; }
+  .dash-list-section .section-header h2 { font-size: 13px; }
   .dash-chart-box {
     flex: 1;
     min-height: 0;
@@ -4872,7 +5328,8 @@ data() {
     font-size: 10.5px;
     color: var(--muted);
     text-align: center;
-    padding-top: 2px;
+    padding-top: 8px;
+    margin-top: 4px;
   }
   /* ============ Dashboard: แนวโน้มยอดขาย — แบ่งเลเยอร์ แท่ง(ซ้าย) + เส้น(ขวา) ============ */
   .dash-trend-split { flex: 1; min-height: 0; display: flex; gap: 18px; }
@@ -4880,7 +5337,15 @@ data() {
   .dash-trend-col-right { padding-left: 18px; border-left: 1px solid var(--field-border); }
   .dash-trend-col-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .dash-trend-col-title { font-size: 12px; font-weight: 600; color: var(--muted); }
-  .dash-trend-col-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .dash-trend-col-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  /* ปุ่มช่วงเวลาในกราฟ — เล็กกระชับ ไม่เบียดพื้นที่กราฟ */
+  .dash-trend-col-controls .btn-small,
+  .dash-trend-col-header select {
+    padding: 4px 10px;
+    font-size: 11.5px;
+    border-radius: 7px;
+    line-height: 1.5;
+  }
   .dash-year-select {
     height: 30px;
     border: 1px solid var(--field-border);
@@ -4897,25 +5362,28 @@ data() {
   }
 
   /* ============ Dashboard: กราฟแท่งแนวโน้มยอดขาย เทียบปีต่อปี ============ */
-  .dash-barchart-box { padding: 12px; display: flex; flex-direction: column; }
-  .dash-barchart { position: relative; width: 100%; flex: 1; min-height: 0; display: flex; flex-direction: row; align-items: stretch; gap: 4px; }
+  /* กราฟแท่ง: กันพื้นที่ให้แท่ง + ป้ายเดือน + legend แยกชั้นกันชัด ไม่ทับกัน */
+  .dash-barchart-box { padding: 10px; display: flex; flex-direction: column; min-height: 0; }
+  .dash-barchart { position: relative; width: 100%; flex: 1; min-height: 90px; display: flex; flex-direction: row; align-items: stretch; gap: 4px; }
   .dash-bar-axis-y { position: static; display: flex; flex-direction: column; justify-content: space-between; width: 34px; flex-shrink: 0; padding-bottom: 22px; }
   .dash-bar-axis-y span { position: static; left: auto; transform: none; display: block; font-size: 10px; color: var(--muted); white-space: nowrap; text-align: right; padding-right: 6px; }
   .dash-barchart-plot {
     flex: 1;
     min-width: 0;
+    overflow: hidden;          /* กันแท่งล้นออกนอกคอลัมน์ (เช่นตอนเลือก 1 ปี = 12 เดือน) */
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    gap: clamp(2px, 0.6vw, 8px);
+    gap: clamp(1px, 0.4vw, 8px);
     border-left: 1px solid var(--field-border);
     border-bottom: 1px solid var(--field-border);
     padding: 4px 6px 0;
   }
   .dash-bar-group {
     position: relative;
-    flex: 0 1 58px;
-    min-width: 30px;
+    flex: 1 1 0;               /* แบ่งความกว้างเท่ากันตามจำนวนเดือน ย่อได้ไม่ล้น */
+    max-width: 58px;
+    min-width: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -4942,10 +5410,17 @@ data() {
   .dash-bar-prev { background: #bfdbfe; }
   .dash-bar-group:hover .dash-bar { opacity: .8; }
   .dash-bar-label {
-    margin-top: 6px;
-    font-size: 10.5px;
+    margin-top: 4px;
+    height: 14px;              /* กันแถวป้ายเดือนไว้ ไม่ให้ถูกทับ/เบียด */
+    line-height: 14px;
+    flex-shrink: 0;
+    font-size: 10px;
     color: var(--muted);
     white-space: nowrap;
+    max-width: 100%;           /* ป้ายไม่ดันความกว้างแท่ง (กันล้นตอน 12 เดือน) */
+    overflow: hidden;
+    text-overflow: clip;
+    text-align: center;
   }
   .dash-bar-label.is-active { color: var(--text); font-weight: 600; }
   .dash-bar-tooltip {
@@ -4956,10 +5431,14 @@ data() {
   .dash-bar-legend {
     display: flex;
     justify-content: center;
-    gap: 18px;
+    align-items: center;
+    gap: 16px;
     flex-shrink: 0;
+    min-height: 20px;          /* legend มีแถวของตัวเอง ไม่ไปทับป้ายเดือน */
+    margin-top: 6px;
     padding-top: 6px;
-    font-size: 11px;
+    border-top: 1px solid var(--field-border);
+    font-size: 10.5px;
     color: var(--muted);
   }
   .dash-legend-item { display: inline-flex; align-items: center; gap: 6px; }
@@ -4992,7 +5471,7 @@ data() {
     outline: none;
     background: transparent;
     height: 40px;
-    font-size: 13.5px;
+    font-size: 12px;
     color: var(--text);
   }
   .of-barcode-input::placeholder { color: var(--muted); font-size: 13px; }
@@ -5014,17 +5493,19 @@ data() {
 
   .of-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
   .of-table thead th {
-    background: #555555;
+    background: #3c4453;
     color: #fff;
-    padding: 10px 12px;
-    font-size: 12.5px;
+    padding: 7px 12px;
+    font-size: 11px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .3px;
     text-align: left;
     white-space: nowrap;
   }
   .of-table tbody td {
-    padding: 10px 12px;
-    font-size: 13px;
+    padding: 3px 12px;
+    font-size: 12px;
     color: var(--text);
     border-bottom: 1px solid var(--field-border);
     white-space: nowrap;
@@ -5111,14 +5592,16 @@ data() {
   }
   .main.fr-tight { padding-top: 14px; }
   .fr-page-compact .header h1 { font-size: 18px; }
-  .fr-page-compact .section-header h2 { font-size: 14.5px; }
+  .fr-page-compact .section-header h2 { font-size: 13px; }
   .dash-fit {
     display: flex;
     flex-direction: column;
     gap: 8px;
     flex: 1;
     min-height: 0;
+    overflow: hidden;          /* ฟิกให้พอดี 1 หน้าจอ — เนื้อหาที่เกินเลื่อนในกล่องของมันเอง */
   }
+  .dash-fit > .header, .dash-fit > .stats-grid, .dash-fit > .dash-mini-row { flex-shrink: 0; }
   .dash-fit .header {
     flex-shrink: 0;
     align-items: flex-start;
@@ -5131,13 +5614,13 @@ data() {
   .dash-fit .stats-grid .label { font-size: 10.5px; }
   .dash-fit .stats-grid .value { font-size: 18px; margin: 2px 0; }
   .dash-fit .stats-grid .detail { font-size: 10.5px; }
-  .dash-fit .dash-flex-row { flex: 1; min-height: 0; margin-top: 0; }
+  .dash-fit .dash-flex-row { flex: 1 1 0; min-height: 0; margin-top: 0; }   /* แบ่งพื้นที่ที่เหลือให้พอดีจอ */
   .dash-fit .dash-cards-grid-compact { flex-shrink: 0; margin-top: 0; gap: 10px; }
   .dash-chart-section {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;   /* ไม่ตัด/ไม่ให้กราฟล้นมาทับข้อความใต้กราฟ */
     padding: 14px 18px;
   }
   .dash-chart-section .section-header,
@@ -5146,7 +5629,7 @@ data() {
     padding-bottom: 8px;
   }
   .dash-chart-section .section-header h2,
-  .dash-list-section .section-header h2 { font-size: 14px; }
+  .dash-list-section .section-header h2 { font-size: 13px; }
   .dash-chart-box {
     flex: 1;
     min-height: 0;
@@ -5211,7 +5694,8 @@ data() {
     font-size: 10.5px;
     color: var(--muted);
     text-align: center;
-    padding-top: 2px;
+    padding-top: 8px;
+    margin-top: 4px;
   }
   .dash-year-select {
     height: 30px;
@@ -5249,7 +5733,7 @@ data() {
     outline: none;
     background: transparent;
     height: 40px;
-    font-size: 13.5px;
+    font-size: 12px;
     color: var(--text);
   }
   .of-barcode-input::placeholder { color: var(--muted); font-size: 13px; }
@@ -5271,17 +5755,19 @@ data() {
 
   .of-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
   .of-table thead th {
-    background: #555555;
+    background: #3c4453;
     color: #fff;
-    padding: 10px 12px;
-    font-size: 12.5px;
+    padding: 7px 12px;
+    font-size: 11px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .3px;
     text-align: left;
     white-space: nowrap;
   }
   .of-table tbody td {
-    padding: 10px 12px;
-    font-size: 13px;
+    padding: 3px 12px;
+    font-size: 12px;
     color: var(--text);
     border-bottom: 1px solid var(--field-border);
     white-space: nowrap;
@@ -5356,26 +5842,33 @@ data() {
     background: var(--surface);
     border: 1px solid var(--field-border);
     border-radius: 18px;
-    padding: 32px 34px;
-    min-height: 160px;
+    padding: 18px 22px;
+    min-height: 104px;
     transition: box-shadow .2s, transform .2s, border-color .2s;
     color: var(--text);
     position: relative;
   }
   .stat-card:hover { box-shadow: 0 10px 24px rgba(20, 30, 70, .08); border-color: var(--muted); transform: translateY(-2px); }
+  /* ไอคอนลอยมุมขวาบน — ข้อความใช้ความกว้างเต็ม การ์ดเตี้ยลง ไม่มีที่ว่าง */
   .stat-icon {
     width: 50px; height: 50px; border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 16px;
+    position: absolute; top: 18px; right: 18px;
+    margin-bottom: 0;
   }
   .stat-icon svg { width: 22px; height: 22px; }
+  /* เว้นที่ให้ไอคอนมุมขวา — ข้อความไม่ชน */
+  .stat-card .label, .stat-card .value, .stat-card .detail { padding-right: 58px; }
+  .dash-fit .stats-grid .stat-card .label,
+  .dash-fit .stats-grid .stat-card .value,
+  .dash-fit .stats-grid .stat-card .detail { padding-right: 44px; }
   .stat-card-revenue .stat-icon { background: var(--pink-soft); color: var(--pink); }
   .stat-card-sales .stat-icon { background: var(--purple-soft); color: var(--purple); }
   .stat-card-orders .stat-icon { background: var(--blue-soft); color: var(--blue); }
   .stat-card-total .stat-icon { background: var(--orange-soft); color: var(--orange); }
   .stat-card .label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
   .stat-card .value { font-size: 38px; font-weight: 700; color: var(--text); margin: 10px 0 6px; }
-  .stat-card .detail { font-size: 13.5px; color: var(--muted); }
+  .stat-card .detail { font-size: 11.5px; color: var(--muted); }
 
   /* ============ ผ้าประจำ (fr-) ============ */
   .fr-field-group { display: flex; flex-direction: column; gap: 6px; }
@@ -5501,12 +5994,59 @@ data() {
   .table-scroll-y table thead th { position: sticky; top: 0; z-index: 1; }
   .fr-table { width: 100%; border-collapse: collapse; table-layout: auto; }
   .fr-table thead th {
-    background: #3c4453; color: #fff; font-size: 11.5px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: .3px; padding: 8px 12px; text-align: left; white-space: nowrap;
+    background: #3c4453; color: #fff; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .3px; padding: 7px 12px; text-align: left; white-space: nowrap;
   }
   .fr-table tbody td {
-    padding: 7px 12px; font-size: 12.5px; color: var(--text);
+    padding: 3px 12px; font-size: 12px; color: var(--text);
     border-bottom: 1px solid var(--field-border); white-space: nowrap;
+    line-height: 1.6;
+  }
+  /* ปุ่ม/ป้ายในเซลล์ ไม่ให้ดันแถวสูง (แถวกระชับเท่ากันทุกตาราง) */
+  .fr-table tbody td .fr-action-group,
+  .fr-table tbody td .fr-img-btn,
+  .fr-table tbody td .fr-color-badge { vertical-align: middle; }
+  .fr-table tbody td .fr-action-btn,
+  .fr-table tbody td .fr-img-btn { width: 24px; height: 24px; }
+  /* ===== ปรับตารางแบบฟอร์ม (po-item-table) ให้ขนาด/ฟอนต์หัว+เนื้อ เท่าตารางมาตรฐาน .fr-table ทุกหน้า =====
+     (override สไตล์ scoped ของแต่ละหน้าด้วย !important จากจุดเดียว) */
+  .po-item-table thead th {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 7px 10px !important;
+    letter-spacing: .3px !important;
+    text-transform: uppercase;
+    white-space: nowrap !important;   /* หัวตารางบรรทัดเดียว ไม่ตัดขึ้นบรรทัดใหม่ */
+  }
+  .po-item-table tbody td { padding: 3px 8px !important; }
+  .po-item-table tbody td,
+  .po-item-table tbody input:not([type="checkbox"]),
+  .po-item-table tbody select {
+    font-size: 12px !important;
+  }
+  .po-item-table tbody input:not([type="checkbox"]),
+  .po-item-table tbody select {
+    height: 28px !important;
+  }
+  /* ===== รวมหัวตารางทุกคลาสให้เป็นมาตรฐานเดียวกับ .fr-table (สี #3c4453 + ฟอนต์ 11.5px) ทุกหน้า ===== */
+  .rp-table thead th,
+  .bl-doc-table thead th,
+  .sc-table thead th,
+  .grp-table thead th,
+  .fr-shade-table thead th {
+    background: #3c4453 !important;
+    color: #fff !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 7px 12px !important;
+    letter-spacing: .3px !important;
+    text-transform: uppercase;
+  }
+  .rp-table tbody td,
+  .bl-doc-table tbody td,
+  .sc-table tbody td,
+  .grp-table tbody td {
+    font-size: 12px !important;
   }
   /* ===== เส้นแบ่งแนวตั้งระหว่างคอลัมน์ (ทุกตาราง) ===== */
   .fr-table th, .fr-table td,
@@ -5541,16 +6081,16 @@ data() {
   .fr-table tbody tr:last-child td { border-bottom: none; }
 
   .fr-img-btn {
-    width: 30px; height: 30px; display: grid; place-items: center;
+    width: 24px; height: 24px; display: grid; place-items: center;
     background: var(--field); border: 1px solid var(--field-border); border-radius: 8px;
     color: var(--muted); cursor: pointer;
   }
-  .fr-img-btn svg { width: 15px; height: 15px; }
+  .fr-img-btn svg { width: 13px; height: 13px; }
   .fr-action-group { display: flex; gap: 6px; }
   .fr-action-btn {
-    width: 30px; height: 30px; display: grid; place-items: center;
+    width: 24px; height: 24px; display: grid; place-items: center;
     border-radius: 7px; border: 1px solid var(--field-border); background: var(--surface);
-    cursor: pointer; color: var(--muted); font-size: 15px; line-height: 1; padding: 0;
+    cursor: pointer; color: var(--muted); font-size: 13px; line-height: 1; padding: 0;
     transition: background .18s, border-color .18s, box-shadow .18s;
   }
   /* แสดงเป็น emoji ในกล่องมน (ซ่อน svg เดิม) — ใช้ทุกหน้าเหมือนกัน */
@@ -5576,7 +6116,7 @@ data() {
     border: 1px solid var(--field-border);
     border-radius: 8px;
     padding: 0 12px;
-    font-size: 13.5px;
+    font-size: 12px;
     color: var(--text);
     background: var(--surface);
   }
@@ -5637,7 +6177,7 @@ data() {
     justify-content: space-between;
     flex-shrink: 0;
   }
-  .fr-modal-header h3 { color: #fff; font-size: 17px; font-weight: 700; }
+  .fr-modal-header h3 { color: #fff; font-size: 13px; font-weight: 700; }
   .fr-modal-close {
     width: 30px; height: 30px;
     display: grid; place-items: center;
@@ -5665,7 +6205,7 @@ data() {
     align-items: center;
     gap: 16px;
   }
-  .fr-form-row label { font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .fr-form-row label { font-size: 11px; font-weight: 600; color: var(--text); }
   .fr-required { color: var(--danger); font-weight: 700; }
   .fr-form-row input[type="text"],
   .fr-form-row input[type="number"],
@@ -5674,7 +6214,7 @@ data() {
     border: 1px solid var(--field-border);
     border-radius: 8px;
     padding: 0 12px;
-    font-size: 13.5px;
+    font-size: 12px;
     color: var(--text);
     background: var(--surface);
     width: 100%;
@@ -5754,29 +6294,29 @@ data() {
     font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif;
   }
   .erp-modal { background: var(--surface); border-radius: 14px; width: 860px; max-width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
-  .erp-modal-head { background: #3c4453; color: #fff; padding: 15px 24px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .erp-modal-head { background: #3c4453; color: #fff; padding: 10px 16px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .erp-head-ic { margin-right: 6px; }
-  .erp-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+  .erp-x { background: rgba(255,255,255,.18); border: none; color: #fff; width: 24px; height: 24px; border-radius: 7px; font-size: 12px; cursor: pointer; }
   .erp-x:hover { background: rgba(255,255,255,.3); }
-  .erp-modal-body { padding: 22px 30px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
-  .erp-sec-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
+  .erp-modal-body { padding: 14px 18px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+  .erp-sec-title { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--brand-2); margin: 4px 0 12px; }
   .erp-sec-title:not(:first-child) { margin-top: 22px; }
   .erp-sec-bar { width: 4px; height: 16px; border-radius: 2px; background: #3c4453; display: inline-block; }
   .erp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
   .erp-col-2 { grid-column: span 2; }
   .erp-field { display: flex; flex-direction: column; gap: 5px; }
-  .erp-field > label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .erp-field > label { font-size: 11px; font-weight: 600; color: var(--muted); }
   .erp-req { color: #a82a3a; }
   .erp-field input, .erp-field select, .erp-field textarea {
     height: 38px; padding: 0 12px; border: 1px solid var(--field-border); border-radius: 9px;
-    font-size: 13.5px; font-family: inherit; background: var(--surface); color: var(--text);
+    font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text);
     transition: border-color .2s, box-shadow .2s;
   }
   .erp-field textarea { height: auto; padding: 9px 12px; resize: vertical; }
   .erp-field input:focus, .erp-field select:focus, .erp-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
   .erp-field input.erp-err { border-color: #a82a3a; box-shadow: 0 0 0 3px rgba(168,42,58,.12); }
-  .erp-modal-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 14px 24px; border-top: 1px solid var(--field-border); background: var(--field); flex-shrink: 0; }
-  .erp-btn { padding: 10px 26px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .erp-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 10px 16px; border-top: 1px solid var(--field-border); background: var(--field); flex-shrink: 0; }
+  .erp-btn { padding: 6px 16px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .erp-btn-cancel { background: #e2e8f0; color: #334155; }
   .erp-btn-cancel:hover { background: #cbd5e1; }
   .erp-btn-save { background: #1a9c54; color: #fff; }
@@ -5790,10 +6330,11 @@ data() {
     border: 1px solid var(--field-border);
     background: var(--field);
     color: var(--text);
-    padding: 4px 10px;
+    padding: 2px 8px;
     border-radius: 20px;
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 600;
+    line-height: 1.5;
     cursor: pointer;
     transition: background .2s, border-color .2s;
   }
@@ -5862,10 +6403,14 @@ data() {
   .oe-act-add    { color: #1a9c54; }
   .oe-act-remove { color: #dc2626; }
   .oe-act-search { color: #2563eb; }
+  .oe-act-cut    { color: #dc2626; }
+  .oe-act-dark   { color: var(--text); }
   .oe-act-img:hover    { border-color: var(--muted); background: var(--surface); }
   .oe-act-add:hover    { border-color: #1a9c54; background: rgba(26,156,84,.12); }
   .oe-act-remove:hover { border-color: #dc2626; background: rgba(220,38,38,.12); }
   .oe-act-search:hover { border-color: #2563eb; background: rgba(37,99,235,.12); }
+  .oe-act-cut:hover    { border-color: #dc2626; background: rgba(220,38,38,.12); }
+  .oe-act-dark:hover   { border-color: var(--text); background: var(--surface); }
   .oe-act-btn:active { transform: translateY(1px); }
 
   .oe-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
@@ -5952,7 +6497,7 @@ data() {
     border: 1px solid var(--field-border);
     border-radius: 8px;
     padding: 0 12px;
-    font-size: 13.5px;
+    font-size: 12px;
     color: var(--text);
     background: var(--surface);
   }
@@ -5969,7 +6514,7 @@ data() {
   }
   .fr-shade-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
+    grid-template-columns: 0.9fr 1.1fr 0.7fr 0.9fr 0.8fr 0.8fr auto;
     align-items: center;
     gap: 10px;
   }
@@ -5983,7 +6528,7 @@ data() {
     border: 1px solid var(--field-border);
     border-radius: 8px;
     padding: 0 12px;
-    font-size: 13.5px;
+    font-size: 12px;
     color: var(--text);
     background: var(--surface);
     width: 100%;
@@ -6019,7 +6564,7 @@ data() {
     text-align: center;
     padding: 24px;
     color: var(--muted);
-    font-size: 13.5px;
+    font-size: 12px;
   }
 
   @media (max-width: 560px) {
@@ -6067,16 +6612,17 @@ data() {
 
   /* ============ ACTIVITY ============ */
   .activity-item {
-    padding: 12px 0;
+    padding: 8px 0;
     display: flex;
-    gap: 12px;
+    gap: 10px;
+    align-items: center;
     border-bottom: 1px solid var(--field-border);
   }
   .activity-item:last-child { border-bottom: none; }
-  .activity-icon { width: 36px; height: 36px; background: var(--field); border-radius: 8px; display: grid; place-items: center; color: var(--brand); flex-shrink: 0; }
+  .activity-icon { width: 28px; height: 28px; background: var(--field); border-radius: 7px; display: grid; place-items: center; color: var(--brand); flex-shrink: 0; font-size: 13px; }
   .activity-content { flex: 1; }
-  .activity-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-  .activity-time { font-size: 12px; color: var(--muted); }
+  .activity-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 1px; }
+  .activity-time { font-size: 11px; color: var(--muted); }
 
   /* ============ RESPONSIVE ============ */
   @media (max-width: 768px) {

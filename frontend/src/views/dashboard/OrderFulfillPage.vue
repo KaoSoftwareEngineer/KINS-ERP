@@ -116,15 +116,15 @@
             <td>
               <div class="of-status-cell">
                 <span class="of-status-badge" :class="dash.ofStatusClass(order.status)">{{ order.status }}</span>
-                <div class="fr-action-group">
-                  <button class="fr-action-btn" title="รายละเอียด" @click="dash.ofViewInfo(order)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <div class="oe-act-group">
+                  <button class="oe-act-btn oe-act-dark" title="รายละเอียด" @click="dash.ofViewInfo(order)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   </button>
-                  <button class="fr-action-btn" title="พิมพ์" @click="dash.ofPrintOrder(order)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  <button class="oe-act-btn oe-act-dark" title="พิมพ์" @click="dash.ofPrintOrder(order)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                   </button>
-                  <button class="fr-action-btn" title="ตัดสินค้า" @click="dash.ofFulfillOrder(order)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                  <button class="oe-act-btn oe-act-cut" title="ตัดสินค้า" @click="dash.ofFulfillOrder(order)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/><line x1="8.6" y1="16.1" x2="17.5" y2="3.5"/><line x1="15.4" y1="16.1" x2="6.5" y2="3.5"/></svg>
                   </button>
                 </div>
               </div>

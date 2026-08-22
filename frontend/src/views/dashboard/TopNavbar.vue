@@ -1,6 +1,6 @@
 <template>
 <header class="flex items-center justify-between gap-4 px-4 sm:px-8 pt-5 pb-0">
-  <!-- ฝั่งซ้าย: breadcrumb (ระนาบเดียวกับแถบขวา) -->
+  <!-- ฝั่งซ้าย: breadcrumb -->
   <nav class="breadcrumb-bar min-w-0 self-end pb-1" aria-label="breadcrumb">
     <template v-for="(crumb, idx) in dash.breadcrumb" :key="idx">
       <span class="breadcrumb-crumb" :class="{ 'is-current': idx === dash.breadcrumb.length - 1 }">{{ crumb }}</span>
@@ -9,10 +9,9 @@
   </nav>
 
   <!-- ฝั่งขวา -->
-  <div class="flex items-end gap-2 sm:gap-4 shrink-0">
-    <!-- งานค้างดำเนินการ: ย้ายมาจาก Sidebar -->
-    <div class="hidden md:flex flex-col items-start gap-2">
-      <span class="text-[10px] font-bold uppercase tracking-wide text-[var(--muted)]">งานค้างดำเนินการ</span>
+  <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+    <!-- งานค้างดำเนินการ — เรียงแถวเดียวกับกระดิ่ง (hover ที่ไอคอนเพื่อดูรายละเอียด) -->
+    <div class="hidden md:flex items-center">
       <div class="sidebar-notif-row">
         <button class="sidebar-notif-item notif-fulfill" :title="'จัดออร์เดอร์ — ค้าง ' + dash.pipelineBadgeCount('order-fulfill') + ' รายการ'" @click="dash.currentPage = 'order-fulfill'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
@@ -28,18 +27,18 @@
         </button>
       </div>
     </div>
-    <div class="hidden md:block h-8 w-px bg-[var(--field-border)]"></div>
+    <div class="hidden md:block h-6 w-px bg-[var(--field-border)]"></div>
 
     <!-- ปุ่มแจ้งเตือน -->
     <div class="relative" ref="notifRef">
       <button
         type="button"
-        class="relative flex h-10 w-10 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--field)] hover:text-[var(--text)]"
+        class="relative flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--field)] hover:text-[var(--text)]"
         title="การแจ้งเตือน"
         aria-label="การแจ้งเตือน"
-        @click="dash.topnavNotifOpen = !dash.topnavNotifOpen"
+        @click.stop="dash.toggleNotif()"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5.5 w-5.5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
@@ -52,7 +51,7 @@
       <!-- Dropdown แจ้งเตือน -->
       <div
         v-if="dash.topnavNotifOpen"
-        class="absolute right-0 top-[calc(100%+8px)] z-20 w-72 overflow-hidden rounded-xl border bg-[var(--surface)] border-[var(--field-border)] shadow-[0_8px_24px_rgba(0,0,0,.12)]"
+        class="absolute right-0 top-[calc(100%+8px)] z-[3000] w-72 overflow-hidden rounded-xl border bg-[var(--surface)] border-[var(--field-border)] shadow-[0_8px_24px_rgba(0,0,0,.12)]"
       >
         <div class="px-3.5 py-2.5 border-b border-[var(--field-border)] text-sm font-bold text-[var(--text)]">การแจ้งเตือน</div>
         <div class="max-h-80 overflow-y-auto">
@@ -82,22 +81,22 @@
     </div>
 
     <!-- เส้นแบ่ง -->
-    <div class="hidden sm:block h-8 w-px bg-[var(--field-border)]"></div>
+    <div class="hidden sm:block h-6 w-px bg-[var(--field-border)]"></div>
 
     <!-- โปรไฟล์ผู้ใช้ -->
     <div class="relative" ref="profileRef">
       <button
         type="button"
         class="flex items-center gap-2.5 rounded-xl px-1.5 py-1 transition-colors hover:bg-[var(--field)]"
-        @click="dash.topnavProfileOpen = !dash.topnavProfileOpen"
+        @click.stop="dash.topnavProfileOpen = !dash.topnavProfileOpen"
       >
-        <img v-if="dash.currentUser.avatar && !avatarBroken" :src="dash.currentUser.avatar" alt="" referrerpolicy="no-referrer" @error="avatarBroken = true" class="h-9 w-9 shrink-0 rounded-full object-cover" />
-        <div v-else class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-sm font-semibold text-white">
+        <img v-if="dash.currentUser.avatar && !avatarBroken" :src="dash.currentUser.avatar" alt="" referrerpolicy="no-referrer" @error="avatarBroken = true" class="h-8 w-8 shrink-0 rounded-full object-cover" />
+        <div v-else class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-xs font-semibold text-white">
           {{ topnavInitial }}
         </div>
         <div class="hidden sm:block text-left leading-tight">
-          <div class="text-sm font-bold text-[var(--text)]">{{ dash.currentUser.name || (dash.lang === 'th' ? 'ผู้ใช้งาน' : 'User') }}</div>
-          <div class="text-xs text-[var(--muted)]">Role: {{ dash.currentUser.role || 'พนักงาน' }}</div>
+          <div class="text-xs font-bold text-[var(--text)]">{{ dash.currentUser.name || (dash.lang === 'th' ? 'ผู้ใช้งาน' : 'User') }}</div>
+          <div class="text-[10.5px] text-[var(--muted)]">Role: {{ dash.currentUser.role || 'พนักงาน' }}</div>
         </div>
         <svg
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -111,7 +110,7 @@
       <!-- Dropdown -->
       <div
         v-if="dash.topnavProfileOpen"
-        class="absolute right-0 top-[calc(100%+8px)] z-20 w-56 overflow-hidden rounded-xl border bg-[var(--surface)] border-[var(--field-border)] py-1.5 shadow-[0_8px_24px_rgba(0,0,0,.12)]"
+        class="absolute right-0 top-[calc(100%+8px)] z-[3000] w-56 overflow-hidden rounded-xl border bg-[var(--surface)] border-[var(--field-border)] py-1.5 shadow-[0_8px_24px_rgba(0,0,0,.12)]"
       >
         <div class="px-3.5 py-2 border-b border-[var(--field-border)] sm:hidden">
           <div class="text-sm font-bold text-[var(--text)]">{{ dash.currentUser.name || 'ผู้ใช้งาน' }}</div>

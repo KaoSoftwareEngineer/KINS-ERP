@@ -40,7 +40,7 @@ export default {
   position: relative; overflow: hidden;
   display: flex; align-items: flex-start; gap: 12px;
   min-width: 300px; max-width: 380px;
-  padding: 14px 18px 14px 14px;
+  padding: 9px 13px 14px 14px;
   background: var(--surface); color: var(--text);
   border: 1px solid var(--field-border);
   border-left: 4px solid var(--tc);
@@ -61,8 +61,8 @@ export default {
 .toast-ic svg { width: 17px; height: 17px; }
 
 .toast-body { flex: 1; min-width: 0; padding-top: 2px; }
-.toast-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
-.toast-text { font-size: 13px; line-height: 1.45; color: var(--muted); }
+.toast-title { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.toast-text { font-size: 12px; line-height: 1.45; color: var(--muted); }
 .toast-title + .toast-text { color: var(--muted); }
 .toast-body:not(:has(.toast-title)) .toast-text { color: var(--text); font-weight: 600; }
 

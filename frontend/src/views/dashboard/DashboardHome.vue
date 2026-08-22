@@ -67,15 +67,15 @@
       </div>
       <div class="label">{{ dash.t[dash.lang].revenue }}</div>
       <div class="value">฿{{ dash.totalRevenue }}</div>
-      <div class="detail">{{ dash.t[dash.lang].increasedBy }}</div>
+      <div class="detail" :class="revenueTrend.cls">{{ revenueTrend.text }}</div>
     </div>
     <div class="stat-card stat-card-sales">
       <div class="stat-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </div>
-      <div class="label">{{ dash.t[dash.lang].sales }}</div>
-      <div class="value">{{ dash.monthlySales }}</div>
-      <div class="detail">{{ dash.t[dash.lang].rank }}</div>
+      <div class="label">ยอดตัดจ่ายเดือนนี้</div>
+      <div class="value">{{ Number(dash.monthlySales || 0).toLocaleString() }}</div>
+      <div class="detail">📏 หลา (จากใบเบิกจริง)</div>
     </div>
     <div class="stat-card stat-card-orders">
       <div class="stat-icon">
@@ -89,9 +89,9 @@
       <div class="stat-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
       </div>
-      <div class="label">{{ dash.t[dash.lang].totalSales }}</div>
-      <div class="value">฿{{ dash.totalSalesAmount }}</div>
-      <div class="detail">💰 {{ dash.t[dash.lang].bestSelling }}</div>
+      <div class="label">สินค้าคงคลัง</div>
+      <div class="value">{{ dash.totalSalesAmount }}</div>
+      <div class="detail">📦 หลา · {{ (dash.dashStats && dash.dashStats.kpi.stockRolls) || 0 }} ม้วน</div>
     </div>
   </div>
 
@@ -181,7 +181,7 @@
           </div>
         </div>
       </div>
-      <div class="dash-chart-note">แนวโน้มยอดขาย — ข้อมูลตัวอย่าง ยังไม่ได้เชื่อมข้อมูลจริง</div>
+      <div class="dash-chart-note">แนวโน้มยอดขาย (หลาที่ตัดจ่ายจริง) — {{ hasRealSales ? 'ข้อมูลจริงจากระบบ' : 'ยังไม่มีรายการตัดจ่ายในช่วงนี้' }}</div>
     </div>
 
     <!-- Donut Chart -->
@@ -215,7 +215,7 @@
             </div>
           </div>
         </div>
-        <div class="dash-chart-note">สัดส่วนยอดขายแยกตามประเภทผ้า — ข้อมูลตัวอย่าง ปี {{ dash.dashTrendYear }}</div>
+        <div class="dash-chart-note">ปริมาณแยกตามประเภทผ้า (ผ้าประจำ / ผ้าไม่ประจำ / ผ้าดิบ) — ข้อมูลจริงจากคลัง</div>
       </div>
     </div>
   </div>
@@ -273,17 +273,22 @@
       <table>
         <thead>
           <tr>
-            <th>#</th>
-            <th>{{ dash.t[dash.lang].completeName }}</th>
-            <th>{{ dash.t[dash.lang].email }}</th>
+            <th>เลขที่ออร์เดอร์</th>
+            <th>ลูกค้า</th>
+            <th>พนักงานขาย</th>
+            <th>จำนวน (หลา)</th>
             <th>{{ dash.t[dash.lang].status }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>#12386</td><td>ชาลี เลขา</td><td>chalai@example.com</td><td><span class="badge success">✓ {{ dash.t[dash.lang].success }}</span></td></tr>
-          <tr><td>#12388</td><td>ม่อ</td><td>morn@example.com</td><td><span class="badge warning">⏳ {{ dash.t[dash.lang].pending }}</span></td></tr>
-          <tr><td>#12389</td><td>ดนัยชัย อุตสาห์</td><td>dunai@example.com</td><td><span class="badge warning">📦 Processing</span></td></tr>
-          <tr><td>#12390</td><td>ชริ อุษณะ</td><td>chri@example.com</td><td><span class="badge success">✓ {{ dash.t[dash.lang].success }}</span></td></tr>
+          <tr v-for="(o, i) in orderRows" :key="i">
+            <td><strong>{{ o.order_no }}</strong></td>
+            <td>{{ o.customer || '-' }}</td>
+            <td>{{ o.salesperson || '-' }}</td>
+            <td>{{ Number(o.withdrawn_qty || 0).toFixed(2) }} / {{ Number(o.ordered_qty || 0).toFixed(2) }}</td>
+            <td><span class="badge" :class="o.status === 'Prepared' ? 'success' : 'warning'">{{ o.status === 'Prepared' ? '✓ ' : '⏳ ' }}{{ o.status }}</span></td>
+          </tr>
+          <tr v-if="orderRows.length === 0"><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;">ยังไม่มีออร์เดอร์</td></tr>
         </tbody>
       </table>
       </div>
@@ -312,6 +317,36 @@ export default {
     };
   },
   computed: {
+    // เทียบรายได้เดือนนี้กับเดือนก่อน (คำนวณจริง ไม่ใช่ค่าตายตัว)
+    revenueTrend() {
+      const k = (this.dash.dashStats && this.dash.dashStats.kpi) || null;
+      if (!k) return { text: '—', cls: '' };
+      const now = Number(k.invoiceAmount) || 0;
+      const prev = Number(k.invoiceAmountPrev) || 0;
+      if (prev === 0 && now === 0) return { text: 'ยังไม่มีรายได้เดือนนี้', cls: '' };
+      if (prev === 0) return { text: 'เดือนก่อนไม่มียอด — เทียบไม่ได้', cls: '' };
+      const pct = ((now - prev) / prev) * 100;
+      const up = pct >= 0;
+      return {
+        text: `${up ? '▲ เพิ่มขึ้น' : '▼ ลดลง'} ${Math.abs(pct).toFixed(1)}% จากเดือนก่อน`,
+        cls: up ? 'trend-up' : 'trend-down',
+      };
+    },
+    // มียอดตัดจ่ายจริงในกราฟหรือยัง
+    hasRealSales() {
+      const t = this.dash.dashStats && this.dash.dashStats.trend;
+      if (!t) return false;
+      return (t.current || []).some(v => Number(v) > 0) || (t.previous || []).some(v => Number(v) > 0);
+    },
+    // ออร์เดอร์ล่าสุดจริงจาก DB (fallback: จากรายการออร์เดอร์ที่โหลดไว้)
+    orderRows() {
+      const s = this.dash.dashStats;
+      if (s && s.recentOrders && s.recentOrders.length) return s.recentOrders;
+      return (this.dash.ofOrders || []).slice(0, 6).map(o => ({
+        order_no: o.orderNo, customer: o.customer, salesperson: o.salesperson,
+        ordered_qty: o.orderedQty, withdrawn_qty: o.withdrawnQty, status: o.status,
+      }));
+    },
     // งานที่รอจัดการ — ประกอบจากสถานะออร์เดอร์จริง
     myTasks() {
       const o = this.dash.ofOrders || [];
@@ -351,7 +386,7 @@ export default {
 .dash-customize-btn.is-open { border-color: var(--brand); color: var(--brand); }
 .dash-customize-panel { position: absolute; top: calc(100% + 6px); right: 0; z-index: 50; min-width: 220px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.12); padding: 10px; }
 .dash-customize-head { font-size: 12px; font-weight: 700; color: var(--muted); padding: 4px 8px 8px; }
-.dash-customize-item { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text); }
+.dash-customize-item { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--text); }
 .dash-customize-item:hover { background: var(--field); }
 .dash-customize-item input { width: 15px; height: 15px; accent-color: var(--brand); cursor: pointer; }
 .dash-customize-reset { width: 100%; margin-top: 6px; padding: 7px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
@@ -360,31 +395,58 @@ export default {
 .dash-fade-enter-from, .dash-fade-leave-to { opacity: 0; transform: translateY(-4px); }
 
 /* แจ้งเตือนบัญชีไม่มีสิทธิ์ */
-.dash-norole { display: flex; align-items: flex-start; gap: 12px; background: #fff8e6; border: 1px solid #f0c000; border-left: 4px solid #f0a000; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; }
-.dash-norole-icon { font-size: 22px; line-height: 1.2; }
-.dash-norole-title { font-weight: 700; font-size: 14px; color: #8a6d00; }
+.dash-norole { display: flex; align-items: flex-start; gap: 12px; background: #fff8e6; border: 1px solid #f0c000; border-left: 4px solid #f0a000; border-radius: 12px; padding: 9px 13px; margin-bottom: 18px; }
+.dash-norole-icon { font-size: 14px; line-height: 1.2; }
+.dash-norole-title { font-weight: 700; font-size: 12px; color: #8a6d00; }
 .dash-norole-sub { font-size: 12.5px; color: #9a7b1a; margin-top: 3px; line-height: 1.55; }
 
 /* My Tasks / Action Required */
 .dash-tasks { margin-bottom: 18px; }
 .dash-tasks .section-header { align-items: baseline; }
-.dash-tasks-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; margin-left: 6px; background: #e03131; color: #fff; border-radius: 11px; font-size: 12px; font-weight: 700; vertical-align: middle; }
-.dash-tasks-sub { font-size: 12.5px; color: var(--muted); }
-.dash-tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-.dash-task-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--field-border); border-left-width: 4px; border-radius: 12px; background: var(--surface); cursor: pointer; text-align: left; font-family: inherit; transition: box-shadow .15s, transform .15s, border-color .15s; }
+.dash-tasks-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 6px; margin-left: 6px; background: #e03131; color: #fff; border-radius: 9px; font-size: 10.5px; font-weight: 700; vertical-align: middle; }
+.dash-tasks-sub { font-size: 11px; color: var(--muted); }
+.dash-tasks .section-header h2 { font-size: 12px; }
+.dash-tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.dash-task-card { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--field-border); border-left-width: 3px; border-radius: 10px; background: var(--surface); cursor: pointer; text-align: left; font-family: inherit; transition: box-shadow .15s, transform .15s, border-color .15s; }
 .dash-task-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.09); transform: translateY(-2px); }
-.dash-task-icon { font-size: 22px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 11px; flex-shrink: 0; }
+.dash-task-icon { font-size: 12.5px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
 .dash-task-body { flex: 1; min-width: 0; }
-.dash-task-title { font-size: 14px; font-weight: 700; color: var(--text); }
-.dash-task-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.dash-task-count { font-size: 22px; font-weight: 800; color: var(--text); white-space: nowrap; }
-.dash-task-count span { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+.dash-task-title { font-size: 12px; font-weight: 700; color: var(--text); }
+.dash-task-hint { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.dash-task-count { font-size: 12.5px; font-weight: 800; color: var(--text); white-space: nowrap; }
+.dash-task-count span { font-size: 10px; font-weight: 600; color: var(--muted); margin-left: 2px; }
 .dash-task-go { color: var(--muted); flex-shrink: 0; }
-.dash-task-go svg { width: 18px; height: 18px; }
+.dash-task-go svg { width: 14px; height: 14px; }
 .dash-task-card:hover .dash-task-go { color: var(--brand); }
 .dash-task-blue { border-left-color: #2f65f6; } .dash-task-blue .dash-task-icon { background: #e9f0fe; }
 .dash-task-red { border-left-color: #e03131; } .dash-task-red .dash-task-icon { background: #fdeaea; }
 .dash-task-purple { border-left-color: #7c4dff; } .dash-task-purple .dash-task-icon { background: #f0eafe; }
 .dash-task-orange { border-left-color: #f08c00; } .dash-task-orange .dash-task-icon { background: #fff2e0; }
-.dash-tasks-empty { padding: 22px; text-align: center; color: var(--muted); font-size: 14px; background: var(--field); border-radius: 12px; }
+.dash-tasks-empty { padding: 22px; text-align: center; color: var(--muted); font-size: 12px; background: var(--field); border-radius: 12px; }
+
+/* ปุ่มในหัวการ์ด (เช่น "คำสั่งซื้อทั้งหมด", "ตัวกรอง") — ย่อให้เล็กเข้าชุดกับตาราง */
+.dash-list-section .section-header .btn-small,
+.dash-activity-row .section-header .btn-small,
+.dash-chart-section .section-header .btn-small {
+  padding: 4px 12px;
+  font-size: 11.5px;
+  border-radius: 7px;
+  line-height: 1.6;
+}
+
+/* ตาราง "สถานะคำสั่งซื้อ" — ย่อขนาดตัวหนังสือ/ช่อง ให้เท่าตารางผ้าประจำ (หัว 11px / เนื้อ 12px) */
+.dash-list-section table { width: 100%; border-collapse: collapse; }
+.dash-list-section thead th {
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  padding: 7px 12px; text-align: left; white-space: nowrap;
+  text-transform: uppercase; letter-spacing: .3px;
+  border-bottom: 1px solid var(--field-border);
+}
+.dash-list-section tbody td {
+  font-size: 12px; color: var(--text);
+  padding: 5px 12px; border-bottom: 1px solid var(--field-border); white-space: nowrap;
+}
+.dash-list-section tbody tr:last-child td { border-bottom: none; }
+.trend-up { color: var(--ok); font-weight: 600; }
+.trend-down { color: var(--danger); font-weight: 600; }
 </style>

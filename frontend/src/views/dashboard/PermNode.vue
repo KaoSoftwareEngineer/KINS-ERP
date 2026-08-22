@@ -37,7 +37,7 @@ export default {
 .pm-node { margin: 2px 0; }
 .pm-check {
   display: inline-flex; align-items: center; gap: 7px;
-  cursor: pointer; font-size: 14px; color: #334155; padding: 2px 0;
+  cursor: pointer; font-size: 12px; color: #334155; padding: 2px 0;
   user-select: none;
 }
 .pm-check input { width: 15px; height: 15px; accent-color: #1e3a8a; cursor: pointer; }
@@ -50,10 +50,10 @@ export default {
 }
 /* กลุ่มระดับบนสุด (level 0) เว้นระยะให้อ่านง่าย */
 .pm-lv-0 { padding: 8px 0; border-bottom: 1px solid #eef2f7; }
-.pm-lv-0 > .pm-check .pm-label { font-size: 15px; font-weight: 700; }
+.pm-lv-0 > .pm-check .pm-label { font-size: 12.5px; font-weight: 700; }
 
 :global([data-theme="dark"]) .pm-check { color: #cbd5e1; }
 :global([data-theme="dark"]) .pm-check.pm-parent .pm-label,
-:global([data-theme="dark"]) .pm-lv-0 > .pm-check .pm-label { color: #f1f5f9; }
-:global([data-theme="dark"]) .pm-lv-0 { border-bottom-color: #334155; }
+:global([data-theme="dark"]) .pm-lv-0 > .pm-check .pm-label { color: #ececee; }
+:global([data-theme="dark"]) .pm-lv-0 { border-bottom-color: #2c2c31; }
 </style>

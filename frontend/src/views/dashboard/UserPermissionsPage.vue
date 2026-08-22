@@ -185,7 +185,7 @@ export default {
 
 .acct-search {
   padding: 7px 12px; border: 1px solid var(--field-border); border-radius: 8px;
-  font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text);
+  font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text);
   min-width: 240px; outline: none;
 }
 .acct-search:focus { border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }

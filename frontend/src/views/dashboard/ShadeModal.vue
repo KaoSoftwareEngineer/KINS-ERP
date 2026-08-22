@@ -34,7 +34,10 @@
 
       <div class="fr-shade-table">
         <div class="fr-shade-row fr-shade-row-head">
-          <span>ชื่อ</span>
+          <span>รหัสสี</span>
+          <span>เฉดสี</span>
+          <span>แร็คซ์</span>
+          <span>รูป</span>
           <span>ต้นทุนผ้า</span>
           <span>ค่าย้อม</span>
           <span></span>
@@ -42,7 +45,14 @@
         <div v-if="dash.frShadeLoading" class="fr-shade-empty">กำลังโหลดข้อมูล...</div>
         <div v-else-if="dash.frVisibleShadeRows.length === 0" class="fr-shade-empty">ไม่มีเฉดสี — กด + เพื่อเพิ่มรายการ</div>
         <div class="fr-shade-row" v-for="row in dash.frVisibleShadeRows" :key="row._key">
+          <input type="text" v-model="row.color_code" placeholder="เช่น 18001" />
           <input type="text" v-model="row.name" placeholder="ชื่อเฉดสี" />
+          <input type="text" v-model="row.rack" placeholder="แร็คซ์" />
+          <label class="fr-shade-img" :title="row.image_name || 'อัปโหลดรูปเฉดสี'">
+            <input type="file" accept="image/*" @change="onPickImage(row, $event)" hidden />
+            <span v-if="row.image_name" class="fr-shade-img-name">🖼 {{ row.image_name }}</span>
+            <span v-else class="fr-shade-img-empty">📎 เลือกรูป</span>
+          </label>
           <input type="number" step="0.01" v-model="row.fabric_cost" placeholder="0.00" />
           <input type="number" step="0.01" v-model="row.dye_cost" placeholder="0.00" />
           <span class="fr-shade-row-actions">
@@ -70,6 +80,14 @@
 export default {
   name: 'ShadeModal',
   inject: ['dash'],
+  methods: {
+    // เลือกรูปเฉดสี — เก็บชื่อไฟล์ไว้กับแถว (บันทึกพร้อมเฉดสี)
+    onPickImage(row, e) {
+      const f = e.target.files && e.target.files[0];
+      row.image_name = f ? f.name : '';
+      e.target.value = '';
+    },
+  },
 };
 </script>
 
@@ -79,11 +97,21 @@ export default {
   padding: 10px 12px; margin-bottom: 10px;
   background: var(--brand-soft); border: 1px solid var(--field-border); border-radius: 8px;
 }
-.fr-shade-pull-label { font-size: 13px; font-weight: 600; color: var(--brand-2); }
+.fr-shade-pull-label { font-size: 12px; font-weight: 600; color: var(--brand-2); }
 .fr-shade-pull-select {
   flex: 1; min-width: 180px; height: 34px; padding: 0 10px;
-  border: 1px solid var(--field-border); border-radius: 7px; font-size: 13px;
+  border: 1px solid var(--field-border); border-radius: 7px; font-size: 12px;
   background: var(--surface); color: var(--text); font-family: inherit;
 }
 .fr-shade-pull .fr-btn-util { padding: 6px 16px; }
+/* ช่องเลือกรูปเฉดสี */
+.fr-shade-img {
+  display: flex; align-items: center; justify-content: center;
+  height: 32px; padding: 0 8px; cursor: pointer;
+  border: 1px dashed var(--field-border); border-radius: 7px;
+  background: var(--field); font-size: 11.5px; color: var(--muted);
+  overflow: hidden; white-space: nowrap;
+}
+.fr-shade-img:hover { border-color: var(--brand); color: var(--brand); }
+.fr-shade-img-name { overflow: hidden; text-overflow: ellipsis; color: var(--text); }
 </style>

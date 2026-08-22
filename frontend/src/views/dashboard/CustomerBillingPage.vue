@@ -184,7 +184,7 @@ export default {
 </script>
 
 <style scoped>
-.bl-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 13px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: flex; flex-direction: column; }
+.bl-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; margin-top: 12px; background: var(--surface); border: 1px solid var(--field-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: flex; flex-direction: column; }
 .bl-titlebar { display: flex; align-items: center; gap: 16px; font-weight: 700; padding: 18px 20px 2px; font-size: 18px; }
 .bl-bulk-btn { padding: 6px 14px; border: 1px solid var(--field-border); border-radius: 8px; background: var(--field); color: var(--text); font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12.5px; }
 .bl-bulk-btn:hover { background: #e7eaf1; }
@@ -192,14 +192,14 @@ export default {
 .bl-hcol { display: flex; flex-direction: column; gap: 8px; }
 .bl-field { display: flex; align-items: center; gap: 8px; }
 .bl-field > label { min-width: 100px; text-align: right; color: var(--muted); font-size: 12px; font-weight: 600; }
-.bl-field input { height: 34px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--field); color: var(--text); min-width: 160px; }
+.bl-field input { height: 34px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--field); color: var(--text); min-width: 160px; }
 .bl-field input:focus { outline: none; border-color: #2F65F6; background: var(--surface); }
 .bl-ro { background: var(--field) !important; font-weight: 700; }
 .bl-body { display: flex; gap: 14px; padding: 16px 20px; align-items: flex-start; }
 .bl-left { width: 260px; flex-shrink: 0; }
 .bl-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 .bl-right { width: 340px; flex-shrink: 0; }
-.bl-panel-title { font-weight: 700; font-size: 13px; margin-bottom: 8px; }
+.bl-panel-title { font-weight: 700; font-size: 12px; margin-bottom: 8px; }
 .bl-cust-list { border: 1px solid var(--field-border); border-radius: 10px; overflow: hidden; max-height: 480px; overflow-y: auto; }
 .bl-cust { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--field-border); cursor: pointer; background: #eafaf1; font-size: 12.5px; }
 .bl-cust:hover { background: #d7f2e3; } .bl-cust.is-sel { background: #1a9c54; color: #fff; }
@@ -221,10 +221,10 @@ export default {
 .bl-doc-table tfoot td { padding: 8px 10px; border-top: 2px solid var(--field-border); background: var(--field); }
 .bl-x { width: 22px; height: 22px; border-radius: 5px; border: 1px solid var(--field-border); background: var(--surface); color: #e03131; cursor: pointer; }
 .bl-x:hover { background: #fdeaea; }
-.bl-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; margin-top: auto; }
-.bl-saved { color: #1a9c54; font-size: 13px; font-weight: 600; }
+.bl-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--field-border); background: var(--field); border-radius: 0 0 14px 14px; margin-top: auto; }
+.bl-saved { color: #1a9c54; font-size: 12px; font-weight: 600; }
 .bl-fbtns { display: flex; gap: 10px; margin-left: auto; }
-.bl-btn { padding: 9px 20px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; background: #e7eaf1; color: var(--text); }
+.bl-btn { padding: 6px 14px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); }
 .bl-btn-save { background: #1a9c54; color: #fff; border-color: #1a9c54; } .bl-btn-save:hover { background: #158045; }
 /* Bulk */
 .bl-bulk-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--field-border); }
@@ -238,7 +238,7 @@ export default {
 .bl-bulk-list { border: 1px solid var(--field-border); border-radius: 10px; max-height: 460px; overflow-y: auto; }
 .bl-bulk-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--field-border); font-size: 12.5px; cursor: pointer; }
 .bl-bulk-item:hover { background: var(--field); }
-.bl-bulk-count { font-weight: 700; color: #2F65F6; margin-bottom: 8px; font-size: 13px; }
+.bl-bulk-count { font-weight: 700; color: #2F65F6; margin-bottom: 8px; font-size: 12px; }
 .bl-bulk-accepted { border: 1px solid var(--field-border); border-radius: 10px; min-height: 460px; max-height: 460px; overflow-y: auto; padding: 8px; }
 .bl-bulk-acc { padding: 7px 10px; border-bottom: 1px solid var(--field-border); font-size: 12.5px; }
 </style>
