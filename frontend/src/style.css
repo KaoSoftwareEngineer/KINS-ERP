@@ -64,6 +64,7 @@
   --muted:        #8a93a6;
   --field:        #f4f6fb;
   --field-border: #e2e7f1;
+  --table-line:   #c9d2e2;   /* เส้นตาราง/กรอบการ์ด — เข้มกว่า field-border เพื่อให้เห็นเส้นชัด */
   --shadow:       0 24px 60px rgba(37, 55, 201, .12);
   --danger:       #e5484d;
   --ok:           #17a06a;
@@ -92,6 +93,7 @@ html[data-theme="dark"] {
   --muted:        #9a9aa2;
   --field:        #1d1d20;
   --field-border: #2c2c31;
+  --table-line:   #45464f;   /* เส้นตาราง/กรอบการ์ด (ธีมมืด) — สว่างกว่าพื้นชัดเจน */
   --shadow:       0 24px 60px rgba(0, 0, 0, .4);
   --danger:       #ff6b6f;
   --ok:           #35c98a;

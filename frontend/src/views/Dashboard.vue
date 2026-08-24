@@ -5194,6 +5194,8 @@ data() {
     display: flex;
     flex-direction: column;
   }
+  /* กรอบการ์ดตาราง — ใช้ compound selector ให้ชนะ .section (เห็นเส้นบน/ล่าง/ข้างชัดทั้งสองธีม) */
+  .section.fr-table-section { border-color: var(--table-line); }
   .fr-table-section .fr-table-scroll {
     flex: 1;
     min-height: 0;
@@ -5998,10 +6000,11 @@ data() {
   .fr-table thead th {
     background: #3c4453; color: #fff; font-size: 11px; font-weight: 600;
     text-transform: uppercase; letter-spacing: .3px; padding: 7px 12px; text-align: left; white-space: nowrap;
+    border-bottom: 1px solid var(--table-line);   /* เส้นคั่นหัวตาราง–เนื้อตาราง ให้เห็นชัด */
   }
   .fr-table tbody td {
     padding: 3px 12px; font-size: 12px; color: var(--text);
-    border-bottom: 1px solid var(--field-border); white-space: nowrap;
+    border-bottom: 1px solid var(--table-line); white-space: nowrap;
     line-height: 1.6;
   }
   /* ปุ่ม/ป้ายในเซลล์ ไม่ให้ดันแถวสูง (แถวกระชับเท่ากันทุกตาราง) */
@@ -6055,7 +6058,7 @@ data() {
   .fi-table th, .fi-table td,
   .of-table th, .of-table td,
   .table-scroll-y table th, .table-scroll-y table td {
-    border-right: 1px solid var(--field-border);
+    border-right: 1px solid var(--table-line);
   }
   .fr-table th:last-child, .fr-table td:last-child,
   .fi-table th:last-child, .fi-table td:last-child,
