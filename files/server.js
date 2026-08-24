@@ -3232,6 +3232,76 @@ app.get('/api/reports/raw-stock/receipts', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: rows.length, rows });
 }));
 
+// ============================================================
+//  รายงานการรับสินค้า — รวมใบรับ 3 แบบ (ผ้าสำเร็จ/ผ้าดิบ/ผ้าย้อม)
+//  แหล่งข้อมูล: finished_receipts / raw_receipts / dyed_receipts
+//   - พับรวม = ผลรวม item.fold (ถ้าไม่มีใช้จำนวนม้วน rolls) ต่อใบ
+//   - จำนวนรวม = ผลรวม item.qty (หลา) ต่อใบ
+//   - ยอดรวม = net_total (เงิน) ต่อใบ
+//   - คู่ค้า = supplier (ถ้าว่างใช้ factory) · สถานที่จัดส่ง = warehouse (ถ้าว่างใช้ factory)
+//   หมายเหตุ: สถานะชำระเงินยังไม่ได้ผูกกับระบบรับ-จ่ายเงินจริง (แสดง "ยังไม่ชำระ" เป็นค่าเริ่มต้น)
+// ============================================================
+app.get('/api/reports/goods-receipts', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), sku = s('sku'), receiptType = s('receiptType'), productType = s('productType'),
+        party = s('party'), warehouse = s('warehouse');
+  const parseJson = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const normItems = (arr, ptype) => arr.map((it) => {
+    const qty = Number(it.qty) || 0;
+    const fold = Number(it.fold) || (Array.isArray(it.rolls) ? it.rolls.length : 0) || 0;
+    const up = Number(it.unit_price) || 0;
+    return {
+      sku: it.sku || '', color: it.color || it.colorCode || '', type: ptype, name: it.name || '',
+      width: it.width || '', fold, qty, unit: it.unit || 'หลา',
+      unit_price: up || '', amount: up ? qty * up : '', cost: it.cost != null ? it.cost : '',
+    };
+  });
+
+  const [fin] = await mysqlPool.query('SELECT id, in_no, receipt_date, receipt_type, warehouse, po_ref, supplier, net_total, items_json FROM finished_receipts');
+  const [raw] = await mysqlPool.query('SELECT id, in_no, receipt_date, receipt_type, factory, po_ref, supplier, net_total, items_json FROM raw_receipts');
+  const [dye] = await mysqlPool.query('SELECT id, in_no, receipt_date, order_ref, factory, warehouse, supplier, net_total, items_json FROM dyed_receipts');
+
+  const build = (r, ptype, refField) => {
+    const items = normItems(parseJson(r.items_json), ptype);
+    const folds = items.reduce((a, x) => a + (Number(x.fold) || 0), 0);
+    const qty = items.reduce((a, x) => a + (Number(x.qty) || 0), 0);
+    return {
+      key: ptype + '-' + r.id,
+      in_no: r.in_no, receipt_date: r.receipt_date, receipt_type: r.receipt_type || (ptype === 'ผ้าย้อม' ? 'Dye' : 'Purchase'),
+      product_type: ptype, ref_no: r[refField] || '',
+      party: r.supplier || r.factory || '', folds, qty, amount: Number(r.net_total) || 0,
+      pay_status: 'ยังไม่ชำระ', status: 'ปกติ',
+      warehouse: r.warehouse || r.factory || 'Warehouse',
+      items,
+    };
+  };
+
+  let rows = [
+    ...fin.map((r) => build(r, 'ผ้าสำเร็จ', 'po_ref')),
+    ...raw.map((r) => build(r, 'ผ้าดิบ', 'po_ref')),
+    ...dye.map((r) => build(r, 'ผ้าย้อม', 'order_ref')),
+  ];
+
+  // ---- ตัวกรอง ----
+  const low = (v) => String(v || '').toLowerCase();
+  if (productType) rows = rows.filter((r) => r.product_type === productType);
+  if (receiptType) rows = rows.filter((r) => low(r.receipt_type) === low(receiptType));
+  if (party) rows = rows.filter((r) => low(r.party).includes(low(party)));
+  if (warehouse) rows = rows.filter((r) => low(r.warehouse).includes(low(warehouse)));
+  if (sku) rows = rows.filter((r) => r.items.some((it) => low(it.sku).includes(low(sku))));
+  if (q) rows = rows.filter((r) => low(r.in_no).includes(low(q)) || low(r.party).includes(low(q)) || low(r.ref_no).includes(low(q)) || r.items.some((it) => low(it.sku).includes(low(q)) || low(it.name).includes(low(q))));
+
+  // เรียงตามวันที่/เลขที่ล่าสุดก่อน
+  rows.sort((a, b) => (a.in_no < b.in_no ? 1 : a.in_no > b.in_no ? -1 : 0));
+
+  const summary = {
+    folds: rows.reduce((a, x) => a + (Number(x.folds) || 0), 0),
+    qty: rows.reduce((a, x) => a + (Number(x.qty) || 0), 0),
+    amount: rows.reduce((a, x) => a + (Number(x.amount) || 0), 0),
+  };
+  res.json({ ok: true, total: rows.length, items: rows, summary });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
