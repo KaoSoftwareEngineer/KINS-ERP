@@ -63,26 +63,32 @@ export async function buildFittedPdf(innerHtml, { widthMm = 72.1, padMm = 3, fil
   const JsPDF = jspdfMod.jsPDF || jspdfMod.default;
   const html2canvas = h2cMod.default || h2cMod;
 
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed; inset:0; z-index:2147483000; background:#ffffff; overflow:auto;';
-  const banner = document.createElement('div');
-  banner.textContent = 'กำลังสร้าง PDF…';
-  banner.style.cssText = 'position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:6px 16px; border-radius:20px; font-family:sans-serif; font-size:13px; z-index:2147483001;';
-  const wrap = document.createElement('div');
-  wrap.style.cssText = `width:${widthMm}mm; box-sizing:border-box; padding:${padMm}mm; margin:8mm auto; background:#ffffff; font-family:'Noto Sans Thai','Tahoma',sans-serif; color:#111;`;
-  wrap.innerHTML = innerHtml;
-  overlay.appendChild(wrap);
-  document.body.appendChild(overlay);
-  document.body.appendChild(banner);
+  // เรนเดอร์ใน iframe แยกเอกสาร → CSS ของแอปไม่รั่วเข้ามาทับ (หัวตาราง/สี/QR ตรงตามที่ออกแบบ)
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.cssText = `position:fixed; left:0; top:0; width:${widthMm}mm; height:40mm; border:0; background:#fff; z-index:2147483000; opacity:0.01; pointer-events:none;`;
+  document.body.appendChild(iframe);
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!doctype html><html><head><meta charset="utf-8"><style>
+      *{margin:0;padding:0;box-sizing:border-box;}
+      html,body{background:#fff;}
+      body{font-family:'Noto Sans Thai','Tahoma',sans-serif;color:#111;}
+      #wrap{width:${widthMm}mm;padding:${padMm}mm;background:#fff;}
+    </style></head><body><div id="wrap">${innerHtml}</div></body></html>`);
+  doc.close();
 
   await new Promise((r) => setTimeout(r, 60));
   try {
-    const imgs = Array.from(wrap.querySelectorAll('img'));
+    const imgs = Array.from(doc.querySelectorAll('img'));
     await Promise.all(imgs.map((im) => (im.complete ? Promise.resolve() : new Promise((res) => { im.onload = im.onerror = res; }))));
   } catch (e) { /* ข้าม */ }
 
   try {
-    const canvas = await html2canvas(wrap, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+    const wrapEl = doc.getElementById('wrap');
+    iframe.style.height = Math.max(20, wrapEl.scrollHeight) + 'px';   // ให้ iframe สูงพอจับภาพครบ
+    await new Promise((r) => setTimeout(r, 30));
+    const canvas = await html2canvas(wrapEl, { scale: 3, useCORS: true, backgroundColor: '#ffffff', windowWidth: wrapEl.scrollWidth, windowHeight: wrapEl.scrollHeight });
     const pageH = Math.max(10, widthMm * canvas.height / canvas.width);
     const pdf = new JsPDF({ unit: 'mm', format: [widthMm, pageH], orientation: pageH >= widthMm ? 'portrait' : 'landscape' });
     pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, widthMm, pageH);
@@ -92,8 +98,7 @@ export async function buildFittedPdf(innerHtml, { widthMm = 72.1, padMm = 3, fil
     if (open) { const w = window.open(url, '_blank'); if (!w) { const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); } }
     return url;
   } finally {
-    document.body.removeChild(overlay);
-    document.body.removeChild(banner);
+    document.body.removeChild(iframe);
   }
 }
 
