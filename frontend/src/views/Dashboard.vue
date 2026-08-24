@@ -59,7 +59,7 @@ import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
 import QRCode from 'qrcode';
-import { buildDocPdf, buildFittedPdf } from '../utils/pdfLabels.js';
+import { buildFittedPdf } from '../utils/pdfLabels.js';
 import CustomerEditModal from './dashboard/CustomerEditModal.vue';
 import ShadeModal from './dashboard/ShadeModal.vue';
 import FeedbackModal from './dashboard/FeedbackModal.vue';
@@ -3230,7 +3230,7 @@ data() {
             </table>
             <div class="qr">${qrImg ? `<img src="${qrImg}" alt="QR ${esc(order.orderNo)}"/>` : ''}</div>
           </div>`;
-        try { await buildDocPdf(html, { filename: 'ใบสั่งตัด-' + order.orderNo + '.pdf', format: 'a5' }); }
+        try { await buildFittedPdf(html, { filename: 'ใบสั่งตัด-' + order.orderNo + '.pdf', widthMm: 72.1, padMm: 3 }); }
         catch (e) { this.fbFail('สร้าง PDF ไม่สำเร็จ'); }
       },
       // กดปุ่มกรรไกร → เปิดหน้าจัดออร์เดอร์/ตัดผ้า พร้อมดึงข้อมูลออร์เดอร์มาเติม
