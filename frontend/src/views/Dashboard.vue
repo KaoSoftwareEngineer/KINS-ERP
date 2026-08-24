@@ -3148,6 +3148,10 @@ data() {
         const items = this.oeSlipItems || [];
         if (!items.length) { this.fbFail('ไม่มีรายการสำหรับออกใบออร์เดอร์'); return; }
         const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        // วันที่ dd/mm/yyyy เสมอ (กันกรณี oeForm.date เป็น ISO)
+        const rawD = String(this.oeForm.date || '');
+        const dm = rawD.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        const dateStr = dm ? `${dm[3]}/${dm[2]}/${dm[1]}` : (this.oeFormattedDate || rawD);
         const packSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="2"><rect x="3" y="7" width="18" height="14" rx="1"/><path d="M3 7l9-4 9 4"/><path d="M12 3v18"/></svg>';
         const rows = items.map((r) => `<tr><td>${esc(r.sku)}</td><td>${esc(r.colorCode)}</td><td class="pk">${packSvg}</td><td>${esc(r.orderedQty)}</td></tr>`).join('');
         let qr = this.oeQrUrl || '';
@@ -3170,7 +3174,7 @@ data() {
           </style>
           <div class="slip">
             <div class="cust">${esc(this.oeForm.customer || '—')}</div>
-            <div class="meta"><span>Order No. ${esc(this.oeForm.orderNo)}</span><span>${esc(this.oeFormattedDate)}</span></div>
+            <div class="meta"><span>Order No. ${esc(this.oeForm.orderNo)}</span><span>${esc(dateStr)}</span></div>
             <table>
               <thead><tr><th class="c-name">Name</th><th>Detail</th><th class="c-pack">Pack</th><th class="c-yard">Yard</th></tr></thead>
               <tbody>
