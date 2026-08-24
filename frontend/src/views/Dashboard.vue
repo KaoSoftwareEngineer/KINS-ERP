@@ -3161,7 +3161,7 @@ data() {
             .remark { border:1px solid #111; border-top:none; display:flex; font-size:10px; }
             .remark span:first-child { padding:5px; border-right:1px solid #111; font-weight:700; width:56px; flex-shrink:0; }
             .remark span:last-child { padding:5px; flex:1; word-break:break-word; }
-            .qr { text-align:center; margin-top:12px; }
+            .qr { text-align:center; margin-top:26px; }
             .qr img { width:104px; height:104px; }
           </style>
           <div class="slip">
@@ -3215,7 +3215,7 @@ data() {
             .total-row td { font-weight: 700; padding: 5px 5px; }
             .remark-row td { text-align: left; height: 32px; }
             .remark-label { font-weight: 700; }
-            .qr { text-align: center; margin-top: 12px; }
+            .qr { text-align: center; margin-top: 26px; }
             .qr img { width: 104px; height: 104px; }
           </style>
           <div class="slip">
