@@ -3382,6 +3382,39 @@ app.get('/api/reports/goods-issues/rolls', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: list.length, rows: list });
 }));
 
+// ============================================================
+//  รายงานการย้ายสินค้า (TR) — จาก stock_transfers (ย้ายระหว่างคลัง)
+//   - พับรวม = จำนวนรายการที่ย้าย (บรรทัดใน items_json)
+//   - จำนวนรวม = ผลรวม qty (หลา)
+//   - ตารางล่าง = รายการสินค้าที่ย้ายในใบนั้น (KINS ย้ายระดับรายการ ไม่มีบาร์โค้ดรายม้วน)
+// ============================================================
+app.get('/api/reports/stock-transfers', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), sku = s('sku'), color = s('color'), fromWh = s('fromWh'), toWh = s('toWh');
+  const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const [rows] = await mysqlPool.query('SELECT id, tr_no, transfer_date, from_wh, to_wh, items_json FROM stock_transfers ORDER BY id DESC');
+  let items = rows.map((r) => {
+    const its = parse(r.items_json).map((it) => ({
+      sku: it.sku || '', color: it.color || it.shade || '', type: it.group || '', name: it.name || '',
+      width: it.width || '', qty: Number(it.qty) || 0, unit: it.unit || 'หลา', barcode: it.barcode || '',
+    }));
+    return {
+      id: r.id, tr_no: r.tr_no, transfer_date: r.transfer_date, from_wh: r.from_wh || '', to_wh: r.to_wh || '',
+      folds: its.length, qty: its.reduce((a, x) => a + (Number(x.qty) || 0), 0), items: its,
+    };
+  });
+  const low = (v) => String(v || '').toLowerCase();
+  if (fromWh) items = items.filter((r) => low(r.from_wh).includes(low(fromWh)));
+  if (toWh) items = items.filter((r) => low(r.to_wh).includes(low(toWh)));
+  if (q) items = items.filter((r) => low(r.tr_no).includes(low(q)));
+  if (sku) items = items.filter((r) => r.items.some((it) => low(it.sku).includes(low(sku))));
+  if (color) items = items.filter((r) => r.items.some((it) => low(it.color).includes(low(color))));
+  res.json({
+    ok: true, total: items.length, items,
+    summary: { folds: items.reduce((a, x) => a + x.folds, 0), qty: items.reduce((a, x) => a + x.qty, 0) },
+  });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
