@@ -2,17 +2,9 @@
 <div class="rp-page">
   <div class="rp-titlebar">
     <span>📦 รายงานสินค้าคงคลัง</span>
-    <div class="rp-export-wrap">
-      <div class="rp-export-catch" v-if="exportMenuOpen" @click="exportMenuOpen = false"></div>
-      <button class="rp-export" @click="exportMenuOpen = !exportMenuOpen">
-        <svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#fff"/><path d="M14 2v6h6" fill="#cfe8dc"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#217346" stroke-width="1.8" stroke-linecap="round"/></svg>
-        ส่งออก <span class="rp-caret">▾</span>
-      </button>
-      <div class="rp-export-menu" v-if="exportMenuOpen">
-        <button @click="exportExcel"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>Excel (.xlsx)</button>
-        <button @click="exportCsv">📄 CSV (.csv)</button>
-      </div>
-    </div>
+    <button class="btn-small rp-export-excel" @click="exportExcel">
+      <svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออก Excel
+    </button>
   </div>
 
   <!-- ตัวกรอง (แถวเดียว) -->
@@ -367,23 +359,14 @@ export default {
 <style scoped>
 .rp-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; }
 .rp-titlebar { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
-.rp-export { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid #1a9c54; background: #1a9c54; color: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; }
-.rp-export:hover { background: #158045; }
-.rp-export .xls-ico { width: 16px; height: 16px; }
+.rp-export-excel { display: inline-flex; align-items: center; gap: 6px; }
+.rp-export-excel .xls-ico { width: 16px; height: 16px; }
 .rp-filter { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 9px 12px; margin-bottom: 12px; }
 .rp-f { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 150px; max-width: 220px; }
 .rp-f > label { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .rp-f input, .rp-f select { height: 34px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--field); color: var(--text); }
 .rp-f input:focus, .rp-f select:focus { outline: none; border-color: #2F65F6; background: var(--surface); }
 .rp-f-actions { display: flex; gap: 8px; }
-/* เมนูส่งออก (dropdown) */
-.rp-export-wrap { position: relative; }
-.rp-caret { font-size: 10px; }
-.rp-export-catch { position: fixed; inset: 0; z-index: 20; }
-.rp-export-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 21; background: var(--surface); border: 1px solid var(--field-border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.16); padding: 6px; min-width: 168px; display: flex; flex-direction: column; gap: 2px; }
-.rp-export-menu button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: none; background: transparent; color: var(--text); font-family: inherit; font-size: 12px; border-radius: 7px; cursor: pointer; }
-.rp-export-menu button:hover { background: var(--field); }
-.rp-export-menu .xls-ico { width: 16px; height: 16px; }
 .rp-btn-search { padding: 8px 16px; border: 1px solid #1e3a8a; background: #1e3a8a; color: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; }
 .rp-btn-search:hover { background: #172b6b; }
 .rp-btn-reset { padding: 8px 16px; border: 1px solid #a82a3a; background: #a82a3a; color: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; }
