@@ -3153,14 +3153,14 @@ data() {
             .slip { color:#111; }
             .cust { font-size:12px; font-weight:700; padding-bottom:4px; border-bottom:1px solid #111; margin-bottom:5px; }
             .meta { display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:6px; }
-            table { width:100%; border-collapse:collapse; margin-top:0; }
-            th, td { border:1px solid #111; padding:4px 4px; font-size:10px; text-align:center; }
+            table { width:100%; border-collapse:collapse; table-layout:fixed; }
+            th, td { border:1px solid #111; padding:4px 5px; font-size:10px; text-align:center; word-break:break-word; }
             th { font-weight:600; background:#f0f0f0; }
+            .c-name { width:22%; } .c-pack { width:20%; } .c-yard { width:16%; }
             .pk svg { vertical-align:middle; width:13px; height:13px; }
-            .total { border:1px solid #111; border-top:none; text-align:center; font-weight:700; padding:5px; font-size:10px; }
-            .remark { border:1px solid #111; border-top:none; display:flex; font-size:10px; }
-            .remark span:first-child { padding:5px; border-right:1px solid #111; font-weight:700; width:56px; flex-shrink:0; }
-            .remark span:last-child { padding:5px; flex:1; word-break:break-word; }
+            .total-row td { font-weight:700; padding:5px; }
+            .remark-row td { text-align:left; height:30px; }
+            .remark-label { font-weight:700; }
             .qr { text-align:center; margin-top:26px; }
             .qr img { width:104px; height:104px; }
           </style>
@@ -3168,11 +3168,13 @@ data() {
             <div class="cust">${esc(this.oeForm.customer || '—')}</div>
             <div class="meta"><span>Order No. ${esc(this.oeForm.orderNo)}</span><span>${esc(this.oeFormattedDate)}</span></div>
             <table>
-              <thead><tr><th>Name</th><th>Detail</th><th>Pack</th><th>Yard</th></tr></thead>
-              <tbody>${rows}</tbody>
+              <thead><tr><th class="c-name">Name</th><th>Detail</th><th class="c-pack">Pack</th><th class="c-yard">Yard</th></tr></thead>
+              <tbody>
+                ${rows}
+                <tr class="total-row"><td colspan="4">Total WholeSale - ${items.length} Pieces</td></tr>
+                <tr class="remark-row"><td class="remark-label">Remark</td><td colspan="3"></td></tr>
+              </tbody>
             </table>
-            <div class="total">Total WholeSale - ${items.length} Pieces</div>
-            <div class="remark"><span>Remark</span><span>${esc(this.oeForm.note || '')}</span></div>
             <div class="qr">${qr ? `<img src="${qr}" alt="QR"/>` : ''}</div>
           </div>`;
         try { await buildFittedPdf(html, { filename: 'ใบออร์เดอร์-' + (this.oeForm.orderNo || '') + '.pdf', widthMm: 72.1, padMm: 3 }); }
