@@ -3415,6 +3415,36 @@ app.get('/api/reports/stock-transfers', auth, wrap(async (req, res) => {
   });
 }));
 
+// ============================================================
+//  รายงานการย้ายผ้าดิบ (TG) — จาก raw_transfers (ย้ายผ้าดิบไปยังคลัง ไม่มีต้นทาง)
+//   - จำนวนล็อต = จำนวนรายการที่ย้าย, จำนวนรวม = SUM qty
+//   - ตารางล่าง = รายการผ้าดิบที่ย้าย (sku/ชื่อ/หน้ากว้าง/ล็อต/จำนวน/หน่วย/จากคลัง)
+// ============================================================
+app.get('/api/reports/raw-transfers', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), sku = s('sku'), toWh = s('toWh');
+  const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const [rows] = await mysqlPool.query('SELECT id, tg_no, transfer_date, to_wh, items_json FROM raw_transfers ORDER BY id DESC');
+  let items = rows.map((r) => {
+    const its = parse(r.items_json).map((it) => ({
+      sku: it.sku || '', name: it.name || '', width: it.width || '', lot: it.lot || '',
+      qty: Number(it.qty) || 0, unit: it.unit || 'หลา', warehouse: it.warehouse || '',
+    }));
+    return {
+      id: r.id, tg_no: r.tg_no, transfer_date: r.transfer_date, to_wh: r.to_wh || '',
+      lots: its.length, qty: its.reduce((a, x) => a + (Number(x.qty) || 0), 0), items: its,
+    };
+  });
+  const low = (v) => String(v || '').toLowerCase();
+  if (toWh) items = items.filter((r) => low(r.to_wh).includes(low(toWh)));
+  if (q) items = items.filter((r) => low(r.tg_no).includes(low(q)));
+  if (sku) items = items.filter((r) => r.items.some((it) => low(it.sku).includes(low(sku))));
+  res.json({
+    ok: true, total: items.length, items,
+    summary: { lots: items.reduce((a, x) => a + x.lots, 0), qty: items.reduce((a, x) => a + x.qty, 0) },
+  });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();

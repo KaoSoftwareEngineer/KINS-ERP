@@ -55,6 +55,7 @@ import RawStockReportPage from './dashboard/RawStockReportPage.vue';
 import GoodsReceiptReportPage from './dashboard/GoodsReceiptReportPage.vue';
 import GoodsIssueReportPage from './dashboard/GoodsIssueReportPage.vue';
 import GoodsTransferReportPage from './dashboard/GoodsTransferReportPage.vue';
+import RawTransferReportPage from './dashboard/RawTransferReportPage.vue';
 import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
@@ -130,6 +131,7 @@ export default {
     GoodsReceiptReportPage,
     GoodsIssueReportPage,
     GoodsTransferReportPage,
+    RawTransferReportPage,
     UserPermissionsPage,
     SalesContractPage,
     OrderSlipModal,
@@ -4695,6 +4697,7 @@ data() {
       <GoodsReceiptReportPage v-else-if="currentPage === 'report-stock-receive'" />
       <GoodsIssueReportPage v-else-if="currentPage === 'report-stock-issue'" />
       <GoodsTransferReportPage v-else-if="currentPage === 'report-stock-move'" />
+      <RawTransferReportPage v-else-if="currentPage === 'report-stock-move-raw'" />
       <ReportViewPage v-else-if="reportPages[currentPage]" />
 
       <!-- ============ สิทธิ์การเข้าใช้งาน ============ -->
