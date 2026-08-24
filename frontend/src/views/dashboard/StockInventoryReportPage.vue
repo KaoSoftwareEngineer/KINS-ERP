@@ -164,7 +164,7 @@
 </template>
 
 <script>
-import QRCode from 'qrcode';
+import { buildRollLabelsPdf } from '../../utils/pdfLabels.js';
 export default {
   name: 'StockInventoryReportPage',
   inject: ['dash'],
@@ -254,68 +254,28 @@ export default {
       try { await navigator.clipboard.writeText(code); this.dash.ui.toast('คัดลอกบาร์โค้ดแล้ว: ' + code, 'success', { title: 'คัดลอก' }); }
       catch (e) { this.dash.ui.toast('คัดลอกไม่สำเร็จ', 'error', { title: 'การแจ้งเตือน' }); }
     },
-    async printRoll(r) {
+    // สร้าง label object จากม้วน (ใช้ร่วมพิมพ์เดี่ยว/หลายใบ)
+    rollLabel(r) {
       const row = this.selRow || {};
-      const copies = this.copiesOf(r.roll_id);
-      let qrImg = '';
-      try { qrImg = await QRCode.toDataURL(r.roll_qr_code || '', { width: 220, margin: 1 }); } catch (e) {}
-      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-      const label = `<div class="lbl">
-          <div class="nm">${esc(row.sku || '')}</div>
-          <div class="sub">${esc(this.shadeName(row.shade) || row.type || '')}${row.width ? ' · ' + esc(row.width) : ''}</div>
-          ${qrImg ? `<img src="${qrImg}"/>` : ''}
-          <div class="bc">${esc(r.roll_qr_code)}</div>
-          <div class="yd">คงเหลือ ${this.fmt(r.current_yards)} หลา${r.lot_no ? ' · ล็อต ' + esc(r.lot_no) : ''}</div>
-        </div>`;
-      const win = window.open('', '_blank', copies > 1 ? 'width=820,height=640' : 'width=360,height=520');
-      if (!win) { this.dash.ui.toast('เบราว์เซอร์บล็อก popup — กรุณาอนุญาต', 'error', { title: 'การแจ้งเตือน' }); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ${esc(r.roll_qr_code)}${copies > 1 ? ' ×' + copies : ''}</title>
-        <style>*{box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,'Noto Sans Thai',sans-serif;margin:0;padding:16px;color:#111}
-        .sheet{display:grid;grid-template-columns:repeat(${copies > 1 ? 3 : 1},1fr);gap:12px;justify-items:center}
-        .lbl{border:1px solid #111;border-radius:8px;padding:14px;max-width:280px;text-align:center;page-break-inside:avoid}
-        .nm{font-size:14px;font-weight:700;margin-bottom:2px}.sub{font-size:12px;color:#333;margin-bottom:8px}
-        img{width:180px;height:180px}.bc{font-family:'Courier New',monospace;font-size: 12px;font-weight:700;margin-top:6px}
-        .yd{font-size:12px;margin-top:4px}@media print{.no-print{display:none}}</style></head><body>
-        <div class="no-print" style="text-align:center;margin-bottom:10px"><button onclick="window.print()" style="padding:8px 18px;font-size: 12px;cursor:pointer">🖨️ พิมพ์${copies > 1 ? ' (' + copies + ' สำเนา)' : ''}</button></div>
-        <div class="sheet">${Array(copies).fill(label).join('')}</div>
-        </body></html>`);
-      win.document.close();
+      const sub = [this.shadeName(row.shade) || row.type || '', row.width || ''].filter(Boolean).join('  ·  ');
+      return { title: row.sku || '', sub, lot: r.lot_no || '', qty: this.fmt(r.current_yards) + ' หลา', barcode: r.roll_qr_code || '' };
     },
-    // พิมพ์ QR ม้วน (ที่เลือกไว้ หรือทั้งหมดถ้าไม่ได้เลือก) — ทำสำเนาตาม dropdown ต่อม้วน
+    // พิมพ์ QR ม้วนเดียว → PDF จริง กดปุ่มเดียวจบ (ทำสำเนาตาม dropdown)
+    async printRoll(r) {
+      const copies = this.copiesOf(r.roll_id);
+      const labels = Array(copies).fill(0).map(() => this.rollLabel(r));
+      try { await buildRollLabelsPdf(labels, { filename: `QR-${r.roll_qr_code}.pdf` }); }
+      catch (e) { this.dash.ui.toast('สร้าง PDF ไม่สำเร็จ', 'error', { title: 'การแจ้งเตือน' }); }
+    },
+    // พิมพ์ QR ม้วน (ที่เลือกไว้ หรือทั้งหมด) → PDF จริง กดปุ่มเดียวจบ — ทำสำเนาตาม dropdown ต่อม้วน
     async printAllRolls() {
       if (!this.rolls.length) { this.dash.ui.toast('ยังไม่มีม้วนให้พิมพ์ — คลิกเลือกผ้าด้านบนก่อน', 'error', { title: 'การแจ้งเตือน' }); return; }
       const list = this.selectedRolls.length ? this.rolls.filter(r => this.selectedRolls.includes(r.roll_id)) : this.rolls;
-      const row = this.selRow || {};
-      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-      const cards = [];
-      let totalLabels = 0;
-      for (const r of list) {
-        let qrImg = '';
-        try { qrImg = await QRCode.toDataURL(r.roll_qr_code || '', { width: 180, margin: 1 }); } catch (e) {}
-        const label = `<div class="lbl">
-          <div class="nm">${esc(row.sku || '')}</div>
-          <div class="sub">${esc(this.shadeName(row.shade) || row.type || '')}${row.width ? ' · ' + esc(row.width) : ''}</div>
-          ${qrImg ? `<img src="${qrImg}"/>` : ''}
-          <div class="bc">${esc(r.roll_qr_code)}</div>
-          <div class="yd">คงเหลือ ${this.fmt(r.current_yards)} หลา${r.lot_no ? ' · ล็อต ' + esc(r.lot_no) : ''}</div>
-        </div>`;
-        const c = this.copiesOf(r.roll_id);
-        totalLabels += c;
-        for (let n = 0; n < c; n++) cards.push(label);
-      }
-      const win = window.open('', '_blank', 'width=820,height=640');
-      if (!win) { this.dash.ui.toast('เบราว์เซอร์บล็อก popup — กรุณาอนุญาต', 'error', { title: 'การแจ้งเตือน' }); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>พิมพ์ QR ${esc(row.sku || '')} (${totalLabels} ป้าย)</title>
-        <style>*{box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,'Noto Sans Thai',sans-serif;margin:0;padding:16px;color:#111}
-        .sheet{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-        .lbl{border:1px solid #111;border-radius:8px;padding:12px;text-align:center;page-break-inside:avoid}
-        .nm{font-size:14px;font-weight:700}.sub{font-size:11px;color:#333;margin-bottom:6px}
-        img{width:140px;height:140px}.bc{font-family:'Courier New',monospace;font-size:12px;font-weight:700;margin-top:4px}
-        .yd{font-size:11px;margin-top:3px}@media print{.no-print{display:none}}</style></head><body>
-        <div class="no-print" style="text-align:center;margin-bottom:12px"><button onclick="window.print()" style="padding:8px 20px;font-size: 12px;cursor:pointer">🖨️ พิมพ์ทั้งหมด (${totalLabels} ป้าย จาก ${list.length} ม้วน)</button></div>
-        <div class="sheet">${cards.join('')}</div>
-        </body></html>`);
-      win.document.close();
+      const labels = [];
+      for (const r of list) { const c = this.copiesOf(r.roll_id); for (let n = 0; n < c; n++) labels.push(this.rollLabel(r)); }
+      this.dash.ui.toast('กำลังสร้าง PDF ' + labels.length + ' ป้าย...', 'success', { title: 'พิมพ์ QR' });
+      try { await buildRollLabelsPdf(labels, { filename: `QR-labels-${labels.length}.pdf` }); }
+      catch (e) { this.dash.ui.toast('สร้าง PDF ไม่สำเร็จ', 'error', { title: 'การแจ้งเตือน' }); }
     },
     async saveAdjust() {
       if (!(Number(this.adjustForm.new_yards) >= 0)) { this.dash.fbFail('กรุณากรอกจำนวนใหม่'); return; }
