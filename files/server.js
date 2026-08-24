@@ -3445,6 +3445,64 @@ app.get('/api/reports/raw-transfers', auth, wrap(async (req, res) => {
   });
 }));
 
+// ============================================================
+//  รายงานการย้ายชั้นสินค้า (TK) — จาก rack_transfers (putaway เก็บเข้าแร็ค รายม้วน)
+//   items_json = [{roll_qr}] → join fabric_rolls เอารายละเอียดม้วน + join warehouse_locations เอาคลัง/แร็ค
+//   - พับรวม = จำนวนม้วนที่เก็บ, จำนวนรวม = SUM หลาของม้วน
+// ============================================================
+app.get('/api/reports/rack-transfers', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), sku = s('sku'), color = s('color'), toWh = s('toWh'), rack = s('rack');
+  const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const [transfers] = await mysqlPool.query('SELECT id, tk_no, transfer_date, location_code, items_json FROM rack_transfers ORDER BY id DESC');
+
+  // ข้อมูลคลัง/แร็ค ต่อ location_code
+  const codes = [...new Set(transfers.map((t) => t.location_code).filter(Boolean))];
+  const locMap = {};
+  if (codes.length) {
+    const [locs] = await mysqlPool.query('SELECT location_code, zone, rack FROM warehouse_locations WHERE location_code IN (?)', [codes]);
+    locs.forEach((l) => { locMap[l.location_code] = { zone: l.zone, rack: l.rack }; });
+  }
+
+  const items = [];
+  for (const t of transfers) {
+    const qrs = parse(t.items_json).map((x) => (x.roll_qr || x.barcode || '').toString().trim()).filter(Boolean);
+    let rolls = [];
+    if (qrs.length) {
+      const [rr] = await mysqlPool.query(`
+        SELECT r.roll_qr_code, r.current_yards, f.sku, f.type, f.name, f.width, s.color_code, s.name AS shade
+        FROM fabric_rolls r LEFT JOIN fabrics f ON f.id = r.product_id LEFT JOIN fabric_shades s ON s.id = r.color_id
+        WHERE r.roll_qr_code IN (?)`, [qrs]);
+      const rmap = {}; rr.forEach((x) => { rmap[x.roll_qr_code] = x; });
+      rolls = qrs.map((qr) => {
+        const x = rmap[qr] || {};
+        return {
+          sku: x.sku || '', color: x.color_code || '', type: x.type || '', name: x.name || '',
+          width: x.width || '', qty: Number(x.current_yards) || 0, unit: 'หลา', barcode: qr,
+        };
+      });
+    }
+    const loc = locMap[t.location_code] || {};
+    items.push({
+      id: t.id, tk_no: t.tk_no, transfer_date: t.transfer_date,
+      to_wh: loc.zone || 'Warehouse', rack: loc.rack || t.location_code || '',
+      folds: rolls.length, qty: rolls.reduce((a, x) => a + x.qty, 0), items: rolls,
+    });
+  }
+
+  const low = (v) => String(v || '').toLowerCase();
+  let out = items;
+  if (toWh) out = out.filter((r) => low(r.to_wh).includes(low(toWh)));
+  if (rack) out = out.filter((r) => low(r.rack).includes(low(rack)));
+  if (q) out = out.filter((r) => low(r.tk_no).includes(low(q)));
+  if (sku) out = out.filter((r) => r.items.some((it) => low(it.sku).includes(low(sku))));
+  if (color) out = out.filter((r) => r.items.some((it) => low(it.color).includes(low(color))));
+  res.json({
+    ok: true, total: out.length, items: out,
+    summary: { folds: out.reduce((a, x) => a + x.folds, 0), qty: out.reduce((a, x) => a + x.qty, 0) },
+  });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
