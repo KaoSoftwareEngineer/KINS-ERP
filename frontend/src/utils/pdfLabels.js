@@ -56,6 +56,47 @@ async function htmlToPdf(innerHtml, { filename = 'document.pdf', format = 'a4', 
   }
 }
 
+// ---- เอกสารพอดีเนื้อหา (สลิป/ใบเสร็จ): กว้างคงที่ สูง = เท่าเนื้อหา (เต็ม ไม่เหลือขาว) ----
+//  ใช้ html2canvas + jsPDF ตรงๆ เพื่อคุมขนาดได้แน่นอน
+export async function buildFittedPdf(innerHtml, { widthMm = 72.1, padMm = 3, filename = 'document.pdf', open = true, download = false } = {}) {
+  const [jspdfMod, h2cMod] = await Promise.all([import('jspdf'), import('html2canvas')]);
+  const JsPDF = jspdfMod.jsPDF || jspdfMod.default;
+  const html2canvas = h2cMod.default || h2cMod;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed; inset:0; z-index:2147483000; background:#ffffff; overflow:auto;';
+  const banner = document.createElement('div');
+  banner.textContent = 'กำลังสร้าง PDF…';
+  banner.style.cssText = 'position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:6px 16px; border-radius:20px; font-family:sans-serif; font-size:13px; z-index:2147483001;';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `width:${widthMm}mm; box-sizing:border-box; padding:${padMm}mm; margin:8mm auto; background:#ffffff; font-family:'Noto Sans Thai','Tahoma',sans-serif; color:#111;`;
+  wrap.innerHTML = innerHtml;
+  overlay.appendChild(wrap);
+  document.body.appendChild(overlay);
+  document.body.appendChild(banner);
+
+  await new Promise((r) => setTimeout(r, 60));
+  try {
+    const imgs = Array.from(wrap.querySelectorAll('img'));
+    await Promise.all(imgs.map((im) => (im.complete ? Promise.resolve() : new Promise((res) => { im.onload = im.onerror = res; }))));
+  } catch (e) { /* ข้าม */ }
+
+  try {
+    const canvas = await html2canvas(wrap, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+    const pageH = Math.max(10, widthMm * canvas.height / canvas.width);
+    const pdf = new JsPDF({ unit: 'mm', format: [widthMm, pageH], orientation: pageH >= widthMm ? 'portrait' : 'landscape' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, widthMm, pageH);
+    if (download) { pdf.save(filename); return null; }
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    if (open) { const w = window.open(url, '_blank'); if (!w) { const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); } }
+    return url;
+  } finally {
+    document.body.removeChild(overlay);
+    document.body.removeChild(banner);
+  }
+}
+
 // ---- เอกสารทั่วไป ----
 export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format = 'a5', open = true, download = false, width, margin, orientation } = {}) {
   const w = width || (format === 'a4' ? '190mm' : format === 'a6' ? '96mm' : '132mm');
