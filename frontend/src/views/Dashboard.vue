@@ -3151,18 +3151,18 @@ data() {
         const html = `
           <style>
             .slip { color:#111; }
-            .cust { font-size:15px; font-weight:700; margin-bottom:8px; }
-            .meta { display:flex; justify-content:space-between; font-size:13px; padding-bottom:8px; border-bottom:2px solid #111; }
+            .cust { font-size:12px; font-weight:700; padding-bottom:4px; border-bottom:1px solid #111; margin-bottom:5px; }
+            .meta { display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:6px; }
             table { width:100%; border-collapse:collapse; margin-top:0; }
-            th, td { border:1px solid #111; padding:7px 6px; font-size:13px; text-align:center; }
+            th, td { border:1px solid #111; padding:4px 4px; font-size:10px; text-align:center; }
             th { font-weight:600; background:#f0f0f0; }
-            .pk svg { vertical-align:middle; }
-            .total { border:1px solid #111; border-top:none; text-align:center; font-weight:700; padding:8px; font-size:13px; }
-            .remark { border:1px solid #111; border-top:none; display:flex; font-size:13px; }
-            .remark span:first-child { padding:7px; border-right:1px solid #111; font-weight:700; width:70px; flex-shrink:0; }
-            .remark span:last-child { padding:7px; flex:1; word-break:break-word; }
-            .qr { text-align:center; margin-top:18px; }
-            .qr img { width:150px; height:150px; }
+            .pk svg { vertical-align:middle; width:13px; height:13px; }
+            .total { border:1px solid #111; border-top:none; text-align:center; font-weight:700; padding:5px; font-size:10px; }
+            .remark { border:1px solid #111; border-top:none; display:flex; font-size:10px; }
+            .remark span:first-child { padding:5px; border-right:1px solid #111; font-weight:700; width:56px; flex-shrink:0; }
+            .remark span:last-child { padding:5px; flex:1; word-break:break-word; }
+            .qr { text-align:center; margin-top:12px; }
+            .qr img { width:104px; height:104px; }
           </style>
           <div class="slip">
             <div class="cust">${esc(this.oeForm.customer || '—')}</div>
@@ -3205,17 +3205,18 @@ data() {
         const html = `
           <style>
             .slip { color:#111; }
-            .cust { font-size: 15px; font-weight:700; margin-bottom: 8px; }
-            .ohead { display: flex; justify-content: space-between; font-size: 13px; padding-bottom: 8px; border-bottom: 2px solid #111; }
+            .cust { font-size: 12px; font-weight:700; padding-bottom:4px; border-bottom:1px solid #111; margin-bottom: 5px; }
+            .ohead { display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 6px; }
             table { width: 100%; border-collapse: collapse; margin-top: 0; }
-            th, td { border: 1px solid #111; padding: 7px 6px; font-size: 13px; text-align: center; }
+            th, td { border: 1px solid #111; padding: 4px 4px; font-size: 10px; text-align: center; }
             th { font-weight: 600; background:#f0f0f0; }
             .c-name { width: 24%; } .c-pack { width: 18%; } .c-yard { width: 16%; }
-            .total-row td { font-weight: 700; padding: 8px 6px; }
-            .remark-row td { text-align: left; height: 40px; }
+            .c-pack span { transform: scale(.8); display:inline-block; }
+            .total-row td { font-weight: 700; padding: 5px 5px; }
+            .remark-row td { text-align: left; height: 32px; }
             .remark-label { font-weight: 700; }
-            .qr { text-align: center; margin-top: 20px; }
-            .qr img { width: 150px; height: 150px; }
+            .qr { text-align: center; margin-top: 12px; }
+            .qr img { width: 104px; height: 104px; }
           </style>
           <div class="slip">
             <div class="cust">${esc(order.customer)}</div>
