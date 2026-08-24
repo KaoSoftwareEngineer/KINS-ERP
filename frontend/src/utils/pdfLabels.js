@@ -19,7 +19,7 @@ export async function buildRollLabelsPdf(labels, { open = true, download = false
     cards.push(`
       <div class="lbl">
         <div class="lbl-title">${esc(l.title || '')}</div>
-        <div class="lbl-sub"><span class="lbl-k">color</span> ${esc(l.sub || '')}</div>
+        <div class="lbl-sub"><span class="lbl-k">color</span> ${esc(l.sub || '')}${l.roll ? `<span class="lbl-roll">ม้วนที่ ${esc(l.roll)}</span>` : ''}</div>
         <div class="lbl-mid">
           <div class="lbl-meta">
             <div>LOT ${esc(l.lot || '')}</div>
@@ -39,6 +39,7 @@ export async function buildRollLabelsPdf(labels, { open = true, download = false
       .lbl-title { font-size:13pt; font-weight:700; margin-bottom:1mm; }
       .lbl-sub { font-size:9.5pt; padding-bottom:2mm; border-bottom:1px solid #111; }
       .lbl-k { color:#555; margin-right:3mm; }
+      .lbl-roll { float:right; color:#555; font-size:8.5pt; }
       .lbl-mid { display:flex; align-items:center; justify-content:space-between; gap:3mm; padding-top:2.5mm; }
       .lbl-meta { font-size:11pt; font-weight:600; line-height:1.9; }
       .lbl-qr { text-align:center; }

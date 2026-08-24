@@ -175,6 +175,7 @@
 
 <script>
 import QRCode from 'qrcode';
+import { buildRollLabelsPdf } from '../../utils/pdfLabels.js';
 
 export default {
   name: 'GoodsDyedReceivePage',
@@ -364,59 +365,25 @@ export default {
     async printBarcodes() {
       const rows = this.items.filter(r => (r.sku || '').trim());
       if (rows.length === 0) { this.dash.fbFail('ไม่มีรายการสำหรับพิมพ์บาร์โค้ด'); return; }
-      const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
       const base = Date.now() % 1000000;
       let seq = 0;
-      const stickers = [];
+      const labels = [];
       for (const r of rows) {
-        let rolls = (r.rolls && r.rolls.length) ? r.rolls : this.buildRolls(r);
+        const rolls = (r.rolls && r.rolls.length) ? r.rolls : this.buildRolls(r);
         if (!rolls.length) continue;
+        rolls.forEach((roll, i) => { if (!roll.roll_no) roll.roll_no = i + 1; });
         for (const roll of rolls) {
           if (!roll.barcode) roll.barcode = this.genRollBarcode(base, seq);
           seq++;
-          const qr = await QRCode.toDataURL(roll.barcode, { width: 150, margin: 1 });
-          stickers.push(`
-            <div class="st">
-              <div class="st-top">
-                <div><span class="lbl">Code</span> <b>${esc(r.sku)}</b></div>
-                <div><span class="lbl">color</span> ${esc(r.color || '-')}</div>
-                <div><span class="lbl">ม้วนที่</span> ${roll.roll_no || '-'} / ${rolls.length}</div>
-              </div>
-              <div class="st-mid">
-                <div class="st-info">
-                  <div>LOT ${esc(r.lot || '')}</div>
-                  <div>QTY ${roll.yards || 0} หลา.</div>
-                </div>
-                <div class="st-qr">
-                  <img src="${qr}" />
-                  <div class="st-code">${esc(roll.barcode)}</div>
-                </div>
-              </div>
-            </div>`);
+          labels.push({
+            title: r.sku || '', sub: r.color || '-', roll: (roll.roll_no || '-') + ' / ' + rolls.length,
+            lot: r.lot || '', qty: (roll.yards || 0) + ' หลา.', barcode: roll.barcode || '',
+          });
         }
       }
-      if (stickers.length === 0) { this.dash.fbFail('ยังไม่มีข้อมูลม้วนผ้า — กรุณาระบุพับหรือจำนวนก่อน'); return; }
-      const win = window.open('', '_blank', 'width=900,height=680');
-      if (!win) { this.dash.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>บาร์โค้ดผ้าย้อม (${stickers.length})</title>
-        <style>
-          *{box-sizing:border-box}
-          body{font-family:'Noto Sans Thai','Segoe UI',sans-serif;margin:12px}
-          .sheet{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-          .st{border:1px solid #222;border-radius:8px;padding:10px 12px;page-break-inside:avoid}
-          .st-top{border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:8px;font-size:13px;line-height:1.5}
-          .lbl{color:#555;font-size:11px}
-          .st-mid{display:flex;justify-content:space-between;align-items:flex-end}
-          .st-info{font-size:13px;line-height:1.7}
-          .st-qr{text-align:center}
-          .st-qr img{width:96px;height:96px;display:block}
-          .st-code{font-family:'Courier New',monospace;font-size:11px;font-weight:700;margin-top:2px}
-          @media print{.no-print{display:none}}
-        </style></head><body>
-        <div class="no-print" style="text-align:center;margin-bottom:10px"><button onclick="window.print()" style="padding:8px 22px;font-size:14px;cursor:pointer">🖨️ พิมพ์</button></div>
-        <div class="sheet">${stickers.join('')}</div>
-        </body></html>`);
-      win.document.close();
+      if (labels.length === 0) { this.dash.fbFail('ยังไม่มีข้อมูลม้วนผ้า — กรุณาระบุพับหรือจำนวนก่อน'); return; }
+      try { await buildRollLabelsPdf(labels, { filename: 'บาร์โค้ดผ้าย้อม-' + labels.length + '.pdf' }); }
+      catch (e) { this.dash.fbFail('สร้าง PDF ไม่สำเร็จ'); }
     },
     // ---- พิมพ์ใบรับสินค้า ----
     openReceiptPdf() {
