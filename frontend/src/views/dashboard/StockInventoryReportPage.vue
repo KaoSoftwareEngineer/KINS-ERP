@@ -12,21 +12,19 @@
     </div>
   </div>
 
-  <!-- ตัวกรอง (3 คอลัมน์ × 2 แถว) -->
+  <!-- ตัวกรอง (แถวเดียว) -->
   <div class="rp-filter">
-    <div class="rp-filter-grid">
-      <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="ชื่อ/รหัส/สี" @keyup.enter="load" /></div>
-      <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="load" /></div>
-      <div class="rp-f"><label>รหัสสี / เฉดสี</label><input v-model="filter.color" @keyup.enter="load" /></div>
-      <div class="rp-f"><label>กลุ่มผ้า</label>
-        <select v-model="filter.group" @change="load">
-          <option value="">ทั้งหมด</option>
-          <option v-for="g in groupOptions" :key="g.id" :value="g.id">{{ g.name }}</option>
-        </select>
-      </div>
-      <div class="rp-f"><label>หน้ากว้าง</label><input v-model="filter.width" @keyup.enter="load" /></div>
-      <div class="rp-f"><label>คลัง</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="ชื่อ/รหัส/สี" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>รหัสสี / เฉดสี</label><input v-model="filter.color" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>กลุ่มผ้า</label>
+      <select v-model="filter.group" @change="load">
+        <option value="">ทั้งหมด</option>
+        <option v-for="g in groupOptions" :key="g.id" :value="g.id">{{ g.name }}</option>
+      </select>
     </div>
+    <div class="rp-f"><label>หน้ากว้าง</label><input v-model="filter.width" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>คลัง</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
     <div class="rp-f-actions">
       <button class="rp-btn-search" @click="load">🔍 ค้นหา</button>
       <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
@@ -368,14 +366,12 @@ export default {
 .rp-titlebar { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
 .rp-export { padding: 7px 14px; border: 1px solid #1a9c54; background: #1a9c54; color: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; }
 .rp-export:hover { background: #158045; }
-.rp-filter { display: flex; gap: 14px; align-items: flex-end; background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
-.rp-filter-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 18px; flex: 1; min-width: 0; }
-.rp-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rp-filter { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 9px 12px; margin-bottom: 12px; }
+.rp-f { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 150px; max-width: 220px; }
 .rp-f > label { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .rp-f input, .rp-f select { height: 34px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--field); color: var(--text); }
 .rp-f input:focus, .rp-f select:focus { outline: none; border-color: #2F65F6; background: var(--surface); }
-.rp-f-actions { display: flex; gap: 8px; flex-shrink: 0; }
-@media (max-width: 900px) { .rp-filter { flex-direction: column; align-items: stretch; } .rp-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rp-f-actions { justify-content: flex-end; } }
+.rp-f-actions { display: flex; gap: 8px; }
 /* เมนูส่งออก (dropdown) */
 .rp-export-wrap { position: relative; }
 .rp-caret { font-size: 10px; }
@@ -389,12 +385,14 @@ export default {
 .rp-btn-reset { padding: 8px 16px; border: 1px solid #a82a3a; background: #a82a3a; color: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; }
 .rp-btn-reset:hover { background: #8a1c2b; }
 .rp-found { font-size: 12px; color: #2F65F6; font-weight: 600; margin-bottom: 6px; }
-.rp-table-wrap { overflow-x: auto; border: 1px solid var(--field-border); border-radius: 10px; margin-bottom: 16px; background: var(--surface); }
+.rp-table-wrap { overflow-x: auto; border: 1px solid var(--table-line); border-radius: 10px; margin-bottom: 16px; background: var(--surface); }
 .rp-rolls { max-height: 340px; overflow-y: auto; }
 .rp-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 900px; }
-.rp-table thead th { position: sticky; top: 0; background: #3c4453; color: #fff; font-weight: 600; padding: 9px 10px; text-align: left; white-space: nowrap; border-right: 1px solid rgba(255,255,255,.14); }
+.rp-table thead th { position: sticky; top: 0; background: #3c4453; color: #fff; font-weight: 600; padding: 9px 10px; text-align: left; white-space: nowrap; border-right: 1px solid rgba(255,255,255,.18); }
+.rp-table thead th:last-child { border-right: none; }
 .rp-table th.rp-r { text-align: right; }
-.rp-table tbody td { padding: 3px 10px; border-bottom: 1px solid var(--field-border); white-space: nowrap; }
+.rp-table tbody td { padding: 3px 10px; border-bottom: 1px solid var(--table-line); border-right: 1px solid var(--table-line); white-space: nowrap; }
+.rp-table tbody td:last-child { border-right: none; }
 .rp-table tbody tr { cursor: pointer; }
 .rp-table tbody tr:hover { background: var(--field); }
 .rp-table tbody tr.is-sel { background: #fff8d6; }
@@ -402,7 +400,7 @@ export default {
 .rp-bold { font-weight: 700; } .rp-muted { color: var(--muted); }
 .rp-mono { font-family: 'Courier New', monospace; }
 .rp-empty { text-align: center; color: var(--muted); padding: 26px; }
-.rp-table tfoot td { padding: 9px 10px; border-top: 2px solid var(--field-border); background: var(--field); font-weight: 700; }
+.rp-table tfoot td { padding: 9px 10px; border-top: 2px solid var(--table-line); background: var(--field); font-weight: 700; }
 .rp-bc { vertical-align: middle; }
 .rp-ic { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--field); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; vertical-align: middle; transition: background .15s, border-color .15s; }
 .rp-ic svg { width: 14px; height: 14px; }
