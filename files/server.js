@@ -3142,6 +3142,96 @@ app.get('/api/reports/stock-by-shelf', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: rows.length, items: rows, summary: { yards: totalYards, rolls: rows.length } });
 }));
 
+// ============================================================
+//  รายงานผ้าดิบคงคลัง
+//  แหล่งข้อมูล:
+//   - ข้อมูลผ้า (รหัส/ชื่อ/ประเภท/หน้ากว้าง/ส่วนประกอบ/shrinkage/allowance) = ตาราง fabric_raw (master)
+//   - จำนวนรวม (หลา) = ผลรวม qty ในใบรับผ้าดิบ raw_receipts.items_json (ต่อ sku)  [กรอง "คลัง"=factory ได้]
+//   - ระหว่างผลิต = PO ผ้าดิบ (purchase_orders po_type='raw') ที่ยังไม่มีใบรับอ้างถึง (po_no ∉ raw_receipts.po_ref)
+//   - ที่โรงงาน  = ผ้าดิบใน dye_orders.raw_json (needed) ของใบสั่งย้อมที่ยังไม่รับผ้าย้อมกลับ (dye_no ∉ dyed_receipts.order_ref)
+//  ตารางล่าง (เลือกแถว) = รายการรับในใบรับผ้าดิบของ sku นั้น
+// ============================================================
+app.get('/api/reports/raw-stock', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), sku = s('sku'), width = s('width'), warehouse = s('warehouse');
+  const parseJson = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const parseObj = (t) => { try { return JSON.parse(t || '{}') || {}; } catch (e) { return {}; } };
+
+  // ---- master ผ้าดิบ (+ ตัวกรอง) ----
+  const where = ['1=1'];
+  const params = [];
+  if (q) { where.push('(sku LIKE ? OR name LIKE ? OR composition LIKE ?)'); params.push('%' + q + '%', '%' + q + '%', '%' + q + '%'); }
+  if (sku) { where.push('sku LIKE ?'); params.push('%' + sku + '%'); }
+  if (width) { where.push('width LIKE ?'); params.push('%' + width + '%'); }
+  const [raws] = await mysqlPool.query(`SELECT * FROM fabric_raw WHERE ${where.join(' AND ')} ORDER BY sku ASC`, params);
+
+  // ---- จำนวนรวม (received) จาก raw_receipts (กรองคลัง=factory ถ้าระบุ) ----
+  const received = {};   // sku -> yards
+  const [receipts] = await mysqlPool.query('SELECT factory, items_json FROM raw_receipts');
+  receipts.forEach((r) => {
+    if (warehouse && !String(r.factory || '').toLowerCase().includes(warehouse.toLowerCase())) return;
+    parseJson(r.items_json).forEach((it) => {
+      const k = (it.sku || '').trim(); if (!k) return;
+      received[k] = (received[k] || 0) + (Number(it.qty) || 0);
+    });
+  });
+
+  // ---- ระหว่างผลิต = PO ผ้าดิบยังไม่รับ ----
+  const [[recv]] = await mysqlPool.query("SELECT GROUP_CONCAT(DISTINCT po_ref) AS refs FROM raw_receipts WHERE po_ref <> ''");
+  const rawDone = new Set(String(recv && recv.refs || '').split(',').map((x) => x.trim()).filter(Boolean));
+  const weaving = {};    // sku -> yards
+  const [pos] = await mysqlPool.query("SELECT po_no, items_json FROM purchase_orders WHERE po_type = 'raw'");
+  pos.forEach((po) => {
+    if (rawDone.has(po.po_no)) return;
+    parseJson(po.items_json).forEach((it) => {
+      const k = (it.sku || '').trim(); if (!k) return;
+      weaving[k] = (weaving[k] || 0) + (Number(it.qty) || 0);
+    });
+  });
+
+  // ---- ที่โรงงาน = ผ้าดิบใน dye_orders ที่ยังไม่รับผ้าย้อมกลับ ----
+  const [[dyeRecv]] = await mysqlPool.query("SELECT GROUP_CONCAT(DISTINCT order_ref) AS refs FROM dyed_receipts WHERE order_ref <> ''");
+  const dyeDone = new Set(String(dyeRecv && dyeRecv.refs || '').split(',').map((x) => x.trim()).filter(Boolean));
+  const atFactory = {};  // sku -> yards
+  const [dyes] = await mysqlPool.query('SELECT dye_no, raw_json FROM dye_orders');
+  dyes.forEach((d) => {
+    if (dyeDone.has(d.dye_no)) return;
+    const raw = parseObj(d.raw_json);
+    const k = (raw.code || raw.sku || '').trim(); if (!k) return;
+    atFactory[k] = (atFactory[k] || 0) + (Number(raw.needed) || 0);
+  });
+
+  const items = raws.map((r) => ({
+    id: r.id, sku: r.sku, name: r.name, type: r.type, width: r.width,
+    composition: r.composition, shrinkage: r.shrinkage, allowance: r.allowance,
+    total_yards: received[r.sku] || 0,
+    wip_production: weaving[r.sku] || 0,
+    wip_factory: atFactory[r.sku] || 0,
+  }));
+  const sum = (f) => items.reduce((a, x) => a + Number(x[f] || 0), 0);
+  res.json({
+    ok: true, total: items.length, items,
+    summary: { yards: sum('total_yards'), production: sum('wip_production'), factory: sum('wip_factory') },
+  });
+}));
+
+// รายการรับในใบรับผ้าดิบของ sku ที่เลือก (ตารางล่าง)
+app.get('/api/reports/raw-stock/receipts', auth, wrap(async (req, res) => {
+  const sku = (req.query.sku || '').toString().trim();
+  if (!sku) return res.json({ ok: true, total: 0, rows: [] });
+  const parseJson = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const [receipts] = await mysqlPool.query('SELECT in_no, receipt_date, factory, items_json FROM raw_receipts ORDER BY id DESC');
+  const rows = [];
+  receipts.forEach((r) => {
+    parseJson(r.items_json).forEach((it) => {
+      if ((it.sku || '').trim() !== sku) return;
+      const qty = Number(it.qty) || 0;
+      rows.push({ in_no: r.in_no, receipt_date: r.receipt_date, lot_no: it.lot || '', received_yards: qty, stock_yards: qty, warehouse: r.factory || '' });
+    });
+  });
+  res.json({ ok: true, total: rows.length, rows });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
