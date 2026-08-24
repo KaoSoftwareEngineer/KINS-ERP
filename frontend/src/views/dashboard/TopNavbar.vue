@@ -53,27 +53,27 @@
         v-if="dash.topnavNotifOpen"
         class="absolute right-0 top-[calc(100%+8px)] z-[3000] w-72 overflow-hidden rounded-xl border bg-[var(--surface)] border-[var(--field-border)] shadow-[0_8px_24px_rgba(0,0,0,.12)]"
       >
-        <div class="px-3.5 py-2.5 border-b border-[var(--field-border)] text-sm font-bold text-[var(--text)]">การแจ้งเตือน</div>
+        <div class="px-3.5 py-2 border-b border-[var(--field-border)] text-[13px] font-bold text-[var(--text)]">การแจ้งเตือน</div>
         <div class="max-h-80 overflow-y-auto">
           <!-- ผ้าใกล้หมด (กดเพื่อไปดูผังคลัง) -->
           <button
             v-if="dash.lowStockRolls.length"
             type="button"
-            class="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#fff4ea] border-b border-[var(--field-border)] text-left hover:bg-[#ffe9d5]"
+            class="w-full flex items-center justify-between gap-2 px-3.5 py-2 bg-[#fff4ea] border-b border-[var(--field-border)] text-left hover:bg-[#ffe9d5]"
             @click="dash.currentPage = 'zone-rack'; dash.topnavNotifOpen = false"
           >
-            <span class="text-sm font-bold text-[#b8480d]">🚨 ผ้าใกล้หมด {{ dash.lowStockRolls.length }} ม้วน</span>
-            <span class="text-[11px] text-[#b8480d] whitespace-nowrap">ดูผังคลัง →</span>
+            <span class="text-[12px] font-bold text-[#b8480d]">🚨 ผ้าใกล้หมด {{ dash.lowStockRolls.length }} ม้วน</span>
+            <span class="text-[10.5px] text-[#b8480d] whitespace-nowrap">ดูผังคลัง →</span>
           </button>
           <div
             v-for="(activity, idx) in dash.recentActivities.slice(0, 4)"
             :key="idx"
-            class="flex items-start gap-2.5 px-3.5 py-2.5 border-b border-[var(--field-border)] last:border-b-0"
+            class="flex items-start gap-2.5 px-3.5 py-2 border-b border-[var(--field-border)] last:border-b-0"
           >
-            <span class="text-lg leading-none">{{ activity.icon }}</span>
+            <span class="text-base leading-none">{{ activity.icon }}</span>
             <div class="min-w-0">
-              <div class="text-sm text-[var(--text)] truncate">{{ dash.lang === 'th' ? activity.thTitle : activity.enTitle }}</div>
-              <div class="text-xs text-[var(--muted)]">{{ activity.time }}</div>
+              <div class="text-[12px] text-[var(--text)] truncate">{{ dash.lang === 'th' ? activity.thTitle : activity.enTitle }}</div>
+              <div class="text-[10.5px] text-[var(--muted)]">{{ activity.time }}</div>
             </div>
           </div>
         </div>
