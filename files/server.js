@@ -3302,6 +3302,86 @@ app.get('/api/reports/goods-receipts', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: rows.length, items: rows, summary });
 }));
 
+// ============================================================
+//  รายงานการเบิกสินค้า (ตัดจ่ายออเดอร์)
+//  แหล่งข้อมูลจริงของ KINS: โมดูลตัดผ้าเขียน stock_transactions (txn_type='cut'/'issue')
+//   โดย ref_no = "เลขที่ออเดอร์" (OR...) — KINS ไม่มีเอกสารใบเบิก (OUT) แยกต่างหาก
+//   จึงจัดกลุ่มการตัดตาม "ออเดอร์" (ref_no) แล้ว join orders เอาชื่อลูกค้า/วันที่
+//   - พับรวม = จำนวนม้วนที่ตัดในออเดอร์ (COUNT)
+//   - จำนวนรวม = ผลรวมหลาที่ตัด (SUM -yards_change)
+//   - ตารางล่าง = ม้วนที่ตัด (fabric_rolls: บาร์โค้ด + จำนวนที่ตัด)
+//   (ถ้าในอนาคตมีใบเบิก goods_issues/txn_type='issue' ก็รวมมาให้ด้วย)
+// ============================================================
+app.get('/api/reports/goods-issues', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), sku = s('sku'), party = s('party');
+
+  // จัดกลุ่มการตัด/เบิกตามเลขอ้างอิง (ออเดอร์)
+  const [grp] = await mysqlPool.query(`
+    SELECT ref_no, COUNT(*) AS folds, SUM(-yards_change) AS qty, MAX(created_at) AS last_at
+    FROM stock_transactions
+    WHERE txn_type IN ('cut', 'issue') AND ref_no <> ''
+    GROUP BY ref_no`);
+
+  // ข้อมูลออเดอร์ (ลูกค้า/วันที่)
+  const [orders] = await mysqlPool.query('SELECT order_no, customer, `date`, salesperson FROM orders');
+  const omap = new Map(orders.map((o) => [o.order_no, o]));
+
+  // กรอง sku: หา ref_no ที่มีการตัดผ้ารหัสนั้น
+  let skuRefs = null;
+  if (sku) {
+    const [sr] = await mysqlPool.query(`
+      SELECT DISTINCT st.ref_no
+      FROM stock_transactions st JOIN fabric_rolls r ON r.roll_id = st.roll_id
+      LEFT JOIN fabrics f ON f.id = r.product_id
+      WHERE st.txn_type IN ('cut','issue') AND f.sku LIKE ?`, ['%' + sku + '%']);
+    skuRefs = new Set(sr.map((x) => x.ref_no));
+  }
+
+  let items = grp.map((g) => {
+    const o = omap.get(g.ref_no) || {};
+    return {
+      gi_no: g.ref_no, ref_no: g.ref_no,
+      issue_date: o.date || g.last_at, issue_type: 'ขาย',
+      customer: o.customer || '',
+      folds: Number(g.folds) || 0, qty: Number(g.qty) || 0, status: 'ปกติ',
+    };
+  });
+
+  const low = (v) => String(v || '').toLowerCase();
+  if (party) items = items.filter((r) => low(r.customer).includes(low(party)));
+  if (q) items = items.filter((r) => low(r.gi_no).includes(low(q)) || low(r.customer).includes(low(q)));
+  if (skuRefs) items = items.filter((r) => skuRefs.has(r.gi_no));
+  items.sort((a, b) => (a.gi_no < b.gi_no ? 1 : a.gi_no > b.gi_no ? -1 : 0));
+
+  res.json({
+    ok: true, total: items.length, items,
+    summary: { folds: items.reduce((a, x) => a + x.folds, 0), qty: items.reduce((a, x) => a + x.qty, 0) },
+  });
+}));
+
+// ม้วนที่ตัดของออเดอร์ที่เลือก (ตารางล่าง)
+app.get('/api/reports/goods-issues/rolls', auth, wrap(async (req, res) => {
+  const refNo = (req.query.gi_no || req.query.ref_no || '').toString().trim();
+  if (!refNo) return res.json({ ok: true, total: 0, rows: [] });
+  const [rows] = await mysqlPool.query(`
+    SELECT st.txn_id, -st.yards_change AS cut_yards, r.roll_qr_code,
+           f.sku, f.width, s.color_code, s.name AS shade
+    FROM stock_transactions st
+    JOIN fabric_rolls r ON r.roll_id = st.roll_id
+    LEFT JOIN fabrics f ON f.id = r.product_id
+    LEFT JOIN fabric_shades s ON s.id = r.color_id
+    WHERE st.ref_no = ? AND st.txn_type IN ('cut', 'issue')
+    ORDER BY st.txn_id ASC
+  `, [refNo]);
+  const list = rows.map((r) => {
+    const color = r.color_code ? (r.color_code + (r.shade ? ' : ' + r.shade : '')) : (r.shade || '');
+    const cut = Number(r.cut_yards) || 0;
+    return { sku: r.sku || '', color, width: r.width || '', fold: 1, issued: cut, unit: 'หลา', barcode: r.roll_qr_code || '', cut };
+  });
+  res.json({ ok: true, total: list.length, rows: list });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
