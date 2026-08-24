@@ -5302,7 +5302,7 @@ data() {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: visible;   /* ไม่ตัด/ไม่ให้กราฟล้นมาทับข้อความใต้กราฟ */
+    overflow: hidden;   /* กันกราฟหลุดออกนอกกรอบการ์ดตอนปรับแต่ง/ย่อขยาย */
     padding: 14px 18px;
   }
   .dash-chart-section .section-header,
@@ -5323,20 +5323,21 @@ data() {
     color: var(--muted);
     text-align: center;
     padding: 8px;
+    overflow: hidden;   /* กันเนื้อกราฟล้นออกนอกกล่อง */
   }
 
   /* ============ Dashboard: กราฟแนวโน้มยอดขาย / ปริมาณการขาย ============ */
   .dash-linechart-box,
   .dash-donut-box { padding: 12px; display: flex; }
   .dash-linechart { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; }
-  .dash-linechart-plot { position: relative; flex: 1; min-height: 0; }
-  .dash-line-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
   .dash-area-fill { fill: var(--chart-1); opacity: .12; }
   .dash-line-stroke { fill: none; stroke: var(--chart-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-dot { fill: var(--surface); stroke: var(--chart-1); stroke-width: 2; cursor: pointer; transition: r .15s; }
   .dash-line-dot.is-active { r: 6; fill: var(--chart-1); }
-  .dash-axis-y { position: absolute; inset: 0; pointer-events: none; }
+  .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
     left: 0;
@@ -5345,7 +5346,7 @@ data() {
     color: var(--muted);
     white-space: nowrap;
   }
-  .dash-chart-xaxis { position: absolute; left: 0; right: 0; bottom: 2px; height: 14px; }
+  .dash-chart-xaxis { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; }
   .dash-chart-xaxis span {
     position: absolute;
     bottom: 0;
@@ -5668,7 +5669,7 @@ data() {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: visible;   /* ไม่ตัด/ไม่ให้กราฟล้นมาทับข้อความใต้กราฟ */
+    overflow: hidden;   /* กันกราฟหลุดออกนอกกรอบการ์ดตอนปรับแต่ง/ย่อขยาย */
     padding: 14px 18px;
   }
   .dash-chart-section .section-header,
@@ -5689,20 +5690,21 @@ data() {
     color: var(--muted);
     text-align: center;
     padding: 8px;
+    overflow: hidden;   /* กันเนื้อกราฟล้นออกนอกกล่อง */
   }
 
   /* ============ Dashboard: กราฟแนวโน้มยอดขาย / ปริมาณการขาย ============ */
   .dash-linechart-box,
   .dash-donut-box { padding: 12px; display: flex; }
   .dash-linechart { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; }
-  .dash-linechart-plot { position: relative; flex: 1; min-height: 0; }
-  .dash-line-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
   .dash-area-fill { fill: var(--chart-1); opacity: .12; }
   .dash-line-stroke { fill: none; stroke: var(--chart-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-dot { fill: var(--surface); stroke: var(--chart-1); stroke-width: 2; cursor: pointer; transition: r .15s; }
   .dash-line-dot.is-active { r: 6; fill: var(--chart-1); }
-  .dash-axis-y { position: absolute; inset: 0; pointer-events: none; }
+  .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
     left: 0;
@@ -5711,7 +5713,7 @@ data() {
     color: var(--muted);
     white-space: nowrap;
   }
-  .dash-chart-xaxis { position: absolute; left: 0; right: 0; bottom: 2px; height: 14px; }
+  .dash-chart-xaxis { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; }
   .dash-chart-xaxis span {
     position: absolute;
     bottom: 0;
