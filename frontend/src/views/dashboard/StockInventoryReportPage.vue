@@ -400,7 +400,7 @@ export default {
 .rp-bold { font-weight: 700; } .rp-muted { color: var(--muted); }
 .rp-mono { font-family: 'Courier New', monospace; }
 .rp-empty { text-align: center; color: var(--muted); padding: 26px; }
-.rp-table tfoot td { padding: 9px 10px; border-top: 2px solid var(--table-line); background: var(--field); font-weight: 700; }
+.rp-table tfoot td { position: sticky; bottom: 0; z-index: 2; padding: 9px 10px; border-top: 2px solid var(--table-line); background: var(--field); font-weight: 700; }
 .rp-bc { vertical-align: middle; }
 .rp-ic { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--field-border); background: var(--field); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; vertical-align: middle; transition: background .15s, border-color .15s; }
 .rp-ic svg { width: 14px; height: 14px; }
