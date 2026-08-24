@@ -57,9 +57,9 @@ async function htmlToPdf(innerHtml, { filename = 'document.pdf', format = 'a4', 
 }
 
 // ---- เอกสารทั่วไป ----
-export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format = 'a5', open = true, download = false, width } = {}) {
+export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format = 'a5', open = true, download = false, width, margin, orientation } = {}) {
   const w = width || (format === 'a4' ? '190mm' : format === 'a6' ? '96mm' : '132mm');
-  return htmlToPdf(innerHtml, { filename, format, width: w, open, download });
+  return htmlToPdf(innerHtml, { filename, format, orientation, margin, width: w, open, download });
 }
 
 // ---- สติกเกอร์ QR รายม้วน — 1 ดวง/หน้า ขนาด Stock 2 (3.14 x 2.36 นิ้ว = 79.76 x 59.94 มม.) ----

@@ -3175,7 +3175,7 @@ data() {
             <div class="remark"><span>Remark</span><span>${esc(this.oeForm.note || '')}</span></div>
             <div class="qr">${qr ? `<img src="${qr}" alt="QR"/>` : ''}</div>
           </div>`;
-        try { await buildDocPdf(html, { filename: 'ใบออร์เดอร์-' + (this.oeForm.orderNo || '') + '.pdf', format: 'a5' }); }
+        try { await buildDocPdf(html, { filename: 'ใบออร์เดอร์-' + (this.oeForm.orderNo || '') + '.pdf', format: [72.1, 296.9], orientation: 'portrait', margin: [4, 3, 4, 3], width: '66mm' }); }
         catch (e) { this.fbFail('สร้าง PDF ไม่สำเร็จ'); }
       },
       // ปุ่มพิมพ์ → ออกใบสั่งตัดผ้า (cutting slip) ให้พนักงานตัดถือไปตัด แล้วกลับมาสแกนที่หน้าจัดออร์เดอร์
