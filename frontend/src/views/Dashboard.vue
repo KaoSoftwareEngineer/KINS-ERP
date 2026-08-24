@@ -50,6 +50,7 @@ import CustAccGenericPage from './dashboard/CustAccGenericPage.vue';
 import PartnerAccGenericPage from './dashboard/PartnerAccGenericPage.vue';
 import ReportGenericPage from './dashboard/ReportGenericPage.vue';
 import ReportViewPage from './dashboard/ReportViewPage.vue';
+import ShelfStockReportPage from './dashboard/ShelfStockReportPage.vue';
 import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
@@ -119,6 +120,7 @@ export default {
     PartnerAccGenericPage,
     ReportGenericPage,
     ReportViewPage,
+    ShelfStockReportPage,
     UserPermissionsPage,
     SalesContractPage,
     OrderSlipModal,
@@ -4648,6 +4650,7 @@ data() {
       <PartnerAccGenericPage v-else-if="partnerAccPages[currentPage]" />
       <!-- ============ รายงาน (เมนูย่อยทั้ง 14 หน้า) — ดึงข้อมูลจริงจาก DB ============ -->
       <StockInventoryReportPage v-else-if="currentPage === 'report-stock'" />
+      <ShelfStockReportPage v-else-if="currentPage === 'report-stock-shelf'" />
       <ReportViewPage v-else-if="reportPages[currentPage]" />
 
       <!-- ============ สิทธิ์การเข้าใช้งาน ============ -->

@@ -3109,6 +3109,39 @@ app.get('/api/reports/summary/:type', auth, wrap(async (req, res) => {
   res.json({ ok: true, type, columns, rows, total: rows.length });
 }));
 
+// ============================================================
+//  รายงานสินค้าคงคลังตามชั้น (per-roll) — แสดงทุกม้วนพร้อมตำแหน่งเก็บ (คลัง/แร็ค/ล็อต)
+// ============================================================
+app.get('/api/reports/stock-by-shelf', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), sku = s('sku'), color = s('color'), barcode = s('barcode'),
+        group = s('group'), width = s('width'), warehouse = s('warehouse'), rack = s('rack');
+  const where = ["r.status <> 'depleted'"];
+  const params = [];
+  if (q) { where.push('(f.sku LIKE ? OR f.name LIKE ? OR s.name LIKE ? OR r.roll_qr_code LIKE ?)'); params.push('%' + q + '%', '%' + q + '%', '%' + q + '%', '%' + q + '%'); }
+  if (sku) { where.push('f.sku LIKE ?'); params.push('%' + sku + '%'); }
+  if (color) { where.push('(s.name LIKE ? OR s.color_code LIKE ?)'); params.push('%' + color + '%', '%' + color + '%'); }
+  if (barcode) { where.push('r.roll_qr_code LIKE ?'); params.push('%' + barcode + '%'); }
+  if (group) { where.push('f.group_id = ?'); params.push(Number(group)); }
+  if (width) { where.push('f.width LIKE ?'); params.push('%' + width + '%'); }
+  if (warehouse) { where.push('l.location_code LIKE ?'); params.push('%' + warehouse + '%'); }
+  if (rack) { where.push('l.rack LIKE ?'); params.push('%' + rack + '%'); }
+  const [rows] = await mysqlPool.query(`
+    SELECT r.roll_id, r.roll_qr_code, r.current_yards, r.lot_no, r.note, r.received_at, r.receipt_no,
+           f.sku, f.name, f.type, f.width,
+           s.name AS shade, s.color_code AS color_code,
+           l.location_code, l.zone, l.rack
+    FROM fabric_rolls r
+    LEFT JOIN fabrics f ON f.id = r.product_id
+    LEFT JOIN fabric_shades s ON s.id = r.color_id
+    LEFT JOIN warehouse_locations l ON l.location_id = r.location_id
+    WHERE ${where.join(' AND ')}
+    ORDER BY l.rack ASC, f.sku ASC, r.roll_id ASC
+  `, params);
+  const totalYards = rows.reduce((a, x) => a + Number(x.current_yards || 0), 0);
+  res.json({ ok: true, total: rows.length, items: rows, summary: { yards: totalYards, rolls: rows.length } });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
