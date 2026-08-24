@@ -130,7 +130,7 @@
     <div class="oe-footer-actions">
       <button class="btn-small" @click="dash.oeReport">👁️ รายงาน</button>
       <button v-if="!dash.oeSaved" class="btn-small" @click="dash.oeSave">💾 บันทึก</button>
-      <button v-else class="btn-small" @click="dash.oeShowSlip = true">🖨️ ใบออร์เดอร์</button>
+      <button v-else class="btn-small" @click="dash.oeSlipPdf">🖨️ ใบออร์เดอร์</button>
     </div>
   </div>
 </div>

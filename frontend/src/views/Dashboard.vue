@@ -3139,6 +3139,45 @@ data() {
           (order.note ? `\nหมายเหตุ: ${order.note}` : '')
         );
       },
+      // ใบออร์เดอร์ → PDF จริง กดปุ่มเดียวจบ (ข้าม modal, ขนาด A5 พอดี)
+      async oeSlipPdf() {
+        const items = this.oeSlipItems || [];
+        if (!items.length) { this.fbFail('ไม่มีรายการสำหรับออกใบออร์เดอร์'); return; }
+        const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const packSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#000" stroke-width="2"><rect x="3" y="7" width="18" height="14" rx="1"/><path d="M3 7l9-4 9 4"/><path d="M12 3v18"/></svg>';
+        const rows = items.map((r) => `<tr><td>${esc(r.sku)}</td><td>${esc(r.colorCode)}</td><td class="pk">${packSvg}</td><td>${esc(r.orderedQty)}</td></tr>`).join('');
+        let qr = this.oeQrUrl || '';
+        if (!qr || !String(qr).startsWith('data:')) { try { qr = await QRCode.toDataURL(this.oeForm.orderNo || '', { width: 200, margin: 1 }); } catch (e) { qr = ''; } }
+        const html = `
+          <style>
+            .slip { color:#111; }
+            .cust { font-size:15px; font-weight:700; margin-bottom:8px; }
+            .meta { display:flex; justify-content:space-between; font-size:13px; padding-bottom:8px; border-bottom:2px solid #111; }
+            table { width:100%; border-collapse:collapse; margin-top:0; }
+            th, td { border:1px solid #111; padding:7px 6px; font-size:13px; text-align:center; }
+            th { font-weight:600; background:#f0f0f0; }
+            .pk svg { vertical-align:middle; }
+            .total { border:1px solid #111; border-top:none; text-align:center; font-weight:700; padding:8px; font-size:13px; }
+            .remark { border:1px solid #111; border-top:none; display:flex; font-size:13px; }
+            .remark span:first-child { padding:7px; border-right:1px solid #111; font-weight:700; width:70px; flex-shrink:0; }
+            .remark span:last-child { padding:7px; flex:1; word-break:break-word; }
+            .qr { text-align:center; margin-top:18px; }
+            .qr img { width:150px; height:150px; }
+          </style>
+          <div class="slip">
+            <div class="cust">${esc(this.oeForm.customer || '—')}</div>
+            <div class="meta"><span>Order No. ${esc(this.oeForm.orderNo)}</span><span>${esc(this.oeFormattedDate)}</span></div>
+            <table>
+              <thead><tr><th>Name</th><th>Detail</th><th>Pack</th><th>Yard</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <div class="total">Total WholeSale - ${items.length} Pieces</div>
+            <div class="remark"><span>Remark</span><span>${esc(this.oeForm.note || '')}</span></div>
+            <div class="qr">${qr ? `<img src="${qr}" alt="QR"/>` : ''}</div>
+          </div>`;
+        try { await buildDocPdf(html, { filename: 'ใบออร์เดอร์-' + (this.oeForm.orderNo || '') + '.pdf', format: 'a5' }); }
+        catch (e) { this.fbFail('สร้าง PDF ไม่สำเร็จ'); }
+      },
       // ปุ่มพิมพ์ → ออกใบสั่งตัดผ้า (cutting slip) ให้พนักงานตัดถือไปตัด แล้วกลับมาสแกนที่หน้าจัดออร์เดอร์
       async ofPrintOrder(order) {
         const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
