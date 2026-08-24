@@ -66,8 +66,8 @@
           <td class="rp-r" :class="{ 'rp-muted': !Number(row.wip_factory) }">{{ Number(row.wip_factory) ? fmt(row.wip_factory) : '-' }}</td>
           <td class="rp-r" :class="{ 'rp-muted': !Number(row.wip_weaving) }">{{ Number(row.wip_weaving) ? fmt(row.wip_weaving) : '-' }}</td>
           <td class="rp-c">
-            <button class="rp-ic rp-view" title="ดูม้วนผ้าในคลัง" @click.stop="selectRow(idx, row)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <button class="fr-img-btn" title="ดูรูปสินค้า" @click.stop>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
             </button>
           </td>
         </tr>
@@ -387,11 +387,11 @@ export default {
 .rp-found { font-size: 12px; color: #2F65F6; font-weight: 600; margin-bottom: 6px; }
 .rp-table-wrap { overflow-x: auto; border: 1px solid var(--table-line); border-radius: 10px; margin-bottom: 16px; background: var(--surface); }
 .rp-rolls { max-height: 340px; overflow-y: auto; }
-.rp-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 900px; }
-.rp-table thead th { position: sticky; top: 0; background: #3c4453; color: #fff; font-weight: 600; padding: 9px 10px; text-align: left; white-space: nowrap; border-right: 1px solid rgba(255,255,255,.18); }
+.rp-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; }
+.rp-table thead th { position: sticky; top: 0; background: #3c4453; color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .3px; padding: 7px 12px; text-align: left; white-space: nowrap; border-right: 1px solid rgba(255,255,255,.18); }
 .rp-table thead th:last-child { border-right: none; }
 .rp-table th.rp-r { text-align: right; }
-.rp-table tbody td { padding: 3px 10px; border-bottom: 1px solid var(--table-line); border-right: 1px solid var(--table-line); white-space: nowrap; }
+.rp-table tbody td { padding: 3px 12px; font-size: 12px; line-height: 1.6; border-bottom: 1px solid var(--table-line); border-right: 1px solid var(--table-line); white-space: nowrap; }
 .rp-table tbody td:last-child { border-right: none; }
 .rp-table tbody tr { cursor: pointer; }
 .rp-table tbody tr:hover { background: var(--field); }
