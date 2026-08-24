@@ -3157,12 +3157,12 @@ data() {
             .slip { color:#111; }
             .cust { font-size:12px; font-weight:700; padding-bottom:4px; border-bottom:1px solid #111; margin-bottom:5px; }
             .meta { display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:6px; }
-            table { width:100%; border-collapse:collapse; table-layout:fixed; }
-            th, td { border:1px solid #111; padding:4px 5px; font-size:10px; text-align:center; word-break:break-word; }
+            table { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; border-top:1px solid #111; border-left:1px solid #111; }
+            th, td { border-right:1px solid #111; border-bottom:1px solid #111; padding:5px 5px; font-size:10px; text-align:center; word-break:break-word; line-height:1.35; }
             th { font-weight:600; background:#f0f0f0; }
             .c-name { width:22%; } .c-pack { width:20%; } .c-yard { width:16%; }
             .pk svg { vertical-align:middle; width:13px; height:13px; }
-            .total-row td { font-weight:700; padding:5px; }
+            .total-row td { font-weight:700; padding:6px 5px; }
             .remark-row td { text-align:left; height:30px; }
             .remark-label { font-weight:700; }
             .qr { text-align:center; margin-top:26px; }
@@ -3213,12 +3213,12 @@ data() {
             .slip { color:#111; }
             .cust { font-size: 12px; font-weight:700; padding-bottom:4px; border-bottom:1px solid #111; margin-bottom: 5px; }
             .ohead { display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 6px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 0; }
-            th, td { border: 1px solid #111; padding: 4px 4px; font-size: 10px; text-align: center; }
+            table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; border-top: 1px solid #111; border-left: 1px solid #111; }
+            th, td { border-right: 1px solid #111; border-bottom: 1px solid #111; padding: 5px 5px; font-size: 10px; text-align: center; word-break: break-word; line-height: 1.35; }
             th { font-weight: 600; background:#f0f0f0; }
             .c-name { width: 24%; } .c-pack { width: 18%; } .c-yard { width: 16%; }
             .c-pack span { transform: scale(.8); display:inline-block; }
-            .total-row td { font-weight: 700; padding: 5px 5px; }
+            .total-row td { font-weight: 700; padding: 6px 5px; }
             .remark-row td { text-align: left; height: 32px; }
             .remark-label { font-weight: 700; }
             .qr { text-align: center; margin-top: 26px; }
