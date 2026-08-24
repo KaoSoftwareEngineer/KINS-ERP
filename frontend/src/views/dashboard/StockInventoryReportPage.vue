@@ -2,8 +2,8 @@
 <div class="rp-page">
   <div class="rp-titlebar">
     <span>📦 รายงานสินค้าคงคลัง</span>
-    <button class="btn-small rp-export-excel" @click="exportExcel">
-      <svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออก Excel
+    <button class="rp-export-excel" @click="exportExcel">
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
     </button>
   </div>
 
@@ -359,8 +359,11 @@ export default {
 <style scoped>
 .rp-page { font-family: 'Noto Sans Thai', -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); font-size: 12px; }
 .rp-titlebar { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
-.rp-export-excel { display: inline-flex; align-items: center; gap: 6px; }
-.rp-export-excel .xls-ico { width: 16px; height: 16px; }
+.rp-export-excel { display: inline-flex; align-items: center; gap: 7px; padding: 7px 15px; border: 1px solid #1a9c54; background: #1a9c54; color: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; }
+.rp-export-excel:hover { background: #158045; }
+/* ไอคอน Excel สีเขียววางบนชิปขาว → เห็นชัดบนปุ่มเขียว ไม่กลืนพื้น */
+.rp-xls-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #fff; border-radius: 5px; }
+.rp-export-excel .xls-ico { width: 14px; height: 14px; }
 .rp-filter { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; background: var(--surface); border: 1px solid var(--field-border); border-radius: 12px; padding: 9px 12px; margin-bottom: 12px; }
 .rp-f { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 150px; max-width: 220px; }
 .rp-f > label { font-size: 11.5px; color: var(--muted); font-weight: 600; }
