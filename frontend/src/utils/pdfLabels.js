@@ -104,48 +104,76 @@ export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format
 }
 
 // ---- สติกเกอร์ QR รายม้วน — 1 ดวง/หน้า ขนาด Stock 2 (3.14 x 2.36 นิ้ว = 79.76 x 59.94 มม.) ----
+//  วาดทีละดวงด้วย jsPDF (1 หน้า/ดวง เต็มพอดี ไม่มีหน้าว่างคั่น)
 //  labels: [{ title, sub, lot, qty, barcode, roll }]
 export async function buildRollLabelsPdf(labels, { open = true, download = false, filename = 'labels.pdf' } = {}) {
-  const cards = [];
-  for (let i = 0; i < labels.length; i++) {
-    const l = labels[i];
+  if (!labels || !labels.length) return null;
+  const [jspdfMod, h2cMod] = await Promise.all([import('jspdf'), import('html2canvas')]);
+  const JsPDF = jspdfMod.jsPDF || jspdfMod.default;
+  const html2canvas = h2cMod.default || h2cMod;
+  const W = 79.76, H = 59.94;  // ขนาดสติกเกอร์ (มม.)
+
+  // เตรียม QR ล่วงหน้า
+  const qrs = [];
+  for (const l of labels) {
     let qr = '';
     try { qr = await QRCode.toDataURL(String(l.barcode || ''), { width: 260, margin: 0 }); } catch (e) { /* ข้าม */ }
-    const last = i === labels.length - 1;
-    cards.push(`
-      <div class="lbl"${last ? ' style="page-break-after:auto"' : ''}>
+    qrs.push(qr);
+  }
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed; inset:0; z-index:2147483000; background:#e5e5e5; overflow:auto; padding:8mm 0;';
+  const banner = document.createElement('div');
+  banner.textContent = 'กำลังสร้าง PDF…';
+  banner.style.cssText = 'position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:6px 16px; border-radius:20px; font-family:sans-serif; font-size:13px; z-index:2147483001;';
+  overlay.innerHTML = `
+    <style>
+      .lbl { width:${W}mm; height:${H}mm; box-sizing:border-box; padding:4mm 5mm; margin:0 auto 6mm; background:#fff;
+             display:flex; flex-direction:column; color:#000; font-family:'Noto Sans Thai','Tahoma',sans-serif; }
+      .lbl-hd { font-size:14pt; line-height:1.2; }
+      .lbl-hd b { font-weight:700; }
+      .lbl-color { font-size:10.5pt; padding-bottom:2.5mm; border-bottom:1.5px solid #000; overflow:hidden; }
+      .k { color:#000; margin-right:2mm; }
+      .lbl-roll { float:right; color:#444; font-size:9pt; }
+      .lbl-body { flex:1; display:flex; align-items:center; padding-top:3mm; }
+      .lbl-meta { flex:1; font-size:13pt; line-height:2.3; }
+      .lbl-right { width:31mm; text-align:center; border-left:1.5px solid #000; padding-left:2.5mm; }
+      .lbl-right img { width:25mm; height:25mm; display:block; margin:0 auto; }
+      .lbl-bc { font-family:'Courier New',monospace; font-size:9.5pt; font-weight:700; margin-top:1mm; }
+    </style>
+    ${labels.map((l, i) => `
+      <div class="lbl">
         <div class="lbl-hd"><span class="k">Code</span> <b>${esc(l.title || '')}</b></div>
         <div class="lbl-color"><span class="k">color</span> ${esc(l.sub || '')}${l.roll ? `<span class="lbl-roll">ม้วนที่ ${esc(l.roll)}</span>` : ''}</div>
         <div class="lbl-body">
-          <div class="lbl-meta">
-            <div>LOT ${esc(l.lot || '')}</div>
-            <div>QTY ${esc(l.qty || '')}</div>
-          </div>
-          <div class="lbl-right">
-            ${qr ? `<img src="${qr}"/>` : ''}
-            <div class="lbl-bc">${esc(l.barcode || '')}</div>
-          </div>
+          <div class="lbl-meta"><div>LOT ${esc(l.lot || '')}</div><div>QTY ${esc(l.qty || '')}</div></div>
+          <div class="lbl-right">${qrs[i] ? `<img src="${qrs[i]}"/>` : ''}<div class="lbl-bc">${esc(l.barcode || '')}</div></div>
         </div>
-      </div>`);
+      </div>`).join('')}`;
+  document.body.appendChild(overlay);
+  document.body.appendChild(banner);
+
+  await new Promise((r) => setTimeout(r, 60));
+  try {
+    const imgs = Array.from(overlay.querySelectorAll('img'));
+    await Promise.all(imgs.map((im) => (im.complete ? Promise.resolve() : new Promise((res) => { im.onload = im.onerror = res; }))));
+  } catch (e) { /* ข้าม */ }
+
+  try {
+    const els = Array.from(overlay.querySelectorAll('.lbl'));
+    const pdf = new JsPDF({ unit: 'mm', format: [W, H], orientation: 'landscape' });
+    for (let i = 0; i < els.length; i++) {
+      const canvas = await html2canvas(els[i], { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+      if (i > 0) pdf.addPage([W, H], 'landscape');
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, W, H);
+    }
+    if (download) { pdf.save(filename); return null; }
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    if (open) { const w = window.open(url, '_blank'); if (!w) { const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); } }
+    return url;
+  } finally {
+    document.body.removeChild(overlay);
+    document.body.removeChild(banner);
   }
-  const innerHtml = `
-    <style>
-      .lbl { width:73mm; height:54mm; padding:0; page-break-after:always; box-sizing:border-box;
-             display:flex; flex-direction:column; color:#000; }
-      .lbl-hd { font-size:13pt; line-height:1.2; }
-      .lbl-hd b { font-weight:700; }
-      .lbl-color { font-size:10pt; padding-bottom:2.5mm; border-bottom:1.5px solid #000; overflow:hidden; }
-      .k { color:#000; margin-right:2mm; }
-      .lbl-roll { float:right; color:#444; font-size:8.5pt; }
-      .lbl-body { flex:1; display:flex; align-items:center; padding-top:3mm; }
-      .lbl-meta { flex:1; font-size:12pt; line-height:2.2; }
-      .lbl-right { width:30mm; text-align:center; border-left:1.5px solid #000; padding-left:2mm; }
-      .lbl-right img { width:24mm; height:24mm; display:block; margin:0 auto; }
-      .lbl-bc { font-family:'Courier New',monospace; font-size:9pt; font-weight:700; margin-top:1mm; }
-    </style>
-    ${cards.join('')}`;
-  return htmlToPdf(innerHtml, {
-    filename, open, download,
-    format: [79.76, 59.94], orientation: 'landscape', margin: [3, 3, 3, 3], width: '73mm',
-  });
 }
