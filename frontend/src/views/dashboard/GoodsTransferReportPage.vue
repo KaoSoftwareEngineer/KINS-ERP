@@ -107,6 +107,7 @@
 </template>
 
 <script>
+import { buildDocPdf } from '../../utils/pdfLabels.js';
 export default {
   name: 'GoodsTransferReportPage',
   inject: ['dash'],
@@ -155,24 +156,21 @@ export default {
     },
     sortIcon(key) { if (this.sort.key !== key) return '↕'; return this.sort.dir === 'asc' ? '▲' : '▼'; },
     selectRow(row) { this.selRow = row; this.selItems = row.items || []; },
-    printTransfer(row) {
+    async printTransfer(row) {
       const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       const rowsHtml = (row.items || []).map((it, i) => `<tr><td>${i + 1}</td><td>${esc(it.sku)}</td><td>${esc(it.color)}</td><td>${esc(it.width)}</td><td style="text-align:right">${this.fmt(it.qty)}</td><td>${esc(it.unit)}</td></tr>`).join('');
-      const win = window.open('', '_blank', 'width=780,height=680');
-      if (!win) { this.dash.ui.toast('เบราว์เซอร์บล็อก popup — กรุณาอนุญาต', 'error', { title: 'การแจ้งเตือน' }); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>ใบย้ายสินค้า ${esc(row.tr_no)}</title>
-        <style>*{box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,'Noto Sans Thai',sans-serif;margin:0;padding:24px;color:#111;font-size:13px}
-        h2{margin:0 0 4px}.meta{color:#444;margin-bottom:12px;font-size:12px;line-height:1.7}
-        table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}th{background:#eee}
-        .no-print{margin-bottom:12px}@media print{.no-print{display:none}}</style></head><body>
-        <div class="no-print"><button onclick="window.print()" style="padding:8px 20px;font-size:12px;cursor:pointer">🖨️ พิมพ์</button></div>
+      const html = `
+        <style>
+          h2{margin:0 0 4px;font-size:18px}.meta{color:#444;margin-bottom:12px;font-size:12px;line-height:1.7}
+          table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}th{background:#eee}
+        </style>
         <h2>ใบย้ายสินค้า ${esc(row.tr_no)}</h2>
         <div class="meta">วันที่: ${esc(this.fmtDate(row.transfer_date))} · จากคลัง: ${esc(row.from_wh)} → ไปยังคลัง: ${esc(row.to_wh)}</div>
         <table><thead><tr><th>ที่</th><th>รหัสสินค้า</th><th>รหัสสี</th><th>หน้ากว้าง</th><th>จำนวน</th><th>หน่วย</th></tr></thead>
         <tbody>${rowsHtml || '<tr><td colspan="6" style="text-align:center">ไม่มีรายการ</td></tr>'}</tbody>
-        <tfoot><tr><th colspan="4" style="text-align:right">รวม</th><th style="text-align:right">${this.fmt(row.qty)}</th><th></th></tr></tfoot></table>
-        </body></html>`);
-      win.document.close();
+        <tfoot><tr><th colspan="4" style="text-align:right">รวม</th><th style="text-align:right">${this.fmt(row.qty)}</th><th></th></tr></tfoot></table>`;
+      try { await buildDocPdf(html, { filename: 'ใบย้ายสินค้า-' + row.tr_no + '.pdf', format: 'a4' }); }
+      catch (e) { this.dash.ui.toast('สร้าง PDF ไม่สำเร็จ', 'error', { title: 'การแจ้งเตือน' }); }
     },
     async exportExcel() {
       const head = ['เลขที่ย้ายสินค้า', 'วันที่', 'จากคลัง', 'ไปยังคลัง', 'พับรวม', 'จำนวนรวม'];

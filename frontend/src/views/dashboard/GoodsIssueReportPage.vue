@@ -110,6 +110,7 @@
 </template>
 
 <script>
+import { buildDocPdf } from '../../utils/pdfLabels.js';
 export default {
   name: 'GoodsIssueReportPage',
   inject: ['dash'],
@@ -172,21 +173,18 @@ export default {
         const d = await res.json(); if (d.ok) rolls = d.rows || [];
       } catch (e) {}
       const rowsHtml = rolls.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.sku)}</td><td>${esc(r.color)}</td><td>${esc(r.width)}</td><td>${esc(r.barcode)}</td><td style="text-align:right">${this.fmt(r.cut)}</td></tr>`).join('');
-      const win = window.open('', '_blank', 'width=780,height=680');
-      if (!win) { this.dash.ui.toast('เบราว์เซอร์บล็อก popup — กรุณาอนุญาต', 'error', { title: 'การแจ้งเตือน' }); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>ใบเบิกสินค้า ${esc(row.gi_no)}</title>
-        <style>*{box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,'Noto Sans Thai',sans-serif;margin:0;padding:24px;color:#111;font-size:13px}
-        h2{margin:0 0 4px}.meta{color:#444;margin-bottom:12px;font-size:12px;line-height:1.7}
-        table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}th{background:#eee}
-        .no-print{margin-bottom:12px}@media print{.no-print{display:none}}</style></head><body>
-        <div class="no-print"><button onclick="window.print()" style="padding:8px 20px;font-size:12px;cursor:pointer">🖨️ พิมพ์</button></div>
+      const html = `
+        <style>
+          h2{margin:0 0 4px;font-size:18px}.meta{color:#444;margin-bottom:12px;font-size:12px;line-height:1.7}
+          table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}th{background:#eee}
+        </style>
         <h2>ใบเบิกสินค้า ${esc(row.gi_no)}</h2>
         <div class="meta">วันที่: ${esc(this.fmtDate(row.issue_date))} · ประเภทการเบิก: ${esc(row.issue_type)} · อ้างอิงออเดอร์: ${esc(row.ref_no || '-')}<br>ลูกค้า: ${esc(row.customer || '-')}</div>
         <table><thead><tr><th>ที่</th><th>รหัสสินค้า</th><th>รหัสสี</th><th>หน้ากว้าง</th><th>บาร์โค้ด</th><th>จำนวนที่ตัด (หลา)</th></tr></thead>
         <tbody>${rowsHtml || '<tr><td colspan="6" style="text-align:center">ไม่มีรายละเอียดม้วน</td></tr>'}</tbody>
-        <tfoot><tr><th colspan="5" style="text-align:right">รวม</th><th style="text-align:right">${this.fmt(row.qty)}</th></tr></tfoot></table>
-        </body></html>`);
-      win.document.close();
+        <tfoot><tr><th colspan="5" style="text-align:right">รวม</th><th style="text-align:right">${this.fmt(row.qty)}</th></tr></tfoot></table>`;
+      try { await buildDocPdf(html, { filename: 'ใบเบิกสินค้า-' + row.gi_no + '.pdf', format: 'a4' }); }
+      catch (e) { this.dash.ui.toast('สร้าง PDF ไม่สำเร็จ', 'error', { title: 'การแจ้งเตือน' }); }
     },
     async exportExcel() {
       const head = ['เลขที่เบิกสินค้า', 'วันที่', 'ประเภทการเบิก', 'เลขที่อ้างอิง', 'คู่ค้า/ลูกค้า', 'พับรวม', 'จำนวนรวม', 'สถานะ'];

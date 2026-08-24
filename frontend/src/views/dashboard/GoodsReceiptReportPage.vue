@@ -120,6 +120,7 @@
 </template>
 
 <script>
+import { buildDocPdf } from '../../utils/pdfLabels.js';
 export default {
   name: 'GoodsReceiptReportPage',
   inject: ['dash'],
@@ -166,25 +167,22 @@ export default {
     },
     sortIcon(key) { if (this.sort.key !== key) return '↕'; return this.sort.dir === 'asc' ? '▲' : '▼'; },
     selectRow(row) { this.selRow = row; this.selItems = row.items || []; },
-    printReceipt(row) {
+    async printReceipt(row) {
       const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       const rowsHtml = (row.items || []).map((it, i) => `<tr><td>${i + 1}</td><td>${esc(it.sku)}</td><td>${esc(it.color)}</td><td>${esc(it.name)}</td><td>${esc(it.width)}</td><td style="text-align:right">${Number(it.fold) || 0}</td><td style="text-align:right">${this.fmt(it.qty)}</td></tr>`).join('');
-      const win = window.open('', '_blank', 'width=780,height=680');
-      if (!win) { this.dash.ui.toast('เบราว์เซอร์บล็อก popup — กรุณาอนุญาต', 'error', { title: 'การแจ้งเตือน' }); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>ใบรับสินค้า ${esc(row.in_no)}</title>
-        <style>*{box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,'Noto Sans Thai',sans-serif;margin:0;padding:24px;color:#111;font-size:13px}
-        h2{margin:0 0 4px}.meta{color:#444;margin-bottom:12px;font-size:12px;line-height:1.7}
-        table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}th{background:#eee}
-        .no-print{margin-bottom:12px}@media print{.no-print{display:none}}</style></head><body>
-        <div class="no-print"><button onclick="window.print()" style="padding:8px 20px;font-size:12px;cursor:pointer">🖨️ พิมพ์</button></div>
+      const html = `
+        <style>
+          h2{margin:0 0 4px;font-size:18px}.meta{color:#444;margin-bottom:12px;font-size:12px;line-height:1.7}
+          table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}th{background:#eee}
+        </style>
         <h2>ใบรับสินค้า ${esc(row.in_no)}</h2>
         <div class="meta">วันที่: ${esc(row.receipt_date)} · ประเภทการรับ: ${esc(row.receipt_type)} · ประเภทสินค้า: ${esc(row.product_type)}<br>
         คู่ค้า: ${esc(row.party)} · เลขที่อ้างอิง: ${esc(row.ref_no || '-')} · สถานที่จัดส่ง: ${esc(row.warehouse)}</div>
         <table><thead><tr><th>ที่</th><th>รหัสสินค้า</th><th>รหัสสี</th><th>ชื่อ</th><th>หน้ากว้าง</th><th>พับ</th><th>จำนวน (หลา)</th></tr></thead>
         <tbody>${rowsHtml || '<tr><td colspan="7" style="text-align:center">ไม่มีรายการ</td></tr>'}</tbody>
-        <tfoot><tr><th colspan="5" style="text-align:right">รวม</th><th style="text-align:right">${row.folds}</th><th style="text-align:right">${this.fmt(row.qty)}</th></tr></tfoot></table>
-        </body></html>`);
-      win.document.close();
+        <tfoot><tr><th colspan="5" style="text-align:right">รวม</th><th style="text-align:right">${row.folds}</th><th style="text-align:right">${this.fmt(row.qty)}</th></tr></tfoot></table>`;
+      try { await buildDocPdf(html, { filename: 'ใบรับสินค้า-' + row.in_no + '.pdf', format: 'a4' }); }
+      catch (e) { this.dash.ui.toast('สร้าง PDF ไม่สำเร็จ', 'error', { title: 'การแจ้งเตือน' }); }
     },
     async exportExcel() {
       const head = ['เลขที่รับสินค้า', 'วันที่', 'ประเภทการรับ', 'ประเภทสินค้า', 'เลขที่อ้างอิง', 'คู่ค้า', 'พับรวม', 'จำนวนรวม', 'ยอดรวม', 'สถานะชำระเงิน', 'สถานะ', 'สถานที่จัดส่ง'];

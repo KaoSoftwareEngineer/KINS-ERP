@@ -11,10 +11,11 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 // สร้างเอกสารทั่วไป (ใบสั่งตัด/ใบรับ/ใบเบิก ฯลฯ) เป็น PDF จริง กดปุ่มเดียวจบ
 // innerHtml = HTML ของเนื้อเอกสาร (จะถูกจัดให้เต็มความกว้างหน้ากระดาษ)
 // format = ขนาดกระดาษ (ค่าเริ่มต้น a5 = พอดีสลิปเล็ก ไม่เหลือขาวเยอะแบบ a4)
-export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format = 'a5', open = true, download = false } = {}) {
+export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format = 'a5', open = true, download = false, width } = {}) {
   const html2pdf = (await import('html2pdf.js')).default;
+  const w = width || (format === 'a4' ? '190mm' : format === 'a6' ? '96mm' : '132mm');
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed; left:-99999px; top:0; width:132mm; background:#fff; font-family:\'Noto Sans Thai\',\'Tahoma\',sans-serif; color:#111;';
+  wrap.style.cssText = `position:fixed; left:-99999px; top:0; width:${w}; background:#fff; font-family:'Noto Sans Thai','Tahoma',sans-serif; color:#111;`;
   wrap.innerHTML = innerHtml;
   document.body.appendChild(wrap);
   try {
