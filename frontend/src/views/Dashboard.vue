@@ -59,6 +59,7 @@ import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
 import QRCode from 'qrcode';
+import { buildDocPdf } from '../utils/pdfLabels.js';
 import CustomerEditModal from './dashboard/CustomerEditModal.vue';
 import ShadeModal from './dashboard/ShadeModal.vue';
 import FeedbackModal from './dashboard/FeedbackModal.vue';
@@ -3160,39 +3161,28 @@ data() {
         }).join('');
 
         let qrImg = '';
-        try { qrImg = await QRCode.toDataURL(order.orderNo || '', { width: 170, margin: 1 }); } catch (e) {}
+        try { qrImg = await QRCode.toDataURL(order.orderNo || '', { width: 200, margin: 1 }); } catch (e) {}
 
-        const win = window.open('', '_blank', 'width=420,height=680');
-        if (!win) { this.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
-        win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>ใบสั่งตัด ${esc(order.orderNo)}</title>
+        const html = `
           <style>
-            * { box-sizing: border-box; }
-            body { font-family: 'Segoe UI', Tahoma, 'Noto Sans Thai', sans-serif; margin: 0; padding: 18px; color: #111; }
-            .slip { max-width: 340px; margin: 0 auto; }
-            .cust { font-size: 14px; margin-bottom: 8px; }
+            .slip { color:#111; }
+            .cust { font-size: 15px; font-weight:700; margin-bottom: 8px; }
             .ohead { display: flex; justify-content: space-between; font-size: 13px; padding-bottom: 8px; border-bottom: 2px solid #111; }
             table { width: 100%; border-collapse: collapse; margin-top: 0; }
-            th, td { border: 1px solid #111; padding: 6px 5px; font-size: 12.5px; text-align: center; }
-            th { font-weight: 600; }
-            .c-name { width: 66px; }
-            .c-detail { text-align: center; }
-            .c-pack { width: 52px; }
-            .c-yard { width: 46px; }
-            .total-row td { font-weight: 600; padding: 7px 5px; }
-            .remark-row td { text-align: left; height: 34px; }
-            .remark-label { width: 66px; font-weight: 600; }
-            .qr { text-align: center; margin-top: 22px; }
+            th, td { border: 1px solid #111; padding: 7px 6px; font-size: 13px; text-align: center; }
+            th { font-weight: 600; background:#f0f0f0; }
+            .c-name { width: 24%; } .c-pack { width: 18%; } .c-yard { width: 16%; }
+            .total-row td { font-weight: 700; padding: 8px 6px; }
+            .remark-row td { text-align: left; height: 40px; }
+            .remark-label { font-weight: 700; }
+            .qr { text-align: center; margin-top: 20px; }
             .qr img { width: 150px; height: 150px; }
-            @media print { .no-print { display: none; } body { padding: 6px; } }
-          </style></head><body>
-          <div class="no-print" style="text-align:center;margin-bottom:12px">
-            <button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer">🖨️ พิมพ์</button>
-          </div>
+          </style>
           <div class="slip">
             <div class="cust">${esc(order.customer)}</div>
             <div class="ohead"><span>Order No. ${esc(order.orderNo)}</span><span>${esc(order.date)}</span></div>
             <table>
-              <thead><tr><th>Name</th><th>Detail</th><th>Pack</th><th>Yard</th></tr></thead>
+              <thead><tr><th class="c-name">Name</th><th>Detail</th><th class="c-pack">Pack</th><th class="c-yard">Yard</th></tr></thead>
               <tbody>
                 ${rows}
                 <tr class="total-row"><td colspan="4">Total WholeSale - ${items.length} Pieces</td></tr>
@@ -3200,9 +3190,9 @@ data() {
               </tbody>
             </table>
             <div class="qr">${qrImg ? `<img src="${qrImg}" alt="QR ${esc(order.orderNo)}"/>` : ''}</div>
-          </div>
-          </body></html>`);
-        win.document.close();
+          </div>`;
+        try { await buildDocPdf(html, { filename: 'ใบสั่งตัด-' + order.orderNo + '.pdf', format: 'a5' }); }
+        catch (e) { this.fbFail('สร้าง PDF ไม่สำเร็จ'); }
       },
       // กดปุ่มกรรไกร → เปิดหน้าจัดออร์เดอร์/ตัดผ้า พร้อมดึงข้อมูลออร์เดอร์มาเติม
       async ofFulfillOrder(order) {

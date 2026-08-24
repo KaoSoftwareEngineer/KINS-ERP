@@ -8,6 +8,34 @@ import QRCode from 'qrcode';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+// สร้างเอกสารทั่วไป (ใบสั่งตัด/ใบรับ/ใบเบิก ฯลฯ) เป็น PDF จริง กดปุ่มเดียวจบ
+// innerHtml = HTML ของเนื้อเอกสาร (จะถูกจัดให้เต็มความกว้างหน้ากระดาษ)
+// format = ขนาดกระดาษ (ค่าเริ่มต้น a5 = พอดีสลิปเล็ก ไม่เหลือขาวเยอะแบบ a4)
+export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format = 'a5', open = true, download = false } = {}) {
+  const html2pdf = (await import('html2pdf.js')).default;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed; left:-99999px; top:0; width:132mm; background:#fff; font-family:\'Noto Sans Thai\',\'Tahoma\',sans-serif; color:#111;';
+  wrap.innerHTML = innerHtml;
+  document.body.appendChild(wrap);
+  try {
+    const worker = html2pdf().set({
+      margin: [6, 6, 6, 6],
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format, orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] },
+    }).from(wrap);
+    if (download) { await worker.save(); return null; }
+    const blob = await worker.outputPdf('blob');
+    const url = URL.createObjectURL(blob);
+    if (open) window.open(url, '_blank');
+    return url;
+  } finally {
+    document.body.removeChild(wrap);
+  }
+}
+
 export async function buildRollLabelsPdf(labels, { open = true, download = false, filename = 'labels.pdf' } = {}) {
   const html2pdf = (await import('html2pdf.js')).default;
 
