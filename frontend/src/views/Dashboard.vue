@@ -49,6 +49,7 @@ import OrderGenericPage from './dashboard/OrderGenericPage.vue';
 import CustAccGenericPage from './dashboard/CustAccGenericPage.vue';
 import PartnerAccGenericPage from './dashboard/PartnerAccGenericPage.vue';
 import ReportGenericPage from './dashboard/ReportGenericPage.vue';
+import ReportViewPage from './dashboard/ReportViewPage.vue';
 import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
@@ -117,6 +118,7 @@ export default {
     CustAccGenericPage,
     PartnerAccGenericPage,
     ReportGenericPage,
+    ReportViewPage,
     UserPermissionsPage,
     SalesContractPage,
     OrderSlipModal,
@@ -4644,9 +4646,9 @@ data() {
       <CreditNotePage v-else-if="currentPage === 'credit-note-partner'" party-type="partner" />
       <AccountDeductPage v-else-if="currentPage === 'deduct-partner-account'" party-type="partner" />
       <PartnerAccGenericPage v-else-if="partnerAccPages[currentPage]" />
-      <!-- ============ รายงาน (เมนูย่อยทั้ง 14 หน้า) ============ -->
+      <!-- ============ รายงาน (เมนูย่อยทั้ง 14 หน้า) — ดึงข้อมูลจริงจาก DB ============ -->
       <StockInventoryReportPage v-else-if="currentPage === 'report-stock'" />
-      <ReportGenericPage v-else-if="reportPages[currentPage]" />
+      <ReportViewPage v-else-if="reportPages[currentPage]" />
 
       <!-- ============ สิทธิ์การเข้าใช้งาน ============ -->
       <UserPermissionsPage v-else-if="currentPage === 'user-permissions'" />
