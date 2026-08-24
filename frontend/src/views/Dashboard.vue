@@ -5273,7 +5273,7 @@ data() {
     gap: 8px;
     flex: 1;
     min-height: 0;
-    overflow-y: auto;          /* พอดี 1 หน้าจอถ้าเนื้อหาพอ — ถ้าการ์ดเยอะจนเกิน ให้เลื่อนแทนบีบกราฟจนยุบ */
+    overflow: hidden;          /* ฟิกให้พอดี 1 หน้าจอ — เนื้อหาที่เกินเลื่อนในกล่องของมันเอง */
   }
 
   .dash-fit .header {
@@ -5291,7 +5291,7 @@ data() {
   .dash-fit .stats-grid .value { font-size: 27px; margin: 4px 0; }
   .dash-fit .stats-grid .detail { font-size: 11.5px; }
   /* หน้าแรกพอดีจอเดียว — แถวกราฟ/กิจกรรมยืดเต็มพื้นที่ที่เหลือ (การ์ดสถิติเตี้ยลงเพื่อเผื่อที่ให้กราฟ) */
-  .dash-fit .dash-flex-row { flex: 1 1 auto; min-height: 260px; margin-top: 0; }
+  .dash-fit .dash-flex-row { flex: 1 1 0; min-height: 0; margin-top: 0; }
   /* กล่องในแถวที่ยืดหด: เนื้อหาเกินให้เลื่อนในกล่อง ไม่ดันทั้งหน้า */
   .dash-fit .dash-flex-row > .section { min-height: 0; display: flex; flex-direction: column; }
   .dash-fit .dash-scroll-body { flex: 1; min-height: 0; overflow-y: auto; }
@@ -5649,7 +5649,7 @@ data() {
     gap: 8px;
     flex: 1;
     min-height: 0;
-    overflow-y: auto;          /* พอดี 1 หน้าจอถ้าเนื้อหาพอ — ถ้าการ์ดเยอะจนเกิน ให้เลื่อนแทนบีบกราฟจนยุบ */
+    overflow: hidden;          /* ฟิกให้พอดี 1 หน้าจอ — เนื้อหาที่เกินเลื่อนในกล่องของมันเอง */
   }
   .dash-fit > .header, .dash-fit > .stats-grid, .dash-fit > .dash-mini-row { flex-shrink: 0; }
   .dash-fit .header {
@@ -5664,7 +5664,7 @@ data() {
   .dash-fit .stats-grid .label { font-size: 10.5px; }
   .dash-fit .stats-grid .value { font-size: 18px; margin: 2px 0; }
   .dash-fit .stats-grid .detail { font-size: 10.5px; }
-  .dash-fit .dash-flex-row { flex: 1 1 auto; min-height: 260px; margin-top: 0; }   /* แบ่งพื้นที่ที่เหลือให้พอดีจอ */
+  .dash-fit .dash-flex-row { flex: 1 1 0; min-height: 0; margin-top: 0; }   /* แบ่งพื้นที่ที่เหลือให้พอดีจอ */
   .dash-fit .dash-cards-grid-compact { flex-shrink: 0; margin-top: 0; gap: 10px; }
   .dash-chart-section {
     display: flex;
