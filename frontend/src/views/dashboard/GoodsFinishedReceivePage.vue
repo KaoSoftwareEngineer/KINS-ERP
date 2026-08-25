@@ -179,7 +179,7 @@
 
 <script>
 import QRCode from 'qrcode';
-import { buildRollLabelsPdf } from '../../utils/pdfLabels.js';
+import { buildRollLabelsPdf, buildDocPdf } from '../../utils/pdfLabels.js';
 
 export default {
   name: 'GoodsFinishedReceivePage',
@@ -388,26 +388,23 @@ export default {
       catch (e) { this.dash.fbFail('สร้าง PDF ไม่สำเร็จ'); }
     },
     // ---- พิมพ์ใบรับสินค้า ----
-    openReceiptPdf() {
+    async openReceiptPdf() {
       const f = this.form;
       const rows = this.items.filter(r => (r.sku || '').trim());
       const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
       const body = rows.map((r, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${esc(r.sku)}</td><td>${esc(r.color)}</td><td>${esc(r.width)}</td><td>${r.fold || ''}</td><td>${r.qty || ''}</td><td>${(Number(r.unit_price) || 0).toFixed(2)}</td><td>${this.lineTotal(r).toFixed(2)}</td></tr>`).join('');
-      const win = window.open('', '_blank', 'width=800,height=1000');
-      if (!win) { this.dash.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(f.in_no)}</title>
+      const html = `
         <style>
-          body{font-family:'Noto Sans Thai','Times New Roman',serif;margin:26px;color:#000}
+          .doc{font-family:'Noto Sans Thai','Times New Roman',serif;color:#000}
           .center{text-align:center}.h1{font-size:20px;font-weight:bold}.h2{font-size:14px;font-weight:bold}
           .addr{font-size:12px;margin-top:4px}
           .meta{display:flex;justify-content:space-between;font-size:12px;margin:14px 0}
-          table{width:100%;border-collapse:collapse;margin-top:6px}
-          th,td{border:1px solid #000;padding:5px 6px;font-size:12px;text-align:center;height:22px}
-          th{font-weight:bold;background:#f0f0f0}
+          .doc table{width:100%;border-collapse:collapse;margin-top:6px}
+          .doc th,.doc td{border:1px solid #000;padding:5px 6px;font-size:12px;text-align:center;height:22px}
+          .doc th{font-weight:bold;background:#f0f0f0}
           .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:44px;font-size:12px}
-          @media print{.no-print{display:none}}
-        </style></head><body>
-        <div class="no-print" style="text-align:center;margin-bottom:12px"><button onclick="window.print()" style="padding:8px 22px;font-size:14px;cursor:pointer">🖨️ พิมพ์ / บันทึก PDF</button></div>
+        </style>
+        <div class="doc">
         <div class="center h1">D'finest Fabric Co., Ltd.</div>
         <div class="center h2">ใบรับสินค้า (Goods Receipt)</div>
         <div class="center addr">55/4 Meesuwan 3 Yeak 1, Sukhumvit 71 Rd. Wattana District, Bangkok, Thailand 10110</div>
@@ -423,8 +420,9 @@ export default {
         </table>
         <div style="text-align:right;font-size: 12px;margin-top:10px"><b>ยอดสุทธิ :</b> ${this.netTotal.toFixed(2)} บาท</div>
         <div class="foot"><div><b>ผู้รับสินค้า :</b> ____________________</div><div><b>D'finest Fabric</b></div></div>
-        </body></html>`);
-      win.document.close();
+        </div>`;
+      try { await buildDocPdf(html, { filename: 'ใบรับสินค้า-' + (f.in_no || '') + '.pdf' }); }
+      catch (e) { this.dash.fbFail('สร้าง PDF ไม่สำเร็จ'); }
     },
   },
 };

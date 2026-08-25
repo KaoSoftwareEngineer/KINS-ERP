@@ -102,10 +102,64 @@ export async function buildFittedPdf(innerHtml, { widthMm = 72.1, padMm = 3, fil
   }
 }
 
-// ---- เอกสารทั่วไป ----
-export async function buildDocPdf(innerHtml, { filename = 'document.pdf', format = 'a5', open = true, download = false, width, margin, orientation } = {}) {
-  const w = width || (format === 'a4' ? '190mm' : format === 'a6' ? '96mm' : '132mm');
-  return htmlToPdf(innerHtml, { filename, format, orientation, margin, width: w, open, download });
+// ---- เอกสารทั่วไป A4 (ใบรับ/ใบเบิก/ใบย้าย/PO/สัญญา) — iframe แยก (กัน CSS รั่ว) + หลายหน้า ----
+export async function buildDocPdf(innerHtml, { filename = 'document.pdf', open = true, download = false } = {}) {
+  const [jspdfMod, h2cMod] = await Promise.all([import('jspdf'), import('html2canvas')]);
+  const JsPDF = jspdfMod.jsPDF || jspdfMod.default;
+  const html2canvas = h2cMod.default || h2cMod;
+
+  const M = 8;                 // ขอบกระดาษ (มม.)
+  const pageW = 210, pageH = 297;   // A4 portrait
+  const contentW = pageW - M * 2;   // 194 มม.
+
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.cssText = `position:fixed; left:0; top:0; width:${contentW}mm; height:40mm; border:0; background:#fff; z-index:2147483000; opacity:0.01; pointer-events:none;`;
+  document.body.appendChild(iframe);
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!doctype html><html><head><meta charset="utf-8"><style>
+      *{margin:0;padding:0;box-sizing:border-box;}
+      html,body{background:#fff;}
+      body{font-family:'Noto Sans Thai','Tahoma',sans-serif;color:#111;font-size:13px;}
+      #wrap{width:${contentW}mm;background:#fff;}
+    </style></head><body><div id="wrap">${innerHtml}</div></body></html>`);
+  doc.close();
+
+  await new Promise((r) => setTimeout(r, 60));
+  try {
+    const imgs = Array.from(doc.querySelectorAll('img'));
+    await Promise.all(imgs.map((im) => (im.complete ? Promise.resolve() : new Promise((res) => { im.onload = im.onerror = res; }))));
+  } catch (e) { /* ข้าม */ }
+
+  try {
+    const wrapEl = doc.getElementById('wrap');
+    iframe.style.height = Math.max(20, wrapEl.scrollHeight) + 'px';
+    await new Promise((r) => setTimeout(r, 30));
+    const canvas = await html2canvas(wrapEl, { scale: 2.5, useCORS: true, backgroundColor: '#ffffff', windowWidth: wrapEl.scrollWidth, windowHeight: wrapEl.scrollHeight });
+
+    const pdf = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pxPerMm = canvas.width / contentW;         // แปลง px → mm
+    const pageSlicePx = Math.floor((pageH - M * 2) * pxPerMm);   // สูงเนื้อหาต่อหน้า (px)
+    let y = 0, first = true;
+    while (y < canvas.height) {
+      const sliceH = Math.min(pageSlicePx, canvas.height - y);
+      const slice = document.createElement('canvas');
+      slice.width = canvas.width; slice.height = sliceH;
+      slice.getContext('2d').drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+      const hmm = sliceH / pxPerMm;
+      if (!first) pdf.addPage();
+      pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', M, M, contentW, hmm);
+      first = false; y += sliceH;
+    }
+    if (download) { pdf.save(filename); return null; }
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    if (open) { const w = window.open(url, '_blank'); if (!w) { const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); } }
+    return url;
+  } finally {
+    document.body.removeChild(iframe);
+  }
 }
 
 // ---- สติกเกอร์ QR รายม้วน — 1 ดวง/หน้า ขนาด Stock 2 (3.14 x 2.36 นิ้ว = 79.76 x 59.94 มม.) ----
