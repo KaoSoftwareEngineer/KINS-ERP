@@ -59,6 +59,7 @@ import RawTransferReportPage from './dashboard/RawTransferReportPage.vue';
 import RackTransferReportPage from './dashboard/RackTransferReportPage.vue';
 import VatStockReportPage from './dashboard/VatStockReportPage.vue';
 import VatReceiveReportPage from './dashboard/VatReceiveReportPage.vue';
+import VatIssueReportPage from './dashboard/VatIssueReportPage.vue';
 import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
@@ -138,6 +139,7 @@ export default {
     RackTransferReportPage,
     VatStockReportPage,
     VatReceiveReportPage,
+    VatIssueReportPage,
     UserPermissionsPage,
     SalesContractPage,
     OrderSlipModal,
@@ -4704,6 +4706,7 @@ data() {
       <StockInventoryReportPage v-else-if="currentPage === 'report-stock'" />
       <VatStockReportPage v-else-if="currentPage === 'report-vat-stock'" />
       <VatReceiveReportPage v-else-if="currentPage === 'report-vat-receive'" />
+      <VatIssueReportPage v-else-if="currentPage === 'report-vat-issue'" />
       <ShelfStockReportPage v-else-if="currentPage === 'report-stock-shelf'" />
       <RawStockReportPage v-else-if="currentPage === 'report-stock-raw'" />
       <GoodsReceiptReportPage v-else-if="currentPage === 'report-stock-receive'" />

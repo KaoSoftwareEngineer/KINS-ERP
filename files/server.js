@@ -3582,6 +3582,51 @@ app.get('/api/reports/vat-receipts', auth, wrap(async (req, res) => {
   });
 }));
 
+// ============================================================
+//  รายงานเบิกสินค้า VAT (VO) — จาก vat_stock_cuts (ตัดสต็อก VAT/ขาย)
+//   ยอดรวม = total_amount, ยอดรวมตัด VAT = Σ (ราคารับ × จำนวนที่ตัด)
+//   ตารางล่าง = รายละเอียดสินค้า/กลุ่ม/จำนวนขาย/ราคาขาย/จำนวนตัด/ราคารับ/รวมราคารับ
+// ============================================================
+app.get('/api/reports/vat-issues', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), party = s('party'), saleType = s('saleType');
+  const priceFrom = req.query.priceFrom !== undefined && req.query.priceFrom !== '' ? Number(req.query.priceFrom) : null;
+  const priceTo = req.query.priceTo !== undefined && req.query.priceTo !== '' ? Number(req.query.priceTo) : null;
+  const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const num = (v) => (v === '' || v == null ? null : Number(v));
+  const [rows] = await mysqlPool.query('SELECT id, vo_no, cut_date, invoice_ref, customer, sale_type, total_amount, items_json FROM vat_stock_cuts ORDER BY id DESC');
+  let items = rows.map((r) => {
+    const its = parse(r.items_json).map((it) => {
+      const qtySold = num(it.qty_sold != null ? it.qty_sold : it.qty_sale != null ? it.qty_sale : it.qty);
+      const salePrice = num(it.sale_price != null ? it.sale_price : it.price_sale != null ? it.price_sale : it.sell_price);
+      const qtyCut = num(it.qty_cut != null ? it.qty_cut : it.qty);
+      const costPrice = num(it.cost_price != null ? it.cost_price : it.price);
+      return {
+        detail: it.detail || it.sku || it.name || '', group: it.group || it.product_group || '',
+        qty_sold: qtySold, unit: it.unit || 'หลา', sale_price: salePrice,
+        sale_total: it.sale_total != null ? Number(it.sale_total) : (salePrice != null && qtySold != null ? salePrice * qtySold : null),
+        qty_cut: qtyCut, cost_price: costPrice,
+        cost_total: it.cost_total != null ? Number(it.cost_total) : (costPrice != null && qtyCut != null ? costPrice * qtyCut : null),
+      };
+    });
+    return {
+      id: r.id, vo_no: r.vo_no, cut_date: r.cut_date, invoice_ref: r.invoice_ref || '', customer: r.customer || '',
+      sale_type: r.sale_type || '', amount: Number(r.total_amount) || 0,
+      vat_cut_total: its.reduce((a, x) => a + (Number(x.cost_total) || 0), 0), items: its,
+    };
+  });
+  const low = (v) => String(v || '').toLowerCase();
+  if (party) items = items.filter((r) => low(r.customer).includes(low(party)));
+  if (saleType) items = items.filter((r) => low(r.sale_type).includes(low(saleType)));
+  if (q) items = items.filter((r) => low(r.vo_no).includes(low(q)) || low(r.customer).includes(low(q)) || low(r.invoice_ref).includes(low(q)));
+  if (priceFrom != null) items = items.filter((r) => r.items.some((it) => it.cost_price != null && it.cost_price >= priceFrom));
+  if (priceTo != null) items = items.filter((r) => r.items.some((it) => it.cost_price != null && it.cost_price <= priceTo));
+  res.json({
+    ok: true, total: items.length, items,
+    summary: { amount: items.reduce((a, x) => a + x.amount, 0), vat_cut_total: items.reduce((a, x) => a + (Number(x.vat_cut_total) || 0), 0) },
+  });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
