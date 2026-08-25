@@ -58,6 +58,7 @@ import GoodsTransferReportPage from './dashboard/GoodsTransferReportPage.vue';
 import RawTransferReportPage from './dashboard/RawTransferReportPage.vue';
 import RackTransferReportPage from './dashboard/RackTransferReportPage.vue';
 import VatStockReportPage from './dashboard/VatStockReportPage.vue';
+import VatReceiveReportPage from './dashboard/VatReceiveReportPage.vue';
 import UserPermissionsPage from './dashboard/UserPermissionsPage.vue';
 import SalesContractPage from './dashboard/SalesContractPage.vue';
 import OrderSlipModal from './dashboard/OrderSlipModal.vue';
@@ -136,6 +137,7 @@ export default {
     RawTransferReportPage,
     RackTransferReportPage,
     VatStockReportPage,
+    VatReceiveReportPage,
     UserPermissionsPage,
     SalesContractPage,
     OrderSlipModal,
@@ -4701,6 +4703,7 @@ data() {
       <!-- ============ รายงาน (เมนูย่อยทั้ง 14 หน้า) — ดึงข้อมูลจริงจาก DB ============ -->
       <StockInventoryReportPage v-else-if="currentPage === 'report-stock'" />
       <VatStockReportPage v-else-if="currentPage === 'report-vat-stock'" />
+      <VatReceiveReportPage v-else-if="currentPage === 'report-vat-receive'" />
       <ShelfStockReportPage v-else-if="currentPage === 'report-stock-shelf'" />
       <RawStockReportPage v-else-if="currentPage === 'report-stock-raw'" />
       <GoodsReceiptReportPage v-else-if="currentPage === 'report-stock-receive'" />

@@ -3548,6 +3548,40 @@ app.get('/api/reports/vat-stock', auth, wrap(async (req, res) => {
   });
 }));
 
+// ============================================================
+//  รายงานรับสินค้า VAT (VN) — จาก vat_receipts
+//   จำนวนรวม = Σ qty ของรายการ, ยอดรวม = net_total
+//   ตารางล่าง = รายการราคา (ราคารับ/จำนวน/หน่วย/รวม)
+// ============================================================
+app.get('/api/reports/vat-receipts', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const q = s('q'), party = s('party');
+  const priceFrom = req.query.priceFrom !== undefined && req.query.priceFrom !== '' ? Number(req.query.priceFrom) : null;
+  const priceTo = req.query.priceTo !== undefined && req.query.priceTo !== '' ? Number(req.query.priceTo) : null;
+  const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const [rows] = await mysqlPool.query('SELECT id, vn_no, receipt_date, vendor, ref_no, net_total, items_json FROM vat_receipts ORDER BY id DESC');
+  let items = rows.map((r) => {
+    const its = parse(r.items_json).map((it) => {
+      const price = (it.price === '' || it.price == null) ? null : Number(it.price);
+      const qty = Number(it.qty) || 0;
+      return { price, qty, unit: it.unit || 'หลา', total: it.total != null ? Number(it.total) : (price != null ? price * qty : null) };
+    });
+    return {
+      id: r.id, vn_no: r.vn_no, receipt_date: r.receipt_date, vendor: r.vendor || '', ref_no: r.ref_no || '',
+      qty: its.reduce((a, x) => a + (Number(x.qty) || 0), 0), amount: Number(r.net_total) || 0, items: its,
+    };
+  });
+  const low = (v) => String(v || '').toLowerCase();
+  if (party) items = items.filter((r) => low(r.vendor).includes(low(party)));
+  if (q) items = items.filter((r) => low(r.vn_no).includes(low(q)) || low(r.vendor).includes(low(q)) || low(r.ref_no).includes(low(q)));
+  if (priceFrom != null) items = items.filter((r) => r.items.some((it) => it.price != null && it.price >= priceFrom));
+  if (priceTo != null) items = items.filter((r) => r.items.some((it) => it.price != null && it.price <= priceTo));
+  res.json({
+    ok: true, total: items.length, items,
+    summary: { qty: items.reduce((a, x) => a + x.qty, 0), amount: items.reduce((a, x) => a + x.amount, 0) },
+  });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
