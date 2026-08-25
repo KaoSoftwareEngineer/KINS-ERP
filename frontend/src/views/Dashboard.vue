@@ -5304,6 +5304,7 @@ data() {
   .dash-fit .stats-grid .detail { font-size: 11.5px; }
   /* หน้าแรกพอดีจอเดียว — แถวกราฟ/กิจกรรมยืดเต็มพื้นที่ที่เหลือ (การ์ดสถิติเตี้ยลงเพื่อเผื่อที่ให้กราฟ) */
   .dash-fit .dash-flex-row { flex: 1 1 0; min-height: 0; margin-top: 0; }
+  .dash-fit .dash-charts-row { min-height: 236px; }   /* กราฟมีความสูงพอเสมอ ไม่ถูกบีบจนอัด/legend หาย */
   /* กล่องในแถวที่ยืดหด: เนื้อหาเกินให้เลื่อนในกล่อง ไม่ดันทั้งหน้า */
   .dash-fit .dash-flex-row > .section { min-height: 0; display: flex; flex-direction: column; }
   .dash-fit .dash-scroll-body { flex: 1; min-height: 0; overflow-y: auto; }
@@ -5336,7 +5337,6 @@ data() {
     color: var(--muted);
     text-align: center;
     padding: 8px;
-    overflow: hidden;   /* กันเนื้อกราฟล้นออกนอกกล่อง */
   }
 
   /* ============ Dashboard: กราฟแนวโน้มยอดขาย / ปริมาณการขาย ============ */
@@ -5676,7 +5676,8 @@ data() {
   .dash-fit .stats-grid .label { font-size: 10.5px; }
   .dash-fit .stats-grid .value { font-size: 18px; margin: 2px 0; }
   .dash-fit .stats-grid .detail { font-size: 10.5px; }
-  .dash-fit .dash-flex-row { flex: 1 1 0; min-height: 0; margin-top: 0; }   /* แบ่งพื้นที่ที่เหลือให้พอดีจอ */
+  .dash-fit .dash-flex-row { flex: 1 1 0; min-height: 0; margin-top: 0; }
+  .dash-fit .dash-charts-row { min-height: 236px; }   /* กราฟมีความสูงพอเสมอ ไม่ถูกบีบจนอัด/legend หาย */   /* แบ่งพื้นที่ที่เหลือให้พอดีจอ */
   .dash-fit .dash-cards-grid-compact { flex-shrink: 0; margin-top: 0; gap: 10px; }
   .dash-chart-section {
     display: flex;
@@ -5703,7 +5704,6 @@ data() {
     color: var(--muted);
     text-align: center;
     padding: 8px;
-    overflow: hidden;   /* กันเนื้อกราฟล้นออกนอกกล่อง */
   }
 
   /* ============ Dashboard: กราฟแนวโน้มยอดขาย / ปริมาณการขาย ============ */
