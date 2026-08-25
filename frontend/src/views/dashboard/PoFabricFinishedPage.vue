@@ -103,6 +103,7 @@
 </template>
 
 <script>
+import { buildDocPdf } from '../../utils/pdfLabels.js';
 export default {
   name: 'PoFabricFinishedPage',
   inject: ['dash'],
@@ -197,7 +198,7 @@ export default {
         } else { this.dash.fbFail(data.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
-    openPdf() {
+    async openPdf() {
       const f = this.form;
       const rows = this.items.filter(r => (r.sku || '').trim() || (r.color || '').trim());
       const totalQty = rows.reduce((s, r) => s + (Number(r.qty) || 0), 0);
@@ -205,23 +206,20 @@ export default {
       const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
       const bodyRows = rows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td>${esc(r.color)}</td><td>${r.qty || ''}</td><td>${esc(r.width)}</td><td>${esc(r.ref)}</td></tr>`).join('')
         + Array.from({ length: blank }).map(() => '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>').join('');
-      const win = window.open('', '_blank', 'width=800,height=1000');
-      if (!win) { this.dash.fbFail('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาต popup'); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(f.po_no)}</title>
+      const html = `
         <style>
-          body{font-family:'Times New Roman',serif;margin:26px;color:#000}
+          .doc{font-family:'Times New Roman',serif;color:#000}
           .center{text-align:center}.h1{font-size:20px;font-weight:bold}.h2{font-size:14px;font-weight:bold}
           .addr{font-size:12px;margin-top:4px}
           .meta{display:flex;justify-content:space-between;font-size:12px;margin:14px 0}
           .meta b{font-weight:bold}
-          table{width:100%;border-collapse:collapse;margin-top:6px}
-          th,td{border:1px solid #000;padding:5px 6px;font-size:12px;text-align:center;height:22px}
-          th{font-weight:bold}
+          .doc table{width:100%;border-collapse:collapse;margin-top:6px}
+          .doc th,.doc td{border:1px solid #000;padding:5px 6px;font-size:12px;text-align:center;height:22px}
+          .doc th{font-weight:bold}
           .note{border:1px solid #000;border-top:none;padding:6px;font-size:12px;min-height:44px}
           .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;font-size:12px}
-          @media print{.no-print{display:none}}
-        </style></head><body>
-        <div class="no-print" style="text-align:center;margin-bottom:12px"><button onclick="window.print()" style="padding:8px 22px;font-size:14px;cursor:pointer">🖨️ พิมพ์ / บันทึก PDF</button></div>
+        </style>
+        <div class="doc">
         <div class="center h1">D'finest Fabric Co., Ltd.</div>
         <div class="center h2">Instruction for finished fabric</div>
         <div class="center addr">55/4 Meesuwan 3 Yeak 1, Sukhumvit 71 Rd. Wattana District, Bangkok, Thailand 10110</div>
@@ -238,8 +236,9 @@ export default {
         </table>
         <div class="note"><b>Important Note: :</b> ${esc(f.remark)}</div>
         <div class="foot"><div><b>Approve By :</b></div><div><b>D'finest Fabric</b></div></div>
-        </body></html>`);
-      win.document.close();
+        </div>`;
+      try { await buildDocPdf(html, { filename: 'PO-' + (f.po_no || '') + '.pdf' }); }
+      catch (e) { this.dash.fbFail('สร้าง PDF ไม่สำเร็จ'); }
     },
   },
 };

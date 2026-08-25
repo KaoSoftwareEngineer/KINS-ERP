@@ -102,6 +102,7 @@
 
 <script>
 import { useCustomerStore } from '../../stores/customer.js';
+import { buildDocPdf } from '../../utils/pdfLabels.js';
 
 export default {
   name: 'SalesContractPage',
@@ -193,7 +194,7 @@ export default {
       } catch (e) { this.message = '⚠️ บันทึกไม่สำเร็จ'; this.messageError = true; }
       finally { this.saving = false; }
     },
-    printContract() {
+    async printContract() {
       const c = this.savedContract; if (!c) return;
       const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
       const money = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -204,13 +205,11 @@ export default {
           <td>${money(it.unit_price)}</td>
           <td>${esc(it.width)}${it.length ? ' x ABT. ' + esc(it.length) : ''}</td>
         </tr>`).join('');
-      const win = window.open('', '_blank', 'width=800,height=1000');
-      if (!win) { alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์'); return; }
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Sales Contract ${esc(c.sc_no)}</title>
+      const html = `
         <style>
-          body { font-family: 'Times New Roman', 'Noto Sans Thai', serif; margin: 28px; color: #000; font-size: 13px; }
+          .doc { font-family: 'Times New Roman', 'Noto Sans Thai', serif; color: #000; font-size: 13px; }
           .center { text-align: center; } .right { text-align: right; }
-          h1 { font-size: 20px; margin: 0; letter-spacing: 1px; }
+          .doc h1 { font-size: 20px; margin: 0; letter-spacing: 1px; }
           .company { text-align: center; border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 6px; }
           .company .sub { font-size: 11px; line-height: 1.5; }
           .title { text-align: center; font-size: 14px; font-weight: bold; margin: 14px 0; }
@@ -224,9 +223,8 @@ export default {
           .rednote { color: #c00; font-size: 11px; }
           .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px; text-align: center; }
           .sign .box { border: 1px solid #000; height: 90px; margin-bottom: 6px; }
-          @media print { .no-print { display: none; } }
-        </style></head><body>
-        <div class="no-print center" style="margin-bottom:12px"><button onclick="window.print()" style="padding:8px 22px;font-size:14px;cursor:pointer">🖨️ พิมพ์</button></div>
+        </style>
+        <div class="doc">
         <div class="company">
           <h1>D FINEST FABRIC LIMITED PARTNERSHIP</h1>
           <div class="sub">55/4 Preedee Panomyong 14 Yeak 1, Sukhumvit 71, North Prakanong, Wattana, Bangkok, Thailand 10110<br>
@@ -264,8 +262,9 @@ export default {
           <div><div class="box"></div>(DFINEST FABRIC LIMITED PARTNERSHIP)<br>WE CONFIRM THE ABOVE</div>
           <div><div class="box"></div>(BUYER)<br>ACCEPTED AND CONFIRM BY</div>
         </div>
-        </body></html>`);
-      win.document.close();
+        </div>`;
+      try { await buildDocPdf(html, { filename: 'สัญญาขาย-' + (c.sc_no || '') + '.pdf' }); }
+      catch (e) { this.dash.fbFail ? this.dash.fbFail('สร้าง PDF ไม่สำเร็จ') : alert('สร้าง PDF ไม่สำเร็จ'); }
     },
   },
 };
