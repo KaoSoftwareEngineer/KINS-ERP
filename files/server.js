@@ -3503,6 +3503,51 @@ app.get('/api/reports/rack-transfers', auth, wrap(async (req, res) => {
   });
 }));
 
+// ============================================================
+//  รายงานสินค้า VAT คงคลัง — จากใบรับ VAT (vat_receipts) หักด้วยการตัด (vat_stock_cuts)
+//   จัดกลุ่มตาม (ราคารับ, หน่วย): จำนวน = รับ − ตัด, มูลค่ารวม = ราคารับ × จำนวน
+// ============================================================
+app.get('/api/reports/vat-stock', auth, wrap(async (req, res) => {
+  const s = (k) => (req.query[k] || '').toString().trim();
+  const priceFrom = req.query.priceFrom !== undefined && req.query.priceFrom !== '' ? Number(req.query.priceFrom) : null;
+  const priceTo = req.query.priceTo !== undefined && req.query.priceTo !== '' ? Number(req.query.priceTo) : null;
+  const unit = s('unit');
+  const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+
+  const [recv] = await mysqlPool.query('SELECT items_json FROM vat_receipts');
+  const [cuts] = await mysqlPool.query('SELECT items_json FROM vat_stock_cuts');
+
+  const g = {};   // key -> { price, unit, qty, value }
+  const keyOf = (p, u) => `${p == null || p === '' ? '' : Number(p)}|${u || 'หลา'}`;
+  recv.forEach((r) => parse(r.items_json).forEach((it) => {
+    const p = (it.price === '' || it.price == null) ? null : Number(it.price);
+    const u = it.unit || 'หลา';
+    const k = keyOf(p, u);
+    g[k] = g[k] || { price: p, unit: u, qty: 0, value: 0 };
+    g[k].qty += Number(it.qty) || 0;
+    g[k].value += Number(it.total) || (p != null ? p * (Number(it.qty) || 0) : 0);
+  }));
+  cuts.forEach((r) => parse(r.items_json).forEach((it) => {
+    const p = (it.price === '' || it.price == null) ? null : Number(it.price);
+    const k = keyOf(p, 'หลา');
+    if (g[k]) { g[k].qty -= Number(it.qty_cut) || 0; g[k].value -= (p != null ? p * (Number(it.qty_cut) || 0) : 0); }
+  }));
+
+  let rows = Object.values(g).map((x) => ({
+    price: x.price, unit: x.unit, qty: Math.round(x.qty * 100) / 100,
+    value: x.price != null ? Math.round(x.value * 100) / 100 : null,
+  }));
+  if (priceFrom != null) rows = rows.filter((r) => r.price != null && r.price >= priceFrom);
+  if (priceTo != null) rows = rows.filter((r) => r.price != null && r.price <= priceTo);
+  if (unit) rows = rows.filter((r) => r.unit === unit);
+  rows.sort((a, b) => (a.price || 0) - (b.price || 0));
+
+  res.json({
+    ok: true, total: rows.length, items: rows,
+    summary: { qty: rows.reduce((a, x) => a + (Number(x.qty) || 0), 0), value: rows.reduce((a, x) => a + (Number(x.value) || 0), 0) },
+  });
+}));
+
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
 app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
