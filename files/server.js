@@ -3099,6 +3099,70 @@ app.get('/api/reports/summary/:type', auth, wrap(async (req, res) => {
         ['สัญญาขายทั้งหมด', num(await q('SELECT COUNT(*) n FROM sales_contracts')), 'ฉบับ'],
       ];
 
+    } else if (type === 'report-sales-ws' || type === 'report-sales-rt') {
+      columns = ['เลขที่เบิก', 'วันที่', 'ลูกค้า', 'ประเภทการขาย', 'ยอดขาย'];
+      const kw = type === 'report-sales-ws' ? 'ส่ง' : 'ปลีก';
+      const [r] = await mysqlPool.query('SELECT vo_no, cut_date, customer, sale_type, total_amount FROM vat_stock_cuts WHERE sale_type LIKE ? ORDER BY id DESC', ['%' + kw + '%']);
+      rows = r.map((x) => [x.vo_no, fmtDate(x.cut_date), x.customer || '-', x.sale_type || '-', baht(x.total_amount)]);
+
+    } else if (type === 'report-sales-return') {
+      columns = ['เลขที่รับคืน', 'วันที่', 'ผู้ส่ง', 'ประเภทชำระ', 'จำนวนรายการ'];
+      const [r] = await mysqlPool.query('SELECT ivr_no, ret_date, shipper, payment_type, items_json FROM invoice_returns ORDER BY id DESC');
+      rows = r.map((x) => [x.ivr_no, fmtDate(x.ret_date), x.shipper || '-', x.payment_type || '-', String(parseJson(x.items_json).length)]);
+
+    } else if (type === 'report-pl-ws' || type === 'report-pl-rt') {
+      columns = ['หมวด', 'รายได้ (ขาย)', 'ต้นทุน (ราคารับ)', 'กำไร (ขาดทุน)'];
+      const kw = type === 'report-pl-ws' ? 'ส่ง' : 'ปลีก';
+      const [r] = await mysqlPool.query('SELECT total_amount, items_json FROM vat_stock_cuts WHERE sale_type LIKE ?', ['%' + kw + '%']);
+      let rev = 0, cost = 0;
+      r.forEach((x) => { rev += Number(x.total_amount) || 0; parseJson(x.items_json).forEach((it) => { cost += (it.cost_total != null ? Number(it.cost_total) : (Number(it.price) || 0) * (Number(it.qty_cut) || 0)) || 0; }); });
+      rows = [[type === 'report-pl-ws' ? 'ขายส่ง' : 'ขายปลีก', baht(rev), baht(cost), baht(rev - cost)]];
+
+    } else if (type === 'report-pl-year') {
+      columns = ['ปี', 'ยอดขาย', 'ยอดซื้อ', 'กำไรสุทธิ'];
+      const [invs] = await mysqlPool.query('SELECT inv_date, items_json FROM sale_invoices');
+      const [pos] = await mysqlPool.query('SELECT po_date, net_total FROM purchase_orders');
+      const g = {};
+      const yr = (d) => { const k = monthKey(d); return k ? k.slice(0, 4) : ''; };
+      invs.forEach((x) => { const y = yr(x.inv_date); if (!y) return; g[y] = g[y] || { s: 0, b: 0 }; g[y].s += invSubtotal(x.items_json) * 1.07; });
+      pos.forEach((x) => { const y = yr(x.po_date); if (!y) return; g[y] = g[y] || { s: 0, b: 0 }; g[y].b += Number(x.net_total) || 0; });
+      rows = Object.keys(g).filter(Boolean).sort().reverse().map((y) => [y, baht(g[y].s), baht(g[y].b), baht(g[y].s - g[y].b)]);
+
+    } else if (type === 'report-cust-billing') {
+      columns = ['เลขที่วางบิล', 'วันที่', 'ครบกำหนด', 'ลูกค้า', 'ยอดวางบิล'];
+      const [r] = await mysqlPool.query('SELECT br_no, bill_date, due_date, customer, total_amount FROM customer_billings ORDER BY id DESC');
+      rows = r.map((x) => [x.br_no, fmtDate(x.bill_date), x.due_date ? fmtDate(x.due_date) : '-', x.customer || '-', baht(x.total_amount)]);
+
+    } else if (type === 'report-cust-receive' || type === 'report-partner-pay') {
+      const isRecv = type === 'report-cust-receive';
+      columns = ['เลขที่', 'วันที่', isRecv ? 'รับจากลูกค้า' : 'จ่ายให้คู่ค้า', 'ยอดเงิน'];
+      const [r] = await mysqlPool.query('SELECT doc_no, doc_date, total_amount, items_json FROM payments WHERE doc_type = ? ORDER BY id DESC', [isRecv ? 'receive' : 'pay']);
+      rows = r.map((x) => { const f = parseJson(x.items_json)[0] || {}; return [x.doc_no, fmtDate(x.doc_date), f.party || f.customer || f.vendor || '-', baht(x.total_amount)]; });
+
+    } else if (type === 'report-cust-credit' || type === 'report-partner-credit') {
+      const dt = type === 'report-cust-credit' ? 'customer' : 'partner';
+      columns = ['เลขที่ใบลดหนี้', 'วันที่', dt === 'customer' ? 'ลูกค้า' : 'คู่ค้า', 'อ้างอิงอินวอยส์', 'มูลค่ารวม'];
+      const [r] = await mysqlPool.query('SELECT doc_no, doc_date, party, invoice_ref, net_total FROM credit_notes WHERE doc_type = ? ORDER BY id DESC', [dt]);
+      rows = r.map((x) => [x.doc_no, fmtDate(x.doc_date), x.party || '-', x.invoice_ref || '-', baht(x.net_total)]);
+
+    } else if (type === 'report-other-adjust') {
+      columns = ['วันที่', 'บาร์โค้ดม้วน', 'รหัสสินค้า', 'เปลี่ยนแปลง (หลา)', 'หมายเหตุ'];
+      const [r] = await mysqlPool.query(`SELECT st.created_at, st.yards_change, st.note, rr.roll_qr_code, f.sku
+        FROM stock_transactions st LEFT JOIN fabric_rolls rr ON rr.roll_id = st.roll_id LEFT JOIN fabrics f ON f.id = rr.product_id
+        WHERE st.txn_type = 'adjust' ORDER BY st.txn_id DESC`);
+      rows = r.map((x) => [fmtDate(x.created_at), x.roll_qr_code || '-', x.sku || '-', num(x.yards_change), x.note || '-']);
+
+    } else if (type === 'report-other-barcode') {
+      columns = ['บาร์โค้ด', 'รหัสสินค้า', 'คงเหลือ (หลา)', 'สถานะ', 'วันที่รับ'];
+      const [r] = await mysqlPool.query(`SELECT rr.roll_qr_code, rr.current_yards, rr.status, rr.received_at, f.sku
+        FROM fabric_rolls rr LEFT JOIN fabrics f ON f.id = rr.product_id ORDER BY rr.roll_id DESC LIMIT 500`);
+      const stTH = { available: 'พร้อมใช้', in_use: 'กำลังใช้', depleted: 'หมด', reserved: 'จอง', hold: 'พักไว้' };
+      rows = r.map((x) => [x.roll_qr_code, x.sku || '-', num(x.current_yards), stTH[x.status] || x.status || '-', fmtDate(x.received_at)]);
+
+    } else if (type === 'report-other-price' || type === 'report-other-fold') {
+      columns = ['รายการ', 'รายละเอียด', 'สถานะ'];
+      rows = [];   // ยังไม่มีตารางเก็บประวัติในระบบ → แสดงว่างจริง
+
     } else {
       return res.status(404).json({ ok: false, message: 'ไม่รู้จักรายงานประเภทนี้: ' + type });
     }

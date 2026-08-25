@@ -268,6 +268,22 @@ data() {
           ] },
         ],
         reportPages: {
+          // ---- รายงานย่อยที่ ReportViewPage เรนเดอร์ (ดึง /api/reports/summary/:type) ----
+          'report-sales-ws': { title: 'รายงานการขายส่ง', icon: '📈' },
+          'report-sales-rt': { title: 'รายงานการขายปลีก', icon: '📈' },
+          'report-sales-return': { title: 'รายงานรับคืนอินวอยส์', icon: '↩️' },
+          'report-pl-ws': { title: 'รายงานกำไร & ขาดทุนขายส่ง', icon: '📊' },
+          'report-pl-rt': { title: 'รายงานกำไร & ขาดทุนขายปลีก', icon: '📊' },
+          'report-pl-year': { title: 'รายงานกำไร & ขาดทุนรายปี', icon: '📊' },
+          'report-cust-billing': { title: 'รายงานวางบิลลูกค้า', icon: '🧾' },
+          'report-cust-receive': { title: 'รายงานรับเงินลูกค้า', icon: '💳' },
+          'report-cust-credit': { title: 'รายงานใบลดหนี้ลูกค้า', icon: '📄' },
+          'report-partner-pay': { title: 'รายงานจ่ายเงินคู่ค้า', icon: '💸' },
+          'report-partner-credit': { title: 'รายงานใบลดหนี้คู่ค้า', icon: '📄' },
+          'report-other-price': { title: 'รายงานการแก้ไขราคาขาย', icon: '🏷️' },
+          'report-other-adjust': { title: 'รายงานการปรับสต็อกสินค้า', icon: '📦' },
+          'report-other-fold': { title: 'รายงานการแบ่งพับสินค้า', icon: '🧵' },
+          'report-other-barcode': { title: 'รายงานประวัติบาร์โค้ด', icon: '🔖' },
           'report-stock': {
             title: 'รายงานคลังสินค้า', icon: '📦',
             columns: ['รหัสสินค้า', 'ชื่อสินค้า', 'หมวดหมู่', 'คงเหลือ', 'หน่วย', 'มูลค่าคงเหลือ', 'สถานะ'],
