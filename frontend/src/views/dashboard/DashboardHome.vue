@@ -158,20 +158,21 @@
               <div class="dash-linechart-plot">
                 <svg viewBox="0 0 560 200" preserveAspectRatio="none" class="dash-line-svg">
                   <defs>
-                    <!-- ไล่เฉดใต้เส้น: ส้ม→ชมพู→ม่วง (โทนแบบกราฟตัวอย่าง) -->
-                    <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#ef6b1e" stop-opacity="0.38" />
-                      <stop offset="55%" stop-color="#c94f9e" stop-opacity="0.14" />
-                      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0" />
+                    <!-- คลื่นหน้า (เขียวเทอร์คอยส์) — ลงสีเต็มโทนแบบภาพตัวอย่าง -->
+                    <linearGradient id="dashTrendGradA" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.6" />
+                      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.04" />
                     </linearGradient>
-                    <!-- เส้น: ไล่ส้ม→ชมพู→ม่วง แนวนอน -->
-                    <linearGradient id="dashTrendStroke" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stop-color="#ef6b1e" />
-                      <stop offset="55%" stop-color="#e0479a" />
-                      <stop offset="100%" stop-color="#8b5cf6" />
+                    <!-- คลื่นหลัง (ฟ้า) -->
+                    <linearGradient id="dashTrendGradB" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#4f7cf7" stop-opacity="0.62" />
+                      <stop offset="100%" stop-color="#4f7cf7" stop-opacity="0.05" />
                     </linearGradient>
                   </defs>
                   <line v-for="(gl, gi) in dash.dashTrendGridLines" :key="gi" x1="52" x2="544" :y1="gl.y" :y2="gl.y" class="dash-grid-line" />
+                  <!-- คลื่นหลัง (ฟ้า) วาดก่อน แล้วคลื่นหน้า (เขียว) ทับแบบโปร่งให้เห็นซ้อนกัน -->
+                  <path :d="dash.dashTrendAreaPath2" class="dash-area-fill-2" />
+                  <path :d="dash.dashTrendLinePath2" class="dash-line-stroke-2" vector-effect="non-scaling-stroke" />
                   <path :d="dash.dashTrendAreaPath" class="dash-area-fill" />
                   <path :d="dash.dashTrendLinePath" class="dash-line-stroke" vector-effect="non-scaling-stroke" />
                 </svg>

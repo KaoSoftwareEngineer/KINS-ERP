@@ -857,6 +857,9 @@ data() {
         dashTrendYear: 2026,
         dashTrendDemoYears: {}, // { [ปี]: true } = ปีนั้นยังใช้ข้อมูลตัวอย่าง (จริงไม่ถึง 3 เดือน)
         dashHasRealTrend: false, // มีข้อมูลจริงพอ (≥3 เดือน) อย่างน้อย 1 ปีไหม
+        // ข้อมูลตัวอย่าง 2 คลื่นซ้อน (โหมด demo) — ให้กราฟลงสีเต็มโทนเป็นลูกคลื่นแบบภาพตัวอย่าง
+        dashDemoWaveA: [60, 82, 58, 88, 55, 80, 62, 90, 60, 85, 70, 96],
+        dashDemoWaveB: [46, 62, 84, 54, 86, 60, 92, 56, 84, 66, 90, 74],
         dashSalesByYear: {
           2024: [
             { label: 'ม.ค.', value: 140000 }, { label: 'ก.พ.', value: 150000 }, { label: 'มี.ค.', value: 145000 },
@@ -897,6 +900,9 @@ data() {
         dashTrendYear: 2026,
         dashTrendDemoYears: {}, // { [ปี]: true } = ปีนั้นยังใช้ข้อมูลตัวอย่าง (จริงไม่ถึง 3 เดือน)
         dashHasRealTrend: false, // มีข้อมูลจริงพอ (≥3 เดือน) อย่างน้อย 1 ปีไหม
+        // ข้อมูลตัวอย่าง 2 คลื่นซ้อน (โหมด demo) — ให้กราฟลงสีเต็มโทนเป็นลูกคลื่นแบบภาพตัวอย่าง
+        dashDemoWaveA: [60, 82, 58, 88, 55, 80, 62, 90, 60, 85, 70, 96],
+        dashDemoWaveB: [46, 62, 84, 54, 86, 60, 92, 56, 84, 66, 90, 74],
         dashSalesByYear: {
           2024: [
             { label: 'ม.ค.', value: 140000 }, { label: 'ก.พ.', value: 150000 }, { label: 'มี.ค.', value: 145000 },
@@ -1422,7 +1428,13 @@ data() {
       },
       dashTrendChartData() {
         if (this.dashTrendViewMode === 'year') return this.dashYearlyTotals;
+        if (this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveA);
         return this.dashSalesByYear[this.dashTrendYear] || [];
+      },
+      dashTrendChartData2() {
+        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายเดือน) — คลื่นซ้อนแบบภาพตัวอย่าง
+        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveB);
+        return [];
       },
       dashTrendDemo() {
         // กราฟกำลังแสดงข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริงจากระบบ) หรือไม่
@@ -1430,7 +1442,8 @@ data() {
         return !!(this.dashTrendDemoYears && this.dashTrendDemoYears[this.dashTrendYear]);
       },
       dashTrendScale() {
-        const values = this.dashTrendChartData.map(d => d.value);
+        const values = [...this.dashTrendChartData, ...this.dashTrendChartData2].map(d => d.value);
+        if (!values.length) values.push(0);
         const rawMax = Math.max(...values);
         const rawMin = Math.min(...values);
         const rawRange = rawMax - rawMin || 1;
@@ -1495,6 +1508,40 @@ data() {
         const last = pts[pts.length - 1];
         const first = pts[0];
         return `${line} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
+      },
+      dashTrendPoints2() {
+        const data = this.dashTrendChartData2;
+        if (!data.length) return [];
+        const { min, max } = this.dashTrendScale;
+        const range = (max - min) || 1;
+        const w = 560, h = 200, padLeft = 52, padRight = 16, padY = 20;
+        const stepX = data.length > 1 ? (w - padLeft - padRight) / (data.length - 1) : 0;
+        return data.map((d, i) => {
+          const x = padLeft + stepX * i;
+          const y = padY + (h - padY * 2) * (1 - (d.value - min) / range);
+          return { x, y, xPct: x / w * 100, yPct: y / h * 100, label: d.label, value: d.value };
+        });
+      },
+      dashTrendLinePath2() {
+        const pts = this.dashTrendPoints2;
+        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
+        const t = 0.18;
+        let d = `M${pts[0].x},${pts[0].y}`;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
+          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
+          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+        }
+        return d;
+      },
+      dashTrendAreaPath2() {
+        const pts = this.dashTrendPoints2;
+        if (!pts.length) return '';
+        const h = 200, padY = 20;
+        const last = pts[pts.length - 1];
+        const first = pts[0];
+        return `${this.dashTrendLinePath2} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
       },
       dashVolumeSegments() {
         const data = this.dashVolumeData;
@@ -1538,7 +1585,13 @@ data() {
       },
       dashTrendChartData() {
         if (this.dashTrendViewMode === 'year') return this.dashYearlyTotals;
+        if (this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveA);
         return this.dashSalesByYear[this.dashTrendYear] || [];
+      },
+      dashTrendChartData2() {
+        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายเดือน) — คลื่นซ้อนแบบภาพตัวอย่าง
+        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveB);
+        return [];
       },
       dashTrendDemo() {
         // กราฟกำลังแสดงข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริงจากระบบ) หรือไม่
@@ -1546,7 +1599,8 @@ data() {
         return !!(this.dashTrendDemoYears && this.dashTrendDemoYears[this.dashTrendYear]);
       },
       dashTrendScale() {
-        const values = this.dashTrendChartData.map(d => d.value);
+        const values = [...this.dashTrendChartData, ...this.dashTrendChartData2].map(d => d.value);
+        if (!values.length) values.push(0);
         const rawMax = Math.max(...values);
         const rawMin = Math.min(...values);
         const rawRange = rawMax - rawMin || 1;
@@ -1611,6 +1665,40 @@ data() {
         const last = pts[pts.length - 1];
         const first = pts[0];
         return `${line} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
+      },
+      dashTrendPoints2() {
+        const data = this.dashTrendChartData2;
+        if (!data.length) return [];
+        const { min, max } = this.dashTrendScale;
+        const range = (max - min) || 1;
+        const w = 560, h = 200, padLeft = 52, padRight = 16, padY = 20;
+        const stepX = data.length > 1 ? (w - padLeft - padRight) / (data.length - 1) : 0;
+        return data.map((d, i) => {
+          const x = padLeft + stepX * i;
+          const y = padY + (h - padY * 2) * (1 - (d.value - min) / range);
+          return { x, y, xPct: x / w * 100, yPct: y / h * 100, label: d.label, value: d.value };
+        });
+      },
+      dashTrendLinePath2() {
+        const pts = this.dashTrendPoints2;
+        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
+        const t = 0.18;
+        let d = `M${pts[0].x},${pts[0].y}`;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
+          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
+          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+        }
+        return d;
+      },
+      dashTrendAreaPath2() {
+        const pts = this.dashTrendPoints2;
+        if (!pts.length) return '';
+        const h = 200, padY = 20;
+        const last = pts[pts.length - 1];
+        const first = pts[0];
+        return `${this.dashTrendLinePath2} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
       },
       dashVolumeSegments() {
         const data = this.dashVolumeData;
@@ -1829,6 +1917,10 @@ data() {
       // fr* list/CRUD/print/export methods ย้ายไปที่ stores/fabric.js แล้ว
       // ============ แจ้งเตือนผ้าใกล้หมด (แสดงในกระดิ่ง) ============
       // โหลดสถิติจริงของแดชบอร์ด แล้วเติมค่าเข้าช่องต่างๆ (KPI/กราฟ/สัดส่วน/ออร์เดอร์/กิจกรรม)
+      dashDemoSeries(arr) {
+        const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        return M.map((label, i) => ({ label, value: arr[i] || 0 }));
+      },
       async loadDashboardStats() {
         try {
           const res = await fetch(API + '/api/dashboard/stats?year=' + (this.dashTrendYear || new Date().getFullYear()), {
@@ -4430,11 +4522,13 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-area-fill { fill: url(#dashTrendGrad); }
-  .dash-line-stroke { fill: none; stroke: url(#dashTrendStroke); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-area-fill { fill: url(#dashTrendGradA); }
+  .dash-area-fill-2 { fill: url(#dashTrendGradB); }
+  .dash-line-stroke { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
-  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #ef6b1e; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #ef6b1e; box-shadow: 0 0 0 4px rgba(239,107,30,.22); }
+  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
@@ -4798,11 +4892,13 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-area-fill { fill: url(#dashTrendGrad); }
-  .dash-line-stroke { fill: none; stroke: url(#dashTrendStroke); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-area-fill { fill: url(#dashTrendGradA); }
+  .dash-area-fill-2 { fill: url(#dashTrendGradB); }
+  .dash-line-stroke { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
-  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #ef6b1e; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #ef6b1e; box-shadow: 0 0 0 4px rgba(239,107,30,.22); }
+  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
