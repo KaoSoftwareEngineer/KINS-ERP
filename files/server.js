@@ -4,7 +4,7 @@
 //  นี่คือ backend อย่างเดียว (API + DB) — หน้าเว็บ (Vue SPA) รันแยก
 //  ต้อง cd ../frontend แล้ว npm run dev เปิดที่ http://localhost:5173
 //
-//  ฐานข้อมูล: เก็บ "ทุกข้อมูล" ไว้ใน MySQL (kins_erp) ตัวเดียว
+//  ฐานข้อมูล: เก็บ "ทุกข้อมูล" ไว้ใน MySQL (plum_erp) ตัวเดียว
 //             ผู้ใช้งาน/session + ผ้า/เฉดสี/ลูกค้า/ข้อมูลนำเข้า Excel/ออร์เดอร์
 //             เปิดดู/แก้ไขได้ผ่าน phpMyAdmin
 // ============================================================
@@ -3803,7 +3803,7 @@ app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
 app.get('/', (req, res) => res.redirect('http://localhost:5173/login'));
 
 app.listen(PORT, () => {
-  console.log(`\n  ✅ API + ฐานข้อมูล (MySQL: kins_erp) ทำงานที่  http://localhost:${PORT}`);
+  console.log(`\n  ✅ API + ฐานข้อมูล (MySQL: plum_erp) ทำงานที่  http://localhost:${PORT}`);
   console.log(`     • หน้าเว็บ (Vue SPA) -> http://localhost:5173  (cd ../frontend && npm run dev)\n`);
 });
 

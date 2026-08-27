@@ -1,5 +1,5 @@
 // ============================================================
-//  db-mysql.js — เชื่อมต่อ MySQL (kins_erp) — เก็บ "ทุกข้อมูล" ของระบบ
+//  db-mysql.js — เชื่อมต่อ MySQL (plum_erp) — เก็บ "ทุกข้อมูล" ของระบบ
 //  ผู้ใช้งาน/ล็อกอิน + ผ้าประจำ/ผ้าไม่ประจำ/เฉดสี/ข้อมูลผ้า/ลูกค้า/ออร์เดอร์
 //  ทั้งหมดอยู่ใน MySQL ตัวเดียว (เปิดดูได้ใน phpMyAdmin)
 // ============================================================
@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   port: Number(process.env.DB_PORT) || 3306,
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'kins_erp',
+  database: process.env.DB_NAME || 'plum_erp',
   waitForConnections: true,
   connectionLimit: 10,
   charset: 'utf8mb4',
@@ -185,7 +185,7 @@ async function initTables() {
   const [[{ pc }]] = await pool.query('SELECT COUNT(*) AS pc FROM partners');
   if (pc === 0) {
     await pool.query(`INSERT INTO partners (code, name, phone, email, tax_id, contact) VALUES
-      ('V-001', 'D Finest Fabric', '02-391-5737', 'info@dfinest.co.th', '0105551234567', 'คุณเก่า'),
+      ('V-001', 'บจก. แฟบริคตัวอย่าง', '02-391-5737', 'info@sample-fabric.co.th', '0105551234567', 'คุณเก่า'),
       ('V-002', 'บจก. สยามเทรดดิ้ง', '02-222-3333', 'sale@siamtrading.co.th', '0105549876543', 'คุณสมชาย'),
       ('V-003', 'หจก. เอเชียยาร์น', '02-444-5555', 'contact@asiayarn.com', '0105547654321', 'คุณสมหญิง'),
       ('V-004', 'บจก. ไทยเท็กซ์ไทล์', '02-666-7777', 'info@thaitextile.co.th', '0105543216549', 'คุณวิชัย'),
@@ -217,7 +217,7 @@ async function initTables() {
   const [[{ fc }]] = await pool.query('SELECT COUNT(*) AS fc FROM factories');
   if (fc === 0) {
     await pool.query(`INSERT INTO factories (code, name, type, phone, contact) VALUES
-      ('F-001', 'D Finest', 'โรงย้อม', '02-391-5737', 'คุณเก่า'),
+      ('F-001', 'โรงย้อมตัวอย่าง', 'โรงย้อม', '02-391-5737', 'คุณเก่า'),
       ('F-002', 'โรงย้อมรุ่งเรือง', 'โรงย้อม', '02-888-9999', 'คุณมานะ'),
       ('F-003', 'โรงย้อมสยามคัลเลอร์', 'โรงย้อม', '02-111-2222', 'คุณศักดิ์'),
       ('F-004', 'โรงทอไทยเท็กซ์ไทล์', 'โรงทอ', '02-666-7777', 'คุณวิชัย')`);
