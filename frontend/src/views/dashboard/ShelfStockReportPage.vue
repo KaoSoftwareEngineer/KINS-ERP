@@ -111,6 +111,7 @@ export default {
       items: [], summary: { yards: 0, rolls: 0 },
       sort: { key: '', dir: 'asc' },
       selectedRolls: [],
+      fabMap: {},   // sku(lowercase) -> { structure, composition, width } สำหรับป้าย QR
     };
   },
   computed: {
@@ -128,9 +129,18 @@ export default {
       return [...this.items].sort((a, b) => { const av = val(a), bv = val(b); if (av < bv) return -1 * dir; if (av > bv) return 1 * dir; return 0; });
     },
   },
-  mounted() { this.loadGroups(); this.load(); },
+  mounted() { this.loadGroups(); this.load(); this.loadFabricMap(); },
   methods: {
     authHeaders() { return { Authorization: 'Bearer ' + this.dash.token }; },
+    async loadFabricMap() {
+      try {
+        const res = await fetch('/api/fabrics', { headers: this.authHeaders() });
+        const d = await res.json();
+        const m = {};
+        (d.fabrics || []).forEach(f => { m[(f.sku || '').trim().toLowerCase()] = { structure: f.structure || '', composition: f.composition || '', width: f.width || '' }; });
+        this.fabMap = m;
+      } catch (e) { /* ข้าม */ }
+    },
     fmt(v) { return (Number(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     shadeCode(s) { if (!s) return ''; const p = String(s).split(/\s*-\s*/); return p[0] || ''; },
     shadeName(s) { if (!s) return ''; const p = String(s).split(/\s*-\s*/); return p.length > 1 ? p.slice(1).join(' - ') : ''; },
@@ -169,7 +179,8 @@ export default {
     // สร้าง label object จากม้วน (ให้ตรงกับสติกเกอร์หน้าอื่น)
     rollLabel(r) {
       const sub = [this.shadeName(r.shade) || r.type || '', r.width || ''].filter(Boolean).join('  ·  ');
-      return { title: r.sku || '', sub, lot: r.lot_no || '', qty: this.fmt(r.current_yards) + ' หลา', barcode: r.roll_qr_code || '' };
+      const fab = this.fabMap[(r.sku || '').trim().toLowerCase()] || {};
+      return { title: r.sku || '', sub, lot: r.lot_no || '', qty: this.fmt(r.current_yards) + ' หลา', barcode: r.roll_qr_code || '', width: r.width || fab.width || '', comp: r.composition || r.comp || fab.composition || '', structure: r.structure || fab.structure || '' };
     },
     async printRoll(row) {
       try { await buildRollLabelsPdf([this.rollLabel(row)], { filename: `QR-${row.roll_qr_code}.pdf` }); }

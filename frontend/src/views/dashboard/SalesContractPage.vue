@@ -102,7 +102,7 @@
 
 <script>
 import { useCustomerStore } from '../../stores/customer.js';
-import { buildDocPdf } from '../../utils/pdfLabels.js';
+import { buildDocPdf, plumLogoSvg, COMPANY_NAME_CAPS, COMPANY_LINE, COMPANY_EMAIL, COMPANY_WEBSITE } from '../../utils/pdfLabels.js';
 
 export default {
   name: 'SalesContractPage',
@@ -226,10 +226,13 @@ export default {
         </style>
         <div class="doc">
         <div class="company">
-          <h1>D FINEST FABRIC LIMITED PARTNERSHIP</h1>
-          <div class="sub">55/4 Preedee Panomyong 14 Yeak 1, Sukhumvit 71, North Prakanong, Wattana, Bangkok, Thailand 10110<br>
-          Tel : (662) 391-5737, (662) 391-5738, (662) 391-5739 &nbsp;&nbsp; Line ID: dfinest &nbsp;&nbsp; CONTACT: +6685-612-6555<br>
-          EMAIL : DFINESTFABRIC@GMAIL.COM &nbsp;&nbsp; Website : WWW.SHIRTINGFABRIC.COM</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:14px">
+            ${plumLogoSvg(52)}
+            <h1>${COMPANY_NAME_CAPS}</h1>
+          </div>
+          <div class="sub">55/4 Meesuwan 3 Yeak 1, Sukhumvit 71 Rd. Wattana District, Bangkok, Thailand 10110<br>
+          Tel : (662) 391-5737, (662) 391-5738, (662) 391-5739 &nbsp;&nbsp; Line ID: ${COMPANY_LINE} &nbsp;&nbsp; CONTACT: +6685-612-6555<br>
+          EMAIL : ${COMPANY_EMAIL} &nbsp;&nbsp; Website : ${COMPANY_WEBSITE}</div>
         </div>
         <div class="title">SALES CONTRACT NO. &nbsp; ${esc(c.sc_no)}</div>
         <div class="meta">
@@ -259,7 +262,7 @@ export default {
           </div>
         </div>
         <div class="sign">
-          <div><div class="box"></div>(DFINEST FABRIC LIMITED PARTNERSHIP)<br>WE CONFIRM THE ABOVE</div>
+          <div><div class="box"></div>(${COMPANY_NAME_CAPS})<br>WE CONFIRM THE ABOVE</div>
           <div><div class="box"></div>(BUYER)<br>ACCEPTED AND CONFIRM BY</div>
         </div>
         </div>`;

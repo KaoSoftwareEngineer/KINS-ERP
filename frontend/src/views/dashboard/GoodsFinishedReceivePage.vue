@@ -179,7 +179,7 @@
 
 <script>
 import QRCode from 'qrcode';
-import { buildRollLabelsPdf, buildDocPdf } from '../../utils/pdfLabels.js';
+import { buildRollLabelsPdf, buildDocPdf, docBrandHeader, COMPANY_NAME_EN } from '../../utils/pdfLabels.js';
 
 export default {
   name: 'GoodsFinishedReceivePage',
@@ -191,7 +191,7 @@ export default {
       receiptTypes: ['Purchase', 'Production', 'Return', 'Transfer'],
       warehouseOptions: ['Warehouse', 'Factory'],
       discountMode: 'none', discountValue: 0, vatMode: 'none',
-      fabrics: [], vendorOptions: ['D Finest'], poOptions: [],
+      fabrics: [], vendorOptions: [], poOptions: [],
       saved: false, savedMsg: '', savedData: null, _seq: 1,
       foldDrawerOpen: false, foldIdx: null,
     };
@@ -279,6 +279,7 @@ export default {
       const f = this.fabrics.find(x => (x.sku || '').toLowerCase() === row.sku.trim().toLowerCase());
       if (!f) return;
       row.name = f.name || ''; row.width = f.width || '';
+      row.structure = f.structure || ''; row.composition = f.composition || '';
       try {
         const res = await fetch(`/api/fabrics/${f.id}/shades`, { headers: { Authorization: 'Bearer ' + this.dash.token } });
         const d = await res.json();
@@ -371,6 +372,8 @@ export default {
       let seq = 0;
       const labels = [];
       for (const r of rows) {
+        // ดึงโครงสร้าง/ส่วนประกอบ/หน้ากว้าง จาก master ตามรหัสสินค้า (กันกรณีแถวไม่มีข้อมูล)
+        const fab = this.fabrics.find(x => (x.sku || '').trim().toLowerCase() === (r.sku || '').trim().toLowerCase()) || {};
         const rolls = (r.rolls && r.rolls.length) ? r.rolls : this.buildRolls(r);
         if (!rolls.length) continue;
         rolls.forEach((roll, i) => { if (!roll.roll_no) roll.roll_no = i + 1; });
@@ -380,6 +383,7 @@ export default {
           labels.push({
             title: r.sku || '', sub: r.color || '-', roll: (roll.roll_no || '-') + ' / ' + rolls.length,
             lot: r.lot || '', qty: (roll.yards || 0) + ' หลา.', barcode: roll.barcode || '',
+            width: r.width || fab.width || '', comp: r.composition || r.comp || fab.composition || '', structure: r.structure || fab.structure || '',
           });
         }
       }
@@ -405,9 +409,7 @@ export default {
           .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:44px;font-size:12px}
         </style>
         <div class="doc">
-        <div class="center h1">D'finest Fabric Co., Ltd.</div>
-        <div class="center h2">ใบรับสินค้า (Goods Receipt)</div>
-        <div class="center addr">55/4 Meesuwan 3 Yeak 1, Sukhumvit 71 Rd. Wattana District, Bangkok, Thailand 10110</div>
+        ${docBrandHeader('ใบรับสินค้า (Goods Receipt)')}
         <div class="meta">
           <div><b>คู่ค้า :</b> ${esc(f.supplier) || '-'}<br><b>ประเภทการรับ :</b> ${esc(f.receipt_type)}<br><b>คลัง :</b> ${esc(f.warehouse)}</div>
           <div><b>เลขที่รับสินค้า :</b> ${esc(f.in_no)}<br><b>วันที่ :</b> ${esc(f.receipt_date)}<br><b>เลขที่บิล :</b> ${esc(f.bill_no) || '-'}</div>
@@ -419,7 +421,7 @@ export default {
           </tbody>
         </table>
         <div style="text-align:right;font-size: 12px;margin-top:10px"><b>ยอดสุทธิ :</b> ${this.netTotal.toFixed(2)} บาท</div>
-        <div class="foot"><div><b>ผู้รับสินค้า :</b> ____________________</div><div><b>D'finest Fabric</b></div></div>
+        <div class="foot"><div><b>ผู้รับสินค้า :</b> ____________________</div><div><b>${COMPANY_NAME_EN}</b></div></div>
         </div>`;
       try { await buildDocPdf(html, { filename: 'ใบรับสินค้า-' + (f.in_no || '') + '.pdf' }); }
       catch (e) { this.dash.fbFail('สร้าง PDF ไม่สำเร็จ'); }

@@ -177,6 +177,7 @@ export default {
       sort: { key: '', dir: 'asc' },        // เรียงลำดับตารางบน (คลิกหัวคอลัมน์)
       selectedRolls: [], copies: {}, globalCopies: 1,   // เลือกม้วน + จำนวนสำเนาที่จะพิมพ์
       exportMenuOpen: false,
+      fabMap: {},   // sku(lowercase) -> { structure, composition, width } สำหรับป้าย QR
     };
   },
   computed: {
@@ -197,8 +198,17 @@ export default {
     },
     allRollsChecked() { return this.rolls.length > 0 && this.rolls.every(r => this.selectedRolls.includes(r.roll_id)); },
   },
-  mounted() { this.loadGroups(); this.load(); },
+  mounted() { this.loadGroups(); this.load(); this.loadFabricMap(); },
   methods: {
+    async loadFabricMap() {
+      try {
+        const res = await fetch('/api/fabrics', { headers: { Authorization: 'Bearer ' + this.dash.token } });
+        const d = await res.json();
+        const m = {};
+        (d.fabrics || []).forEach(f => { m[(f.sku || '').trim().toLowerCase()] = { structure: f.structure || '', composition: f.composition || '', width: f.width || '' }; });
+        this.fabMap = m;
+      } catch (e) { /* ข้าม */ }
+    },
     async loadGroups() {
       try {
         const res = await fetch('/api/fabric-regular-group', { headers: this.authHeaders() });
@@ -258,7 +268,8 @@ export default {
     rollLabel(r) {
       const row = this.selRow || {};
       const sub = [this.shadeName(row.shade) || row.type || '', row.width || ''].filter(Boolean).join('  ·  ');
-      return { title: row.sku || '', sub, lot: r.lot_no || '', qty: this.fmt(r.current_yards) + ' หลา', barcode: r.roll_qr_code || '' };
+      const fab = this.fabMap[(row.sku || '').trim().toLowerCase()] || {};
+      return { title: row.sku || '', sub, lot: r.lot_no || '', qty: this.fmt(r.current_yards) + ' หลา', barcode: r.roll_qr_code || '', width: row.width || fab.width || '', comp: row.composition || row.comp || fab.composition || '', structure: row.structure || fab.structure || '' };
     },
     // พิมพ์ QR ม้วนเดียว → PDF จริง กดปุ่มเดียวจบ (ทำสำเนาตาม dropdown)
     async printRoll(r) {

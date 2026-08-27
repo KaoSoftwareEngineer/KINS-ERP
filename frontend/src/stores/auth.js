@@ -51,8 +51,9 @@ export const useAuthStore = defineStore('auth', {
     sessionExpired() {
       this.setToken(null);
       this.setCurrentUser({});
-      alert('เซสชันหมดอายุ (เซิร์ฟเวอร์อาจรีสตาร์ทไป) กรุณาเข้าสู่ระบบใหม่');
-      router.push('/login');
+      // ฝากข้อความไว้ให้หน้า Login แสดง (แทน alert ที่บล็อกจอ)
+      try { sessionStorage.setItem('sessionExpiredMsg', '1'); } catch (e) {}
+      if (router.currentRoute.value.name !== 'login') router.push('/login');
     },
 
     // ---- ตรวจสิทธิ์เข้าถึงหน้า/เมนู ----

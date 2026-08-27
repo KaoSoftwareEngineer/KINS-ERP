@@ -141,6 +141,96 @@ app.post('/api/login', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+//  ลืมรหัสผ่าน — OTP ทางอีเมล (ปลอดภัย: ต้องเข้าถึงอีเมลจริงถึงจะรีเซ็ตได้)
+//  ขั้นตอน: (1) ขอรหัส → ส่ง OTP 6 หลักไปอีเมล  (2) ยืนยัน OTP + ตั้งรหัสใหม่
+// ------------------------------------------------------------
+const nodemailer = require('nodemailer');
+const otpStore = new Map(); // email -> { code, expires, attempts, lastSent }
+
+// สร้าง mailer จาก .env (ถ้ายังไม่ตั้งค่า SMTP จะเป็น null แล้ว log OTP ลง console แทน สำหรับทดสอบ)
+function makeMailer() {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+  const port = Number(process.env.SMTP_PORT) || 587;
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port,
+    secure: port === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+}
+const mailer = makeMailer();
+if (!mailer) console.warn('[forgot-password] ยังไม่ได้ตั้งค่า SMTP ใน .env → OTP จะถูกพิมพ์ลง console แทนการส่งอีเมลจริง');
+
+// (1) ขอรหัส OTP ทางอีเมล
+app.post('/api/forgot-password/request', async (req, res) => {
+  const email = (req.body.email || '').trim().toLowerCase();
+  if (!email) return res.status(400).json({ ok: false, message: 'กรุณากรอกอีเมล' });
+  try {
+    const [rows] = await mysqlPool.query('SELECT id, name FROM users WHERE email = ?', [email]);
+    const user = rows[0];
+    // กันสแปม: ขอรหัสซ้ำได้ทุก 60 วินาที
+    const prev = otpStore.get(email);
+    if (prev && Date.now() - prev.lastSent < 60000) {
+      return res.status(429).json({ ok: false, message: 'ขอรหัสถี่เกินไป กรุณารอสักครู่แล้วลองใหม่' });
+    }
+    if (user) {
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      otpStore.set(email, { code, expires: Date.now() + 10 * 60 * 1000, attempts: 0, lastSent: Date.now() });
+      const subject = 'รหัสยืนยันรีเซ็ตรหัสผ่าน — Plum Flow Solution ERP';
+      const text = `สวัสดี ${user.name || ''}\n\nรหัสยืนยันสำหรับตั้งรหัสผ่านใหม่ของคุณคือ: ${code}\nรหัสนี้ใช้ได้ภายใน 10 นาที\n\nหากคุณไม่ได้เป็นผู้ร้องขอ กรุณาเพิกเฉยอีเมลฉบับนี้`;
+      if (mailer) {
+        try {
+          await mailer.sendMail({ from: process.env.SMTP_FROM || process.env.SMTP_USER, to: email, subject, text });
+        } catch (e) {
+          console.error('[forgot-password] ส่งอีเมล OTP ไม่สำเร็จ:', e.message);
+        }
+      } else {
+        console.log(`\n========================================\n[DEV OTP] ${email}  =>  ${code}\n(ยังไม่ได้ตั้งค่า SMTP จึงไม่ได้ส่งอีเมลจริง)\n========================================\n`);
+      }
+    }
+    // ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่ (กันเดาบัญชี)
+    return res.json({ ok: true, message: 'ถ้าอีเมลนี้มีในระบบ เราได้ส่งรหัสยืนยันไปให้แล้ว' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ ok: false, message: 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ' });
+  }
+});
+
+// (2) ยืนยัน OTP + ตั้งรหัสผ่านใหม่
+app.post('/api/forgot-password/verify', async (req, res) => {
+  const email = (req.body.email || '').trim().toLowerCase();
+  const code = (req.body.code || '').trim();
+  const newPassword = req.body.newPassword || '';
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ ok: false, message: 'กรุณากรอกรหัสยืนยันและรหัสผ่านใหม่ให้ครบ' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ ok: false, message: 'รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร' });
+  }
+  const rec = otpStore.get(email);
+  if (!rec || Date.now() > rec.expires) {
+    otpStore.delete(email);
+    return res.status(400).json({ ok: false, message: 'รหัสหมดอายุหรือยังไม่ได้ขอรหัส กรุณาขอรหัสใหม่' });
+  }
+  if (rec.attempts >= 5) {
+    otpStore.delete(email);
+    return res.status(400).json({ ok: false, message: 'ใส่รหัสผิดเกินกำหนด กรุณาขอรหัสใหม่' });
+  }
+  if (rec.code !== code) {
+    rec.attempts++;
+    return res.status(400).json({ ok: false, message: 'รหัสยืนยันไม่ถูกต้อง (เหลือ ' + (5 - rec.attempts) + ' ครั้ง)' });
+  }
+  try {
+    await mysqlPool.query('UPDATE users SET password = ? WHERE email = ?', [hashPassword(newPassword), email]);
+    otpStore.delete(email);
+    return res.json({ ok: true, message: 'ตั้งรหัสผ่านใหม่เรียบร้อย เข้าสู่ระบบได้เลย' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ ok: false, message: 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ' });
+  }
+});
+
+// ------------------------------------------------------------
 //  เข้าสู่ระบบ / สมัคร ด้วย Google (Gmail) — ตรวจ ID token ฝั่งเซิร์ฟเวอร์
 // ------------------------------------------------------------
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);

@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import { buildDocPdf } from '../../utils/pdfLabels.js';
+import { buildDocPdf, docBrandHeader, COMPANY_NAME_EN } from '../../utils/pdfLabels.js';
 export default {
   name: 'PoFabricFinishedPage',
   inject: ['dash'],
@@ -114,7 +114,7 @@ export default {
       discountMode: 'none', discountValue: 0,
       vatMode: 'none',
       fabrics: [],
-      vendorOptions: ['D Finest'],
+      vendorOptions: [],
       saved: false, savedMsg: '', savedData: null,
       _seq: 1,
     };
@@ -220,12 +220,9 @@ export default {
           .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;font-size:12px}
         </style>
         <div class="doc">
-        <div class="center h1">D'finest Fabric Co., Ltd.</div>
-        <div class="center h2">Instruction for finished fabric</div>
-        <div class="center addr">55/4 Meesuwan 3 Yeak 1, Sukhumvit 71 Rd. Wattana District, Bangkok, Thailand 10110</div>
-        <div class="center addr">Tel: 02-391-5737-39&nbsp;&nbsp;&nbsp;Mobile/Wahtsapp/Line: 085-612-6555</div>
+        ${docBrandHeader('Instruction for finished fabric')}
         <div class="meta">
-          <div><b>Attention :</b> ${esc(f.vendor) || 'D Finest'}<br><b>From :</b> Dfinest Fabric<br><b>Place of delivery :</b> ${esc(f.ship_to)}</div>
+          <div><b>Attention :</b> ${esc(f.vendor) || ''}<br><b>From :</b> ${COMPANY_NAME_EN}<br><b>Place of delivery :</b> ${esc(f.ship_to)}</div>
           <div><b>Order Date :</b> ${esc(f.po_date)}<br><b>Order No :</b> ${esc(f.po_no)}</div>
         </div>
         <table>
@@ -235,7 +232,7 @@ export default {
           </tbody>
         </table>
         <div class="note"><b>Important Note: :</b> ${esc(f.remark)}</div>
-        <div class="foot"><div><b>Approve By :</b></div><div><b>D'finest Fabric</b></div></div>
+        <div class="foot"><div><b>Approve By :</b></div><div><b>${COMPANY_NAME_EN}</b></div></div>
         </div>`;
       try { await buildDocPdf(html, { filename: 'PO-' + (f.po_no || '') + '.pdf' }); }
       catch (e) { this.dash.fbFail('สร้าง PDF ไม่สำเร็จ'); }

@@ -1,9 +1,11 @@
 <script>
+import BrandLogo from '../components/BrandLogo.vue';
 const API = '';
 const GOOGLE_CLIENT_ID = '379852252827-4df7g973b2mrpm4kcpliinmk9kqh3vi7.apps.googleusercontent.com';
 
 export default {
   name: 'LoginView',
+  components: { BrandLogo },
 data() {
       return {
         theme: localStorage.getItem('theme') || 'light',
@@ -14,11 +16,16 @@ data() {
         currentUser: {},
         loginData: { email: '', password: '', remember: false },
         regData: { name: '', email: '', phone: '', gender: '', age: '', password: '', confirmPassword: '' },
+        fpData: { email: '', code: '', newPassword: '', confirmPassword: '' },
+        fpStep: 'request',        // 'request' (ขอรหัส) | 'reset' (ยืนยัน+ตั้งรหัสใหม่)
+        fpSending: false,
         loginMsg: { type: '', text: '' },
         regMsg: { type: '', text: '' },
+        fpMsg: { type: '', text: '' },
         showLoginPwd: false,
         showRegPwd: false,
         showRegConfirm: false,
+        showFpPwd: false,
         agreeTerms: false,
         googleReady: false,
         // Translations
@@ -53,6 +60,23 @@ data() {
             socialSoon: 'ระบบสมัครผ่าน {p} กำลังพัฒนา',
             rememberMe: 'จำไว้',
             forgotPassword: 'ลืมรหัสผ่าน?',
+            fpTitle: 'ลืมรหัสผ่าน',
+            fpDesc: 'กรอกอีเมลของคุณ ระบบจะส่งรหัสยืนยัน 6 หลักไปให้ทางอีเมล',
+            fpDescReset: 'เราส่งรหัสยืนยัน 6 หลักไปที่อีเมลของคุณแล้ว กรอกรหัสและตั้งรหัสผ่านใหม่',
+            fpSendOtp: 'ส่งรหัสยืนยัน',
+            fpSending: 'กำลังส่งรหัส...',
+            fpResend: 'ส่งรหัสอีกครั้ง',
+            fpCode: 'รหัสยืนยัน 6 หลัก',
+            fpNewPassword: 'รหัสผ่านใหม่',
+            fpConfirm: 'ยืนยันรหัสผ่านใหม่',
+            fpSubmit: 'ตั้งรหัสผ่านใหม่',
+            fpBack: '← กลับไปเข้าสู่ระบบ',
+            fpChangeEmail: 'เปลี่ยนอีเมล',
+            fpErrEmail: 'กรุณากรอกอีเมลให้ถูกต้อง',
+            fpErrRequired: 'กรุณากรอกข้อมูลให้ครบ',
+            fpErrPwdShort: 'รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร',
+            fpErrMismatch: 'รหัสผ่านใหม่ไม่ตรงกัน',
+            fpSaving: 'กำลังตั้งรหัสผ่านใหม่...',
             haveAccount: 'มีบัญชีอยู่แล้ว?',
             noAccount: 'ยังไม่มีบัญชี?',
             registerLink: 'สมัครสมาชิก',
@@ -95,6 +119,23 @@ data() {
             socialSoon: '{p} sign-up is coming soon',
             rememberMe: 'Remember me',
             forgotPassword: 'Forgot password?',
+            fpTitle: 'Forgot Password',
+            fpDesc: 'Enter your email and we will send a 6-digit verification code',
+            fpDescReset: 'We sent a 6-digit code to your email. Enter it and set a new password',
+            fpSendOtp: 'Send code',
+            fpSending: 'Sending code...',
+            fpResend: 'Resend code',
+            fpCode: '6-digit code',
+            fpNewPassword: 'New password',
+            fpConfirm: 'Confirm new password',
+            fpSubmit: 'Reset password',
+            fpBack: '← Back to login',
+            fpChangeEmail: 'Change email',
+            fpErrEmail: 'Please enter a valid email',
+            fpErrRequired: 'Please fill in all fields',
+            fpErrPwdShort: 'New password must be at least 6 characters',
+            fpErrMismatch: 'New passwords do not match',
+            fpSaving: 'Resetting password...',
             haveAccount: 'Have an account?',
             noAccount: "Don't have an account?",
             registerLink: 'Register',
@@ -111,6 +152,15 @@ data() {
       };
     },
     mounted() {
+      // ล้าง token เก่าที่อาจหมดอายุ (เช่นหลัง backend รีสตาร์ต) — กันเด้งวนตอนเข้า dashboard
+      localStorage.removeItem('token');
+      // ถ้าถูกเด้งกลับมาเพราะเซสชันหมดอายุ ให้แจ้งเตือน
+      try {
+        if (sessionStorage.getItem('sessionExpiredMsg')) {
+          sessionStorage.removeItem('sessionExpiredMsg');
+          this.loginMsg = { type: 'error', text: '⚠️ เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' };
+        }
+      } catch (e) {}
       document.documentElement.setAttribute('data-theme', this.theme);
       this.loadGoogleScript();
     },
@@ -263,6 +313,67 @@ data() {
           this.loginMsg = { type: 'error', text: this.t[this.lang].error };
         }
       },
+      // (1) ขอรหัส OTP ทางอีเมล
+      async requestOtp() {
+        const tt = this.t[this.lang];
+        const email = this.fpData.email.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          this.fpMsg = { type: 'error', text: '⚠️ ' + tt.fpErrEmail }; return;
+        }
+        this.fpSending = true;
+        this.fpMsg = { type: '', text: tt.fpSending };
+        try {
+          const res = await fetch(API + '/api/forgot-password/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            this.fpStep = 'reset';
+            this.fpMsg = { type: 'success', text: '✅ ' + data.message };
+          } else {
+            this.fpMsg = { type: 'error', text: '⚠️ ' + data.message };
+          }
+        } catch (e) {
+          this.fpMsg = { type: 'error', text: tt.error };
+        } finally {
+          this.fpSending = false;
+        }
+      },
+      // (2) ยืนยัน OTP + ตั้งรหัสผ่านใหม่
+      async verifyOtp() {
+        const tt = this.t[this.lang];
+        const d = this.fpData;
+        if (!d.code.trim() || !d.newPassword || !d.confirmPassword) {
+          this.fpMsg = { type: 'error', text: '⚠️ ' + tt.fpErrRequired }; return;
+        }
+        if (d.newPassword.length < 6) { this.fpMsg = { type: 'error', text: '⚠️ ' + tt.fpErrPwdShort }; return; }
+        if (d.newPassword !== d.confirmPassword) { this.fpMsg = { type: 'error', text: '⚠️ ' + tt.fpErrMismatch }; return; }
+        this.fpMsg = { type: '', text: tt.fpSaving };
+        try {
+          const res = await fetch(API + '/api/forgot-password/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: d.email.trim(), code: d.code.trim(), newPassword: d.newPassword }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            this.fpMsg = { type: 'success', text: '✅ ' + data.message };
+            this.loginData.email = d.email.trim();
+            setTimeout(() => {
+              this.fpData = { email: '', code: '', newPassword: '', confirmPassword: '' };
+              this.fpStep = 'request';
+              this.view = 'login';
+              this.loginMsg = { type: 'success', text: '✅ ' + data.message };
+            }, 1200);
+          } else {
+            this.fpMsg = { type: 'error', text: '⚠️ ' + data.message };
+          }
+        } catch (e) {
+          this.fpMsg = { type: 'error', text: tt.error };
+        }
+      },
     },
 }
 </script>
@@ -291,10 +402,24 @@ data() {
   </button>
 
   <!-- ============ LOGIN / REGISTER ============ -->
+  <div class="card-stage">
+    <!-- โลโก้โผล่มุมซ้ายบน card (จาง ๆ) -->
+    <svg class="stage-logo" viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <linearGradient id="bgO" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7A29"/><stop offset="1" stop-color="#E8580F"/></linearGradient>
+        <linearGradient id="bgL" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#F5A623"/><stop offset="1" stop-color="#FFD24D"/></linearGradient>
+      </defs>
+      <path d="M74.98 28.91 A40 40 0 1 1 45.02 28.91" fill="none" stroke="url(#bgO)" stroke-width="13" stroke-linecap="round"/>
+      <path d="M60 34 L60 67" fill="none" stroke="url(#bgO)" stroke-width="12" stroke-linecap="round"/>
+      <path d="M60 35 C66 18 79 12 89 15 C84 28 70 34 60 35 Z" fill="url(#bgL)"/>
+      <path d="M60 38 C55 28 46 24 38 27 C44 35 53 39 60 38 Z" fill="url(#bgL)" opacity=".92"/>
+    </svg>
+
   <div class="card">
     <aside class="welcome">
-      <h1>{{ view === 'login' ? t[lang].welcome : t[lang].hello }}</h1>
-      <p>{{ view === 'login' ? t[lang].joinPlatform : t[lang].joinMessage }}</p>
+      <BrandLogo class="welcome-logo" :size="46" :text-size="30" light-text />
+      <h1>{{ view === 'register' ? t[lang].hello : t[lang].welcome }}</h1>
+      <p>{{ view === 'register' ? t[lang].joinMessage : t[lang].joinPlatform }}</p>
       <button class="ghost-btn" @click="view = view === 'login' ? 'register' : 'login'">
         {{ view === 'login' ? t[lang].register : t[lang].login }}
       </button>
@@ -309,7 +434,7 @@ data() {
         <input class="field" type="password" v-model="loginData.password" :placeholder="t[lang].password" required />
         <div class="row">
           <label><input type="checkbox" v-model="loginData.remember" /> {{ t[lang].rememberMe }}</label>
-          <a href="#" @click.prevent>{{ t[lang].forgotPassword }}</a>
+          <a href="#" @click.prevent="view = 'forgot'; fpStep = 'request'; fpData.email = loginData.email; fpMsg = { type: '', text: '' }">{{ t[lang].forgotPassword }}</a>
         </div>
         <button class="primary-btn" type="submit">{{ t[lang].login }}</button>
 
@@ -317,7 +442,7 @@ data() {
       </form>
 
       <!-- Register -->
-      <form v-else @submit.prevent="register">
+      <form v-else-if="view === 'register'" @submit.prevent="register">
         <h2>{{ t[lang].createAccount }}</h2>
         <div class="msg" :class="regMsg.type">{{ regMsg.text }}</div>
         <input class="field" type="text" v-model="regData.name" :placeholder="t[lang].name" />
@@ -358,7 +483,45 @@ data() {
 
         <div class="switch-hint">{{ t[lang].haveAccount }} <a @click="view = 'login'">{{ t[lang].loginLink }}</a></div>
       </form>
+
+      <!-- Forgot Password : ขั้น 1 ขอรหัส OTP -->
+      <form v-else-if="view === 'forgot' && fpStep === 'request'" @submit.prevent="requestOtp">
+        <h2>{{ t[lang].fpTitle }}</h2>
+        <p class="fp-desc">{{ t[lang].fpDesc }}</p>
+        <div class="msg" :class="fpMsg.type">{{ fpMsg.text }}</div>
+        <input class="field" type="email" v-model="fpData.email" :placeholder="t[lang].email" required />
+        <button class="primary-btn" type="submit" :disabled="fpSending" style="margin-top:6px">
+          {{ fpSending ? t[lang].fpSending : t[lang].fpSendOtp }}
+        </button>
+        <div class="switch-hint"><a @click="view = 'login'; fpMsg = { type: '', text: '' }">{{ t[lang].fpBack }}</a></div>
+      </form>
+
+      <!-- Forgot Password : ขั้น 2 ยืนยัน OTP + ตั้งรหัสใหม่ -->
+      <form v-else-if="view === 'forgot' && fpStep === 'reset'" @submit.prevent="verifyOtp">
+        <h2>{{ t[lang].fpTitle }}</h2>
+        <p class="fp-desc">{{ t[lang].fpDescReset }} <b>{{ fpData.email }}</b></p>
+        <div class="msg" :class="fpMsg.type">{{ fpMsg.text }}</div>
+        <input class="field otp-field" type="text" inputmode="numeric" maxlength="6" v-model="fpData.code" :placeholder="t[lang].fpCode" required />
+        <div class="pwd-wrap">
+          <input class="field" :type="showFpPwd ? 'text' : 'password'" v-model="fpData.newPassword" :placeholder="t[lang].fpNewPassword" required />
+          <button type="button" class="eye-btn" @click="showFpPwd = !showFpPwd" :aria-label="showFpPwd ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'">
+            <svg v-if="showFpPwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <input class="field" :type="showFpPwd ? 'text' : 'password'" v-model="fpData.confirmPassword" :placeholder="t[lang].fpConfirm" required />
+        <button class="primary-btn" type="submit" style="margin-top:6px">{{ t[lang].fpSubmit }}</button>
+        <div class="switch-hint">
+          <a @click="requestOtp">{{ t[lang].fpResend }}</a>
+          <span style="opacity:.4"> · </span>
+          <a @click="fpStep = 'request'; fpMsg = { type: '', text: '' }">{{ t[lang].fpChangeEmail }}</a>
+        </div>
+        <div class="switch-hint" style="margin-top:8px"><a @click="view = 'login'; fpStep = 'request'; fpMsg = { type: '', text: '' }">{{ t[lang].fpBack }}</a></div>
+      </form>
     </section>
+  </div>
+    <!-- ชื่อแบรนด์ แนวยาวบรรทัดเดียว โผล่ล่างขวา card -->
+    <div class="stage-name">PLUM&nbsp;FLOW&nbsp;SOLUTION&nbsp;ERP</div>
   </div>
   </div>
 </template>
@@ -368,9 +531,40 @@ data() {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center;              /* การ์ดกลางจอ */
     padding: 24px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(70% 60% at 12% 8%, rgba(59,91,254,.14), transparent 60%),
+      radial-gradient(60% 55% at 90% 92%, rgba(239,107,30,.12), transparent 60%),
+      radial-gradient(50% 50% at 88% 10%, rgba(124,92,219,.08), transparent 60%),
+      linear-gradient(135deg, #eef1f8 0%, #e7edfb 100%);
   }
+  html[data-theme="dark"] .login-page {
+    background:
+      radial-gradient(70% 60% at 12% 8%, rgba(59,91,254,.16), transparent 60%),
+      radial-gradient(60% 55% at 90% 92%, rgba(239,107,30,.13), transparent 60%),
+      radial-gradient(50% 50% at 88% 10%, rgba(124,92,219,.10), transparent 60%),
+      linear-gradient(135deg, #0d0d11 0%, #14141a 100%);
+  }
+
+  /* ---- ตกแต่งรอบ card: โลโก้มุมซ้ายบน + ชื่อแนวยาวล่างขวา ---- */
+  .card-stage { position: relative; z-index: 1; width: 100%; max-width: 820px; }
+  .stage-logo {
+    position: absolute; top: 0; left: 0; z-index: -1;
+    width: clamp(78px, 8vw, 116px); height: auto;
+    transform: translate(-44%, -46%); opacity: .25;
+  }
+  html[data-theme="dark"] .stage-logo { opacity: .28; }
+  .stage-name {
+    position: absolute; right: 6px; top: 100%; margin-top: 14px;
+    white-space: nowrap;
+    font-family: 'Poppins', sans-serif; font-weight: 700;
+    font-size: clamp(13px, 1.5vw, 22px); letter-spacing: .18em;
+    color: var(--brand); opacity: .3;
+  }
+  html[data-theme="dark"] .stage-name { opacity: .34; }
 
   .theme-toggle {
     position: fixed; top: 20px; right: 20px;
@@ -468,19 +662,29 @@ data() {
   }
 
   .card {
+    position: relative; z-index: 1;
     width: 100%; max-width: 820px; min-height: 460px;
-    background: var(--surface); border-radius: 22px;
-    box-shadow: var(--shadow); overflow: hidden;
+    background: var(--surface); border-radius: 24px;
+    box-shadow: 0 30px 80px -20px rgba(37, 55, 201, .28), 0 8px 24px rgba(0,0,0,.06);
+    overflow: hidden;
     display: grid; grid-template-columns: 1fr 1.15fr;
     transition: background .35s ease;
   }
+  html[data-theme="dark"] .card {
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.4);
+  }
   .welcome {
-    background: var(--panel-grad); color: #fff; padding: 48px 38px;
+    background: linear-gradient(150deg, #4c6bff 0%, #2233b5 100%);
+    color: #fff; padding: 48px 38px;
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; text-align: center; gap: 16px;
   }
-  .welcome h1 { font-size: 34px; font-weight: 700; letter-spacing: .5px; }
-  .welcome p { font-size: 14px; line-height: 1.6; opacity: .92; max-width: 240px; }
+  html[data-theme="dark"] .welcome {
+    background: linear-gradient(150deg, #23262e 0%, #16181d 100%);
+  }
+  .welcome-logo { margin-bottom: 8px; }
+  .welcome h1 { font-size: 27px; font-weight: 700; letter-spacing: .3px; }
+  .welcome p { font-size: 13px; line-height: 1.6; opacity: .92; max-width: 240px; }
   .ghost-btn {
     margin-top: 10px; padding: 11px 34px;
     border: 1.5px solid rgba(255,255,255,.85); background: transparent;
@@ -490,13 +694,16 @@ data() {
   .ghost-btn:hover { background: #fff; color: var(--brand-2); }
 
   .form-side { padding: 46px; display: flex; flex-direction: column; justify-content: center; }
-  .form-side h2 { font-size: 30px; font-weight: 700; color: var(--brand-2); margin-bottom: 26px; }
+  .form-side h2 { font-size: 23px; font-weight: 700; color: var(--brand-2); margin-bottom: 22px; }
+  .fp-desc { font-size: 13px; color: var(--muted); margin: -14px 0 16px; line-height: 1.5; }
+  .otp-field { letter-spacing: .5em; text-align: center; font-size: 18px; font-weight: 600; }
+  .primary-btn:disabled { opacity: .6; cursor: not-allowed; }
   html[data-theme="dark"] .form-side h2 { color: var(--brand); }
 
   .field {
-    width: 100%; padding: 13px 16px; margin-bottom: 14px;
+    width: 100%; padding: 10px 13px; margin-bottom: 10px;
     background: var(--field); border: 1px solid var(--field-border);
-    border-radius: 10px; font-size: 14px; color: var(--text);
+    border-radius: 9px; font-size: 13px; color: var(--text);
     transition: border .2s, box-shadow .2s;
   }
   .field::placeholder { color: var(--muted); }
@@ -511,9 +718,9 @@ data() {
   .row a:hover { text-decoration: underline; }
 
   .primary-btn {
-    align-self: flex-start; padding: 12px 40px; background: var(--brand);
-    color: #fff; border: none; border-radius: 24px; font-size: 14px;
-    font-weight: 600; letter-spacing: 1px; cursor: pointer;
+    align-self: flex-start; padding: 10px 32px; background: var(--brand);
+    color: #fff; border: none; border-radius: 22px; font-size: 13px;
+    font-weight: 600; letter-spacing: .8px; cursor: pointer;
     transition: background .2s, transform .1s;
   }
   .primary-btn:hover { background: var(--brand-2); }
@@ -527,11 +734,11 @@ data() {
   .switch-hint a { color: var(--brand); font-weight: 600; text-decoration: none; cursor: pointer; }
 
   /* ---- ช่องรหัสผ่าน + ปุ่มตา ---- */
-  .reg-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .reg-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .pwd-wrap { position: relative; }
-  .pwd-wrap .field { padding-right: 46px; }
+  .pwd-wrap .field { padding-right: 44px; }
   .eye-btn {
-    position: absolute; top: 13px; right: 12px;
+    position: absolute; top: 10px; right: 12px;
     width: 24px; height: 24px; padding: 0; border: none; background: none;
     color: var(--muted); cursor: pointer; display: grid; place-items: center;
   }

@@ -47,11 +47,15 @@
 }
 
 :root {
+  /* สีหลัก = น้ำเงินคราม (พื้นหลัก สบายตา) · ส้ม = accent เข้ากับโลโก้ */
   --brand:        #3b5bfe;
   --brand-2:      #2537c9;
   --brand-soft:   #eaefff;
   --primary:      #3b5bfe;
   --primary-2:    #2537c9;
+  --accent:       #ef6b1e;   /* ส้ม — สีเน้น/แบรนด์ (โลโก้, ปุ่มสำคัญ, ไฮไลต์) */
+  --accent-2:     #cf560e;
+  --accent-soft:  #fdece0;
   --pink:         #e85d75;
   --purple:       #7c5cdb;
   --blue:         #3b82f6;
@@ -70,9 +74,9 @@
   --ok:           #17a06a;
   --warn:         #e8a01d;
   --chart-1:      #3b5bfe;
-  --chart-2:      #e85d75;
+  --chart-2:      #ef6b1e;
   --chart-3:      #7c5cdb;
-  --chart-4:      #f59e0b;
+  --chart-4:      #12a594;
   --chart-5:      #06b6d4;
   --pink-soft:    #fdecef;
   --purple-soft:  #f1edfc;
@@ -80,11 +84,15 @@
   --orange-soft:  #fef3e2;
 }
 html[data-theme="dark"] {
+  /* สีหลักน้ำเงิน (สว่างขึ้นบนพื้นดำ) · ส้ม = accent — คงพื้นหลังดำนิ่งไว้ */
   --brand:        #6b83ff;
   --brand-2:      #3b5bfe;
   --brand-soft:   #1c2748;
   --primary:      #6b83ff;
   --primary-2:    #3b5bfe;
+  --accent:       #ff8a4c;
+  --accent-2:     #ef6c1a;
+  --accent-soft:  #3a2415;
   /* โทนดำเทากลาง (neutral) — ไม่อมน้ำเงินเหมือนเดิม */
   --page:         #0b0b0d;
   --surface:      #151517;
@@ -99,9 +107,9 @@ html[data-theme="dark"] {
   --ok:           #35c98a;
   --warn:         #f5b249;
   --chart-1:      #6b83ff;
-  --chart-2:      #e85d75;
+  --chart-2:      #ff8a4c;
   --chart-3:      #7c5cdb;
-  --chart-4:      #d97706;
+  --chart-4:      #14b8a6;
   --chart-5:      #0891b2;
   --pink-soft:    #2e1d24;
   --purple-soft:  #241f33;

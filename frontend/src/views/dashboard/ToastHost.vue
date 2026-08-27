@@ -52,6 +52,34 @@ export default {
 .toast-warn    { --tc: #f59e0b; }
 .toast-info    { --tc: #2f65f6; }
 
+/* ---- Success: เขียวทั้งใบ + ตัวหนังสือขาว + เส้นขาววิ่งรอบขอบ ---- */
+@property --toast-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+.toast-success {
+  background: linear-gradient(180deg, #1a9c54 0%, #158045 100%);   /* เขียวเดียวกับปุ่มส่งออก Excel */
+  color: #fff;
+  border-color: transparent; border-left-width: 1px;
+}
+.toast-success .toast-ic { background: rgba(255, 255, 255, .22); color: #fff; }
+.toast-success .toast-title { color: #fff; }
+.toast-success .toast-text,
+.toast-success .toast-title + .toast-text,
+.toast-success .toast-body:not(:has(.toast-title)) .toast-text { color: rgba(255, 255, 255, .92); }
+.toast-success .toast-bar { display: none; }   /* ซ่อนแถบล่างเดิม ใช้เส้นวิ่งรอบขอบแทน */
+
+.toast-success::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  padding: 2px; pointer-events: none;
+  background: conic-gradient(from var(--toast-ang),
+              transparent 0 60%, rgba(255,255,255,.35) 74%, #fff 86%, rgba(255,255,255,.35) 92%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: toast-run 1.9s linear infinite;
+}
+@keyframes toast-run { to { --toast-ang: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .toast-success::after { animation: none; } }
+
 .toast-ic {
   flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
   display: grid; place-items: center;

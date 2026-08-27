@@ -134,7 +134,7 @@
         <div class="dy-drawer-head"><span>เลือกผ้าดิบ</span><button class="dy-x" @click="drawerOpen = false">✕</button></div>
         <div class="dy-drawer-search">
           <input v-model="drawerSearch" placeholder="รหัสสินค้า" />
-          <select v-model="drawerFactory"><option>D Finest</option></select>
+          <select v-model="drawerFactory"></select>
           <button class="dy-btn-search" @click="() => {}">🔍 ค้นหา</button>
         </div>
         <div class="dy-drawer-list">
@@ -172,7 +172,7 @@ export default {
       stamping: { stamping: '', hangTag: 'No', millLabel: 'No', dyeingMethod: '' },
       remarkPreset: '',
       fabrics: [], fabricRaw: [], factoryOptions: [], savedMsg: '', _seq: 1,
-      drawerOpen: false, drawerSearch: '', drawerFactory: 'D Finest',
+      drawerOpen: false, drawerSearch: '', drawerFactory: '',
     };
   },
   computed: {

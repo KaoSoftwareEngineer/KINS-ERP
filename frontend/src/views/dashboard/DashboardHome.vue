@@ -2,7 +2,7 @@
 <div class="dash-fit">
   <div class="header flex-wrap">
     <div>
-      <h1>📊 {{ dash.t[dash.lang].dashboard }}</h1>
+      <h1>{{ dash.t[dash.lang].dashboard }}</h1>
       <p style="font-size: 14px; color: var(--muted); margin-top: 4px;">{{ dash.t[dash.lang].welcome }}</p>
     </div>
     <div class="header-actions">
@@ -266,7 +266,7 @@
     <div v-if="cards.orders" class="section dash-list-section">
       <div class="section-header">
         <h2>{{ dash.t[dash.lang].orderStatus }}</h2>
-        <button class="btn-small">{{ dash.t[dash.lang].allOrders }}</button>
+        <button class="btn-small" @click="dash.currentPage = 'order-fulfill'">{{ dash.t[dash.lang].allOrders }}</button>
       </div>
       <div class="dash-scroll-body">
       <div class="overflow-x-auto">

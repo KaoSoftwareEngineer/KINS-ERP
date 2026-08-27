@@ -9,6 +9,48 @@ import QRCode from 'qrcode';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+// ============================================================
+//  ข้อมูลบริษัท + โลโก้ (ใช้ร่วมกันในเอกสารพิมพ์ทุกใบ — แก้ที่เดียวคุมทั้งระบบ)
+// ============================================================
+export const COMPANY_NAME_EN   = 'Plum Flow Solution Co., Ltd.';
+export const COMPANY_NAME_CAPS = 'PLUM FLOW SOLUTION CO., LTD.';
+export const COMPANY_NAME_TH   = 'บริษัท พลัม โฟลว์ โซลูชั่น จำกัด';
+export const COMPANY_ADDRESS    = '55/4 Meesuwan 3 Yeak 1, Sukhumvit 71 Rd. Wattana District, Bangkok, Thailand 10110';
+export const COMPANY_ADDRESS_TH = '55/4 ซ.เมืองสุวรรณ 3 แยก 1 ถ.สุขุมวิท 71 เขตวัฒนา กรุงเทพฯ 10110';
+export const COMPANY_TEL        = 'Tel: 02-391-5737-39';
+export const COMPANY_CONTACT    = 'Mobile/Whatsapp/Line: 085-612-6555';
+export const COMPANY_LINE       = 'plumflow';
+export const COMPANY_EMAIL      = 'PLUMFLOWSOLUTION@GMAIL.COM';
+export const COMPANY_WEBSITE    = 'WWW.PLUMFLOWSOLUTION.COM';
+
+// โลโก้ PLUM (ปุ่ม power ส้ม + ใบ) เป็น SVG inline — เรนเดอร์ในเอกสาร PDF ได้
+export function plumLogoSvg(px = 40) {
+  const s = Number(px) || 40;
+  return `<svg width="${s}" height="${s}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;flex:none">
+    <defs>
+      <linearGradient id="plmO" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7A29"/><stop offset="1" stop-color="#E8580F"/></linearGradient>
+      <linearGradient id="plmL" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#F5A623"/><stop offset="1" stop-color="#FFD24D"/></linearGradient>
+    </defs>
+    <path d="M74.98 28.91 A40 40 0 1 1 45.02 28.91" fill="none" stroke="url(#plmO)" stroke-width="13" stroke-linecap="round"/>
+    <path d="M60 34 L60 67" fill="none" stroke="url(#plmO)" stroke-width="12" stroke-linecap="round"/>
+    <path d="M60 35 C66 18 79 12 89 15 C84 28 70 34 60 35 Z" fill="url(#plmL)"/>
+    <path d="M60 38 C55 28 46 24 38 27 C44 35 53 39 60 38 Z" fill="url(#plmL)" opacity=".92"/>
+  </svg>`;
+}
+
+// หัวเอกสารมาตรฐาน (โลโก้ + ชื่อบริษัท + subtitle + ที่อยู่) — สำหรับใบ Instruction/รับ/ย้าย
+export function docBrandHeader(subtitle = '') {
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:12px">
+      ${plumLogoSvg(46)}
+      <div style="text-align:center">
+        <div class="h1">${COMPANY_NAME_EN}</div>
+        ${subtitle ? `<div class="h2">${subtitle}</div>` : ''}
+      </div>
+    </div>
+    <div class="center addr">${COMPANY_ADDRESS}</div>
+    <div class="center addr">${COMPANY_TEL}&nbsp;&nbsp;&nbsp;${COMPANY_CONTACT}</div>`;
+}
+
 // ---- แกนกลาง: HTML → PDF (เรนเดอร์ในจอจริงเพื่อให้จับภาพได้แน่นอน) ----
 async function htmlToPdf(innerHtml, { filename = 'document.pdf', format = 'a4', orientation = 'portrait', margin = [8, 8, 8, 8], width = '190mm', open = true, download = false } = {}) {
   const html2pdf = (await import('html2pdf.js')).default;
@@ -185,27 +227,47 @@ export async function buildRollLabelsPdf(labels, { open = true, download = false
   const banner = document.createElement('div');
   banner.textContent = 'กำลังสร้าง PDF…';
   banner.style.cssText = 'position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:6px 16px; border-radius:20px; font-family:sans-serif; font-size:13px; z-index:2147483001;';
+  // โลโก้ PLUM แบบสีเรียบ (ไม่ใช้ gradient) เพื่อให้ html2canvas เรนเดอร์ชัวร์
+  const flatLogo = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <path d="M74.98 28.91 A40 40 0 1 1 45.02 28.91" fill="none" stroke="#E8580F" stroke-width="13" stroke-linecap="round"/>
+      <path d="M60 34 L60 67" fill="none" stroke="#E8580F" stroke-width="12" stroke-linecap="round"/>
+      <path d="M60 35 C66 18 79 12 89 15 C84 28 70 34 60 35 Z" fill="#F5A623"/>
+      <path d="M60 38 C55 28 46 24 38 27 C44 35 53 39 60 38 Z" fill="#F5A623"/>
+    </svg>`;
+
   overlay.innerHTML = `
     <style>
-      .lbl { width:${W}mm; height:${H}mm; box-sizing:border-box; padding:4mm 5mm; margin:0 auto 6mm; background:#fff;
+      .lbl { width:${W}mm; height:${H}mm; box-sizing:border-box; padding:2.2mm 2.8mm; margin:0 auto 6mm; background:#fff; overflow:hidden;
              display:flex; flex-direction:column; color:#000; font-family:'Noto Sans Thai','Tahoma',sans-serif; }
-      .lbl-hd { font-size:14pt; line-height:1.2; }
-      .lbl-hd b { font-weight:700; }
-      .lbl-color { font-size:10.5pt; padding-bottom:2.5mm; border-bottom:1.5px solid #000; overflow:hidden; }
-      .k { color:#000; margin-right:2mm; }
-      .lbl-roll { float:right; color:#444; font-size:9pt; }
-      .lbl-body { flex:1; display:flex; align-items:center; padding-top:3mm; }
-      .lbl-meta { flex:1; font-size:13pt; line-height:2.3; }
-      .lbl-right { width:31mm; text-align:center; border-left:1.5px solid #000; padding-left:2.5mm; }
-      .lbl-right img { width:25mm; height:25mm; display:block; margin:0 auto; }
-      .lbl-bc { font-family:'Courier New',monospace; font-size:9.5pt; font-weight:700; margin-top:1mm; }
+      .lbl-brand { display:flex; align-items:center; gap:1.6mm; background:#f2f3f7; border:1px solid #d6dae6; border-radius:1.4mm; padding:.8mm 1.8mm; margin-bottom:1.2mm; }
+      .lbl-brand svg { width:5.8mm; height:5.8mm; flex:none; }
+      .lbl-co { font-size:8pt; font-weight:800; letter-spacing:.1px; color:#1a1f2e; line-height:1.05; }
+      .lbl-hd { font-size:12pt; line-height:1.05; margin-bottom:1.6mm; }
+      .lbl-hd b { font-weight:800; }
+      .k { color:#000; font-weight:700; margin-right:1.1mm; }
+      .lbl-color { font-size:8.5pt; padding-bottom:1mm; border-bottom:1.4px solid #000; overflow:hidden; white-space:nowrap; }
+      .lbl-roll { float:right; color:#555; font-size:7.5pt; font-weight:700; }
+      .lbl-body { flex:1; display:flex; gap:2mm; padding-top:1.4mm; min-height:0; }
+      .lbl-meta { flex:1; display:flex; flex-direction:column; justify-content:flex-start; font-size:10pt; }
+      .lbl-meta > div { line-height:1.1; margin-bottom:1.9mm; }
+      .lbl-meta > div:last-child { margin-bottom:0; }
+      .lbl-struct { font-size:8pt; }
+      .lbl-right { width:26mm; display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:1.5px solid #000; padding-left:2mm; }
+      .lbl-right img { width:24mm; height:24mm; display:block; }
+      .lbl-bc { font-family:'Courier New',monospace; font-size:8.5pt; font-weight:700; margin-top:.8mm; letter-spacing:.3px; }
     </style>
     ${labels.map((l, i) => `
       <div class="lbl">
+        <div class="lbl-brand">${flatLogo}<span class="lbl-co">${esc(COMPANY_NAME_EN)}</span></div>
         <div class="lbl-hd"><span class="k">Code</span> <b>${esc(l.title || '')}</b></div>
-        <div class="lbl-color"><span class="k">color</span> ${esc(l.sub || '')}${l.roll ? `<span class="lbl-roll">ม้วนที่ ${esc(l.roll)}</span>` : ''}</div>
+        <div class="lbl-color"><span class="k">Color</span> ${esc(l.sub || '')}${l.roll ? `<span class="lbl-roll">ม้วน ${esc(l.roll)}</span>` : ''}</div>
         <div class="lbl-body">
-          <div class="lbl-meta"><div>LOT ${esc(l.lot || '')}</div><div>QTY ${esc(l.qty || '')}</div></div>
+          <div class="lbl-meta">
+            <div><span class="k">LOT</span> ${esc(l.lot || '-')}</div>
+            <div><span class="k">QTY</span> ${esc(l.qty || '-')}</div>
+            ${l.width ? `<div><span class="k">Width</span> ${esc(l.width)}</div>` : ''}
+            ${l.comp ? `<div class="lbl-struct"><span class="k">Comp</span> ${esc(l.comp)}</div>` : ''}
+          </div>
           <div class="lbl-right">${qrs[i] ? `<img src="${qrs[i]}"/>` : ''}<div class="lbl-bc">${esc(l.barcode || '')}</div></div>
         </div>
       </div>`).join('')}`;

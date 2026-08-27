@@ -106,7 +106,7 @@
 </template>
 
 <script>
-import { buildDocPdf } from '../../utils/pdfLabels.js';
+import { buildDocPdf, docBrandHeader, COMPANY_NAME_EN } from '../../utils/pdfLabels.js';
 export default {
   name: 'GoodsTransferPage',
   inject: ['dash'],
@@ -190,10 +190,9 @@ export default {
       const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
       const body = this.items.map((r, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${esc(r.sku)}</td><td>${esc(r.color)}</td><td>${esc(r.group)}</td><td>${esc(r.shade)}</td><td>${esc(r.width)}</td><td>${r.qty || ''}</td><td>${esc(r.unit)}</td></tr>`).join('');
       const html = `
-        <style>.doc{font-family:'Noto Sans Thai','Times New Roman',serif;color:#000}.center{text-align:center}.h1{font-size:20px;font-weight:bold}.h2{font-size:14px;font-weight:bold}.meta{display:flex;justify-content:space-between;font-size:12px;margin:14px 0}.doc table{width:100%;border-collapse:collapse;margin-top:6px}.doc th,.doc td{border:1px solid #000;padding:5px 6px;font-size:12px;text-align:center;height:22px}.doc th{font-weight:bold;background:#f0f0f0}.foot{display:flex;justify-content:space-between;margin-top:44px;font-size:12px}</style>
+        <style>.doc{font-family:'Noto Sans Thai','Times New Roman',serif;color:#000}.center{text-align:center}.h1{font-size:20px;font-weight:bold}.h2{font-size:14px;font-weight:bold}.addr{font-size:11.5px;margin-top:2px}.meta{display:flex;justify-content:space-between;font-size:12px;margin:14px 0}.doc table{width:100%;border-collapse:collapse;margin-top:6px}.doc th,.doc td{border:1px solid #000;padding:5px 6px;font-size:12px;text-align:center;height:22px}.doc th{font-weight:bold;background:#f0f0f0}.foot{display:flex;justify-content:space-between;margin-top:44px;font-size:12px}</style>
         <div class="doc">
-        <div class="center h1">D'finest Fabric Co., Ltd.</div>
-        <div class="center h2">ใบย้ายสินค้าระหว่างคลัง</div>
+        ${docBrandHeader('ใบย้ายสินค้าระหว่างคลัง')}
         <div class="meta"><div><b>จากคลัง :</b> ${esc(f.from_wh)}<br><b>ไปยังคลัง :</b> ${esc(f.to_wh)}</div><div><b>เลขที่ย้าย :</b> ${esc(f.tr_no)}<br><b>วันที่ :</b> ${esc(f.transfer_date)}</div></div>
         <table><thead><tr><th style="width:32px">ที่</th><th>รหัสสินค้า</th><th>รหัสสี</th><th>กลุ่มผ้า</th><th>เฉดสี</th><th>หน้ากว้าง</th><th>จำนวน</th><th>หน่วย</th></tr></thead><tbody>${body}</tbody></table>
         <div class="foot"><div><b>ผู้ส่ง :</b> ____________</div><div><b>ผู้รับ :</b> ____________</div></div>

@@ -79,7 +79,7 @@ export default {
       form: { vn_no: '', receipt_date: new Date().toISOString().slice(0, 10), vendor: '', ref_no: '', remark: '' },
       items: [this.newRow()],
       discountMode: 'none', discountValue: 0, vatMode: 'none',
-      vendorOptions: ['D Finest'], saved: false, savedMsg: '', _seq: 1,
+      vendorOptions: [], saved: false, savedMsg: '', _seq: 1,
     };
   },
   computed: {

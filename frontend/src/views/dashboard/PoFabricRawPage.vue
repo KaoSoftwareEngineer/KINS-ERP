@@ -108,7 +108,7 @@ export default {
       form: { po_no: '', po_date: new Date().toISOString().slice(0, 10), vendor: '', account_term: '', ship_to: '', remark: '', ref_no: '', ship_date: '', approved: false },
       items: [this.newRow()],
       discountMode: 'none', discountValue: 0, vatMode: 'none',
-      fabrics: [], vendorOptions: ['D Finest'], savedMsg: '', _seq: 1,
+      fabrics: [], vendorOptions: [], savedMsg: '', _seq: 1,
     };
   },
   computed: {
