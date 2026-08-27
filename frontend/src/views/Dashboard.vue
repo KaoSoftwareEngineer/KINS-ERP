@@ -860,6 +860,9 @@ data() {
         // ข้อมูลตัวอย่าง 2 คลื่นซ้อน (โหมด demo) — ให้กราฟลงสีเต็มโทนเป็นลูกคลื่นแบบภาพตัวอย่าง
         dashDemoWaveA: [60, 82, 58, 88, 55, 80, 62, 90, 60, 85, 70, 96],
         dashDemoWaveB: [46, 62, 84, 54, 86, 60, 92, 56, 84, 66, 90, 74],
+        // ข้อมูลตัวอย่างรายวัน 7 วันล่าสุด (โหมดเดือน = รายวัน)
+        dashDemoDayA: [55, 78, 60, 86, 62, 80, 92],
+        dashDemoDayB: [44, 64, 82, 54, 85, 60, 88],
         dashSalesByYear: {
           2024: [
             { label: 'ม.ค.', value: 140000 }, { label: 'ก.พ.', value: 150000 }, { label: 'มี.ค.', value: 145000 },
@@ -903,6 +906,9 @@ data() {
         // ข้อมูลตัวอย่าง 2 คลื่นซ้อน (โหมด demo) — ให้กราฟลงสีเต็มโทนเป็นลูกคลื่นแบบภาพตัวอย่าง
         dashDemoWaveA: [60, 82, 58, 88, 55, 80, 62, 90, 60, 85, 70, 96],
         dashDemoWaveB: [46, 62, 84, 54, 86, 60, 92, 56, 84, 66, 90, 74],
+        // ข้อมูลตัวอย่างรายวัน 7 วันล่าสุด (โหมดเดือน = รายวัน)
+        dashDemoDayA: [55, 78, 60, 86, 62, 80, 92],
+        dashDemoDayB: [44, 64, 82, 54, 85, 60, 88],
         dashSalesByYear: {
           2024: [
             { label: 'ม.ค.', value: 140000 }, { label: 'ก.พ.', value: 150000 }, { label: 'มี.ค.', value: 145000 },
@@ -1428,12 +1434,12 @@ data() {
       },
       dashTrendChartData() {
         if (this.dashTrendViewMode === 'year') return this.dashYearlyTotals;
-        if (this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveA);
+        if (this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayA); // โหมดเดือน = รายวัน 7 วัน
         return this.dashSalesByYear[this.dashTrendYear] || [];
       },
       dashTrendChartData2() {
-        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายเดือน) — คลื่นซ้อนแบบภาพตัวอย่าง
-        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveB);
+        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายวัน) — คลื่นซ้อนแบบภาพตัวอย่าง
+        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayB);
         return [];
       },
       dashTrendDemo() {
@@ -1550,10 +1556,27 @@ data() {
         return seg ? seg.pct : 0;
       },
       dashGaugeArc() {
-        // เกจครึ่งวง 270° (เปิดด้านล่าง) — คืน stroke-dasharray ของราง/ค่าจริง
+        // เกจครึ่งวง 270° (เปิดด้านล่าง) — รางพื้นหลัง
         const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360;
-        const pct = Math.max(0, Math.min(100, this.dashRegularPct));
-        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}`, value: `${(arc * pct / 100).toFixed(1)} ${C.toFixed(1)}` };
+        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}` };
+      },
+      dashGaugeSegs() {
+        // แบ่งเกจ 270° เป็นช่วงสีตามสัดส่วน 3 ประเภทผ้า (สีตาม dashVolumeSegments)
+        const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360, gap = 2;
+        const segs = this.dashVolumeSegments || [];
+        const total = segs.reduce((s, x) => s + x.pct, 0) || 100;
+        let acc = 0;
+        return segs.map((s) => {
+          const raw = (s.pct / total) * arc;
+          const dash = Math.max(0, raw - gap);
+          const out = {
+            color: s.color, label: s.label, pct: s.pct,
+            dasharray: `${dash.toFixed(1)} ${(C - dash).toFixed(1)}`,
+            dashoffset: (-acc).toFixed(1),
+          };
+          acc += raw;
+          return out;
+        });
       },
       dashLast3Months() {
         // มินิบาร์ 3 เดือนล่าสุด (ใช้ชุดข้อมูลรายเดือนเดียวกับกราฟแนวโน้ม)
@@ -1604,12 +1627,12 @@ data() {
       },
       dashTrendChartData() {
         if (this.dashTrendViewMode === 'year') return this.dashYearlyTotals;
-        if (this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveA);
+        if (this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayA); // โหมดเดือน = รายวัน 7 วัน
         return this.dashSalesByYear[this.dashTrendYear] || [];
       },
       dashTrendChartData2() {
-        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายเดือน) — คลื่นซ้อนแบบภาพตัวอย่าง
-        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDemoSeries(this.dashDemoWaveB);
+        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายวัน) — คลื่นซ้อนแบบภาพตัวอย่าง
+        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayB);
         return [];
       },
       dashTrendDemo() {
@@ -1726,10 +1749,27 @@ data() {
         return seg ? seg.pct : 0;
       },
       dashGaugeArc() {
-        // เกจครึ่งวง 270° (เปิดด้านล่าง) — คืน stroke-dasharray ของราง/ค่าจริง
+        // เกจครึ่งวง 270° (เปิดด้านล่าง) — รางพื้นหลัง
         const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360;
-        const pct = Math.max(0, Math.min(100, this.dashRegularPct));
-        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}`, value: `${(arc * pct / 100).toFixed(1)} ${C.toFixed(1)}` };
+        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}` };
+      },
+      dashGaugeSegs() {
+        // แบ่งเกจ 270° เป็นช่วงสีตามสัดส่วน 3 ประเภทผ้า (สีตาม dashVolumeSegments)
+        const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360, gap = 2;
+        const segs = this.dashVolumeSegments || [];
+        const total = segs.reduce((s, x) => s + x.pct, 0) || 100;
+        let acc = 0;
+        return segs.map((s) => {
+          const raw = (s.pct / total) * arc;
+          const dash = Math.max(0, raw - gap);
+          const out = {
+            color: s.color, label: s.label, pct: s.pct,
+            dasharray: `${dash.toFixed(1)} ${(C - dash).toFixed(1)}`,
+            dashoffset: (-acc).toFixed(1),
+          };
+          acc += raw;
+          return out;
+        });
       },
       dashLast3Months() {
         // มินิบาร์ 3 เดือนล่าสุด (ใช้ชุดข้อมูลรายเดือนเดียวกับกราฟแนวโน้ม)
@@ -1958,6 +1998,18 @@ data() {
       dashDemoSeries(arr) {
         const M = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
         return M.map((label, i) => ({ label, value: arr[i] || 0 }));
+      },
+      dashDaySeries(arr) {
+        // 7 วันล่าสุด — label = "วันที่ ชื่อวัน" (เช่น "21 ศ") แบบภาพตัวอย่าง
+        const WD = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+        const today = new Date();
+        const out = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          out.push({ label: d.getDate() + ' ' + WD[d.getDay()], value: arr[6 - i] || 0 });
+        }
+        return out;
       },
       async loadDashboardStats() {
         try {
@@ -4835,11 +4887,12 @@ data() {
   .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
   .dash-gauge-svg { width: 132px; height: 132px; }
   .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
-  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  .dash-gauge-seg { cursor: pointer; transition: stroke-width .15s; }
+  .dash-gauge-seg.is-active { stroke-width: 17; }
   .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
   .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
   .dash-gauge-ends { display: flex; justify-content: space-between; width: 104px; margin-top: -16px; font-size: 10px; color: var(--muted); }
-  .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; justify-content: center; }
   .dash-gauge-legend { display: flex; flex-direction: column; gap: 6px; }
   .dash-gauge-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
   .dash-gauge-legend-label { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -5122,11 +5175,12 @@ data() {
   .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
   .dash-gauge-svg { width: 132px; height: 132px; }
   .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
-  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  .dash-gauge-seg { cursor: pointer; transition: stroke-width .15s; }
+  .dash-gauge-seg.is-active { stroke-width: 17; }
   .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
   .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
   .dash-gauge-ends { display: flex; justify-content: space-between; width: 104px; margin-top: -16px; font-size: 10px; color: var(--muted); }
-  .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; justify-content: center; }
   .dash-gauge-legend { display: flex; flex-direction: column; gap: 6px; }
   .dash-gauge-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
   .dash-gauge-legend-label { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

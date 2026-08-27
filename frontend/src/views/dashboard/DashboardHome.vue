@@ -144,9 +144,9 @@
         <!-- ฝั่งขวา: กราฟเส้น รายเดือน/รายปี (แบบเดิม) -->
         <div class="dash-trend-col dash-trend-col-right">
           <div class="dash-trend-col-header">
-            <span class="dash-trend-col-title">{{ dash.dashTrendViewMode === 'year' ? 'ยอดขายรวมรายปี' : 'รายเดือน ปี ' + dash.dashTrendYear }}</span>
+            <span class="dash-trend-col-title">{{ dash.dashTrendViewMode === 'year' ? 'ยอดขายรวมรายปี' : 'ยอดขายรายวัน (7 วันล่าสุด)' }}</span>
             <div class="dash-trend-col-controls">
-              <select v-if="dash.dashTrendViewMode === 'month'" v-model.number="dash.dashTrendYear" class="dash-year-select">
+              <select v-if="dash.dashTrendViewMode === 'month' && !dash.dashTrendDemo" v-model.number="dash.dashTrendYear" class="dash-year-select">
                 <option v-for="y in dash.dashAvailableYears" :key="y" :value="y">{{ y }}</option>
               </select>
               <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'month' }" @click="dash.dashTrendViewMode = 'month'">{{ dash.t[dash.lang].month }}</button>
@@ -192,7 +192,7 @@
                 </div>
                 <div v-if="dash.dashTrendHoverIdx2 !== null" class="dash-chart-tooltip"
                      :style="{ left: dash.dashTrendPoints[dash.dashTrendHoverIdx2].xPct + '%' }">
-                  <strong>{{ dash.dashTrendPoints[dash.dashTrendHoverIdx2].label }}{{ dash.dashTrendViewMode === 'month' ? ' ' + dash.dashTrendYear : '' }}</strong>
+                  <strong>{{ dash.dashTrendPoints[dash.dashTrendHoverIdx2].label }}{{ dash.dashTrendViewMode === 'month' && !dash.dashTrendDemo ? ' ' + dash.dashTrendYear : '' }}</strong>
                   ฿{{ dash.dashTrendPoints[dash.dashTrendHoverIdx2].value.toLocaleString() }}
                 </div>
               </div>
@@ -210,43 +210,35 @@
       </div>
       <div class="dash-chart-box dash-donut-box">
         <div class="dash-gauge-row">
-          <!-- เกจวัด % ผ้าประจำ (270°) -->
+          <!-- เกจสัดส่วนประเภทผ้า (270°) — แต่ละช่วงลงสีตามชนิด -->
           <div class="dash-gauge">
             <svg viewBox="0 0 160 160" class="dash-gauge-svg">
-              <defs>
-                <linearGradient id="dashGaugeGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#5b8def" />
-                  <stop offset="100%" stop-color="#22d3ee" />
-                </linearGradient>
-              </defs>
               <circle cx="80" cy="80" r="62" class="dash-gauge-track" :stroke-dasharray="dash.dashGaugeArc.track" transform="rotate(135 80 80)" />
-              <circle cx="80" cy="80" r="62" class="dash-gauge-value" :stroke-dasharray="dash.dashGaugeArc.value" transform="rotate(135 80 80)" />
-              <text x="80" y="76" text-anchor="middle" class="dash-gauge-num">{{ dash.dashRegularPct }}%</text>
-              <text x="80" y="95" text-anchor="middle" class="dash-gauge-cap">ผ้าประจำ</text>
+              <circle v-for="(seg, i) in dash.dashGaugeSegs" :key="i" cx="80" cy="80" r="62" fill="none"
+                      :stroke="seg.color" stroke-width="14" stroke-linecap="round"
+                      :stroke-dasharray="seg.dasharray" :stroke-dashoffset="seg.dashoffset"
+                      transform="rotate(135 80 80)" class="dash-gauge-seg"
+                      :class="{ 'is-active': dash.dashVolumeHoverIdx === i }"
+                      @mouseenter="dash.dashVolumeHoverIdx = i" @mouseleave="dash.dashVolumeHoverIdx = null" />
+              <text x="80" y="76" text-anchor="middle" class="dash-gauge-num">{{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].pct : dash.dashRegularPct }}%</text>
+              <text x="80" y="95" text-anchor="middle" class="dash-gauge-cap">{{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].label : 'ผ้าประจำ' }}</text>
             </svg>
             <div class="dash-gauge-ends"><span>0%</span><span>100%</span></div>
           </div>
-          <!-- ขวา: สัดส่วน 3 ประเภท + ยอดขาย 3 เดือนล่าสุด -->
+          <!-- ขวา: สัดส่วน 3 ประเภท (ลงสีตามชนิด) -->
           <div class="dash-gauge-side">
             <div class="dash-gauge-legend">
-              <div v-for="(seg, i) in dash.dashVolumeSegments" :key="i" class="dash-gauge-legend-item">
+              <div v-for="(seg, i) in dash.dashVolumeSegments" :key="i" class="dash-gauge-legend-item"
+                   :class="{ 'is-active': dash.dashVolumeHoverIdx === i }"
+                   @mouseenter="dash.dashVolumeHoverIdx = i" @mouseleave="dash.dashVolumeHoverIdx = null">
                 <span class="dash-donut-swatch" :style="{ background: seg.color }"></span>
                 <span class="dash-gauge-legend-label">{{ seg.label }}</span>
-                <span class="dash-gauge-legend-pct">{{ seg.pct }}%</span>
-              </div>
-            </div>
-            <div class="dash-mini3">
-              <div class="dash-mini3-title">3 เดือนล่าสุด</div>
-              <div class="dash-mini3-bars">
-                <div v-for="(b, i) in dash.dashLast3Months" :key="i" class="dash-mini3-col">
-                  <div class="dash-mini3-track"><div class="dash-mini3-bar" :style="{ height: Math.max(6, b.h) + '%' }"></div></div>
-                  <span class="dash-mini3-lbl">{{ b.label }}</span>
-                </div>
+                <span class="dash-gauge-legend-pct" :style="{ color: seg.color }">{{ seg.pct }}%</span>
               </div>
             </div>
           </div>
         </div>
-        <div class="dash-chart-note">สัดส่วนประเภทผ้าในคลัง (เกจ = ผ้าประจำ) + ยอดขาย 3 เดือนล่าสุด — {{ dash.dashTrendDemo ? 'ยอดขายเป็นข้อมูลตัวอย่าง' : 'ข้อมูลจริงจากระบบ' }}</div>
+        <div class="dash-chart-note">สัดส่วนประเภทผ้าในคลัง (ผ้าประจำ / ผ้าไม่ประจำ / ผ้าดิบ) — ข้อมูลจริงจากคลัง</div>
       </div>
     </div>
   </div>
