@@ -4618,16 +4618,16 @@ data() {
   .dash-donut-box { padding: 12px; display: flex; }
   .dash-linechart { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; }
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-  .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
+  .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
   .dash-area-fill { fill: url(#dashTrendGradA); }
   .dash-area-fill-2 { fill: url(#dashTrendGradB); }
   .dash-line-stroke { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
-  .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
+  .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
   .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
-  .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
+  .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
     left: 0;
@@ -4636,7 +4636,7 @@ data() {
     color: var(--muted);
     white-space: nowrap;
   }
-  .dash-chart-xaxis { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; }
+  .dash-chart-xaxis { position: relative; left: 0; right: 0; height: 15px; margin-top: 3px; flex-shrink: 0; }
   .dash-chart-xaxis span {
     position: absolute;
     bottom: 0;
@@ -4900,10 +4900,8 @@ data() {
   .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
   .dash-gauge-svg { width: 132px; height: 132px; }
   .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
-  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
-  .dash-gauge-delta { display: flex; gap: 14px; margin-top: -20px; font-size: 12px; font-weight: 700; }
-  .dash-gauge-delta .up { color: #16a34a; }
-  .dash-gauge-delta .down { color: #ef4444; }
+  .dash-gauge-seg { cursor: pointer; transition: stroke-width .15s; }
+  .dash-gauge-seg.is-active { stroke-width: 17; }
   .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
   .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
   .dash-gauge-ends { display: flex; justify-content: space-between; width: 112px; margin-top: 2px; font-size: 10px; color: var(--muted); }
@@ -5017,16 +5015,16 @@ data() {
   .dash-donut-box { padding: 12px; display: flex; }
   .dash-linechart { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; }
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-  .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
+  .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
   .dash-area-fill { fill: url(#dashTrendGradA); }
   .dash-area-fill-2 { fill: url(#dashTrendGradB); }
   .dash-line-stroke { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
-  .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
+  .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
   .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
-  .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
+  .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
     left: 0;
@@ -5035,7 +5033,7 @@ data() {
     color: var(--muted);
     white-space: nowrap;
   }
-  .dash-chart-xaxis { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; }
+  .dash-chart-xaxis { position: relative; left: 0; right: 0; height: 15px; margin-top: 3px; flex-shrink: 0; }
   .dash-chart-xaxis span {
     position: absolute;
     bottom: 0;
@@ -5190,10 +5188,8 @@ data() {
   .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
   .dash-gauge-svg { width: 132px; height: 132px; }
   .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
-  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
-  .dash-gauge-delta { display: flex; gap: 14px; margin-top: -20px; font-size: 12px; font-weight: 700; }
-  .dash-gauge-delta .up { color: #16a34a; }
-  .dash-gauge-delta .down { color: #ef4444; }
+  .dash-gauge-seg { cursor: pointer; transition: stroke-width .15s; }
+  .dash-gauge-seg.is-active { stroke-width: 17; }
   .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
   .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
   .dash-gauge-ends { display: flex; justify-content: space-between; width: 112px; margin-top: 2px; font-size: 10px; color: var(--muted); }
