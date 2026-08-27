@@ -1462,8 +1462,21 @@ data() {
         });
       },
       dashTrendLinePath() {
+        // เส้นโค้งนุ่ม (Catmull-Rom → cubic bezier) ให้ได้ทรงเดียวกับกราฟตัวอย่าง
         const pts = this.dashTrendPoints;
-        return pts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
+        const t = 0.18; // ความนุ่มของเส้นโค้ง (มาก = โค้งเยอะ)
+        let d = `M${pts[0].x},${pts[0].y}`;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] || pts[i];
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          const p3 = pts[i + 2] || p2;
+          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
+          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
+          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+        }
+        return d;
       },
       dashTrendAreaPath() {
         const pts = this.dashTrendPoints;
@@ -1560,8 +1573,21 @@ data() {
         });
       },
       dashTrendLinePath() {
+        // เส้นโค้งนุ่ม (Catmull-Rom → cubic bezier) ให้ได้ทรงเดียวกับกราฟตัวอย่าง
         const pts = this.dashTrendPoints;
-        return pts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
+        const t = 0.18; // ความนุ่มของเส้นโค้ง (มาก = โค้งเยอะ)
+        let d = `M${pts[0].x},${pts[0].y}`;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] || pts[i];
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          const p3 = pts[i + 2] || p2;
+          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
+          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
+          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+        }
+        return d;
       },
       dashTrendAreaPath() {
         const pts = this.dashTrendPoints;
@@ -4388,10 +4414,11 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-area-fill { fill: var(--chart-1); opacity: .12; }
-  .dash-line-stroke { fill: none; stroke: var(--chart-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .dash-line-dot { fill: var(--surface); stroke: var(--chart-1); stroke-width: 2; cursor: pointer; transition: r .15s; }
-  .dash-line-dot.is-active { r: 6; fill: var(--chart-1); }
+  .dash-area-fill { fill: url(#dashTrendGrad); }
+  .dash-line-stroke { fill: none; stroke: var(--chart-1); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
+  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid var(--chart-1); transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: var(--chart-1); box-shadow: 0 0 0 4px color-mix(in srgb, var(--chart-1) 22%, transparent); }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
@@ -4755,10 +4782,11 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-area-fill { fill: var(--chart-1); opacity: .12; }
-  .dash-line-stroke { fill: none; stroke: var(--chart-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .dash-line-dot { fill: var(--surface); stroke: var(--chart-1); stroke-width: 2; cursor: pointer; transition: r .15s; }
-  .dash-line-dot.is-active { r: 6; fill: var(--chart-1); }
+  .dash-area-fill { fill: url(#dashTrendGrad); }
+  .dash-line-stroke { fill: none; stroke: var(--chart-1); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
+  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid var(--chart-1); transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: var(--chart-1); box-shadow: 0 0 0 4px color-mix(in srgb, var(--chart-1) 22%, transparent); }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 18px; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;

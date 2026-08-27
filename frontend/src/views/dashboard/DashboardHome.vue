@@ -157,13 +157,24 @@
             <div class="dash-linechart">
               <div class="dash-linechart-plot">
                 <svg viewBox="0 0 560 200" preserveAspectRatio="none" class="dash-line-svg">
+                  <defs>
+                    <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.34" />
+                      <stop offset="60%" stop-color="var(--chart-1)" stop-opacity="0.08" />
+                      <stop offset="100%" stop-color="var(--chart-1)" stop-opacity="0" />
+                    </linearGradient>
+                  </defs>
                   <line v-for="(gl, gi) in dash.dashTrendGridLines" :key="gi" x1="52" x2="544" :y1="gl.y" :y2="gl.y" class="dash-grid-line" />
                   <path :d="dash.dashTrendAreaPath" class="dash-area-fill" />
-                  <path :d="dash.dashTrendLinePath" class="dash-line-stroke" />
-                  <circle v-for="(p, i) in dash.dashTrendPoints" :key="i" :cx="p.x" :cy="p.y" r="4"
-                          class="dash-line-dot" :class="{ 'is-active': dash.dashTrendHoverIdx2 === i }"
-                          @mouseenter="dash.dashTrendHoverIdx2 = i" @mouseleave="dash.dashTrendHoverIdx2 = null" />
+                  <path :d="dash.dashTrendLinePath" class="dash-line-stroke" vector-effect="non-scaling-stroke" />
                 </svg>
+                <!-- จุดกลม (overlay HTML → กลมเสมอ ไม่บิดตาม preserveAspectRatio ของ SVG) -->
+                <div class="dash-line-dots">
+                  <span v-for="(p, i) in dash.dashTrendPoints" :key="i" class="dash-dot"
+                        :class="{ 'is-active': dash.dashTrendHoverIdx2 === i }"
+                        :style="{ left: p.xPct + '%', top: p.yPct + '%' }"
+                        @mouseenter="dash.dashTrendHoverIdx2 = i" @mouseleave="dash.dashTrendHoverIdx2 = null"></span>
+                </div>
                 <div class="dash-axis-y">
                   <span v-for="(gl, gi) in dash.dashTrendGridLines" :key="gi" :style="{ top: gl.yPct + '%' }">{{ gl.label }}</span>
                 </div>
