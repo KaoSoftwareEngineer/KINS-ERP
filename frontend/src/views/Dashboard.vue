@@ -1605,7 +1605,7 @@ data() {
             label: d.label,
             value: d.value,
             pct: Math.round(fraction * 100),
-            color: (d.label && d.label.indexOf('ผ้าดิบ') !== -1) ? 'var(--danger)' : colors[i % colors.length],
+            color: { 'ผ้าประจำ': '#22d3ee', 'ผ้าไม่ประจำ': '#4f7cf7', 'ผ้าดิบ': '#6366f1' }[d.label] || colors[i % colors.length],
             dasharray: `${dash} ${circumference - dash}`,
             dashoffset: -offsetAccum,
           };
@@ -1802,7 +1802,7 @@ data() {
             label: d.label,
             value: d.value,
             pct: Math.round(fraction * 100),
-            color: (d.label && d.label.indexOf('ผ้าดิบ') !== -1) ? 'var(--danger)' : colors[i % colors.length],
+            color: { 'ผ้าประจำ': '#22d3ee', 'ผ้าไม่ประจำ': '#4f7cf7', 'ผ้าดิบ': '#6366f1' }[d.label] || colors[i % colors.length],
             dasharray: `${dash} ${circumference - dash}`,
             dashoffset: -offsetAccum,
           };
