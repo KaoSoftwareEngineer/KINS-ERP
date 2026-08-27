@@ -1,7 +1,7 @@
 {
-  "name": "files",
+  "name": "plum-flow-solution-erp-api",
   "version": "1.0.0",
-  "description": "ระบบ ERP ฝั่งหน้าเว็บ (Vue 3) เชื่อม API + ฐานข้อมูลตัวเดียวกัน",
+  "description": "Plum Flow Solution ERP — เซิร์ฟเวอร์ API (Node/Express) + ฐานข้อมูล MySQL",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
