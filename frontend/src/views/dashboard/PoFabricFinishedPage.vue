@@ -94,7 +94,7 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="fbInfo()">👁 รายงาน</button>
+      <button class="po-btn po-btn-report" @click="openReport()">👁 รายงาน</button>
       <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
       <button v-else class="po-btn po-btn-po" @click="openPdf">🖨️ ใบสั่งซื้อ</button>
     </div>
@@ -171,7 +171,11 @@ export default {
         row.shadeOptions = (d.shades || []).map(s => s.name);
       } catch (e) { row.shadeOptions = []; }
     },
-    fbInfo() { this.dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)'); },
+    openReport() {
+      // ไปหน้ารายงานใบสั่งซื้อ กรองเฉพาะผ้าสำเร็จอัตโนมัติ
+      try { sessionStorage.setItem('poReportTypeHint', 'finished'); } catch (e) { /* ข้ามได้ */ }
+      this.dash.currentPage = 'report-po';
+    },
     async save() {
       const hasItem = this.items.some(r => (r.sku || '').trim());
       if (!hasItem) { this.dash.fbFail('กรุณากรอกรายการสินค้าอย่างน้อย 1 รายการ'); return; }

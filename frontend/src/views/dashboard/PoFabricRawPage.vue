@@ -92,7 +92,7 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
+      <button class="po-btn po-btn-report" @click="openReport()">👁 รายงาน</button>
       <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
     </div>
   </div>
@@ -124,6 +124,11 @@ export default {
   },
   async mounted() { await this.loadNextNo(); this.loadFabrics(); },
   methods: {
+    openReport() {
+      // ไปหน้ารายงานใบสั่งซื้อ กรองเฉพาะผ้าดิบอัตโนมัติ
+      try { sessionStorage.setItem('poReportTypeHint', 'raw'); } catch (e) { /* ข้ามได้ */ }
+      this.dash.currentPage = 'report-po';
+    },
     newRow() { return { _key: (this._seq = (this._seq || 0) + 1), sku: '', name: '', structure: '', composition: '', width: '', qty: null, unit_price: null, for_sku: '', color: '', shadeOptions: [] }; },
     lineTotal(r) { return (Number(r.qty) || 0) * (Number(r.unit_price) || 0); },
     addRow(idx) { this.items.splice(idx + 1, 0, this.newRow()); },

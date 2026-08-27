@@ -147,7 +147,14 @@ export default {
     sumQty() { return this.filtered.reduce((s, r) => s + this.rowQty(r), 0); },
     sumAmount() { return this.filtered.reduce((s, r) => s + (Number(r.net_total) || 0), 0); },
   },
-  mounted() { this.load(); },
+  mounted() {
+    // ถ้ามาจากปุ่ม "รายงาน" ในหน้า PO → กรองตามประเภทที่ส่งมาอัตโนมัติ
+    try {
+      const hint = sessionStorage.getItem('poReportTypeHint');
+      if (hint) { this.filter.type = hint; sessionStorage.removeItem('poReportTypeHint'); }
+    } catch (e) { /* sessionStorage ไม่พร้อมใช้งาน — ข้ามการกรองอัตโนมัติ */ }
+    this.load();
+  },
   methods: {
     async load() {
       try {
