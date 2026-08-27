@@ -158,10 +158,17 @@
               <div class="dash-linechart-plot">
                 <svg viewBox="0 0 560 200" preserveAspectRatio="none" class="dash-line-svg">
                   <defs>
+                    <!-- ไล่เฉดใต้เส้น: ส้ม→ชมพู→ม่วง (โทนแบบกราฟตัวอย่าง) -->
                     <linearGradient id="dashTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.34" />
-                      <stop offset="60%" stop-color="var(--chart-1)" stop-opacity="0.08" />
-                      <stop offset="100%" stop-color="var(--chart-1)" stop-opacity="0" />
+                      <stop offset="0%" stop-color="#ef6b1e" stop-opacity="0.38" />
+                      <stop offset="55%" stop-color="#c94f9e" stop-opacity="0.14" />
+                      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0" />
+                    </linearGradient>
+                    <!-- เส้น: ไล่ส้ม→ชมพู→ม่วง แนวนอน -->
+                    <linearGradient id="dashTrendStroke" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#ef6b1e" />
+                      <stop offset="55%" stop-color="#e0479a" />
+                      <stop offset="100%" stop-color="#8b5cf6" />
                     </linearGradient>
                   </defs>
                   <line v-for="(gl, gi) in dash.dashTrendGridLines" :key="gi" x1="52" x2="544" :y1="gl.y" :y2="gl.y" class="dash-grid-line" />
@@ -192,7 +199,7 @@
           </div>
         </div>
       </div>
-      <div class="dash-chart-note">แนวโน้มยอดขาย (หลาที่ตัดจ่ายจริง) — {{ hasRealSales ? 'ข้อมูลจริงจากระบบ' : 'ยังไม่มีรายการตัดจ่ายในช่วงนี้' }}</div>
+      <div class="dash-chart-note">แนวโน้มยอดขาย (หลาที่ตัดจ่ายจริง) — {{ dash.dashTrendDemo ? 'ข้อมูลตัวอย่าง (Demo) — จะเปลี่ยนเป็นข้อมูลจริงอัตโนมัติเมื่อมียอดขายตั้งแต่ 3 เดือนขึ้นไป' : 'ข้อมูลจริงจากระบบ' }}</div>
     </div>
 
     <!-- Donut Chart -->
