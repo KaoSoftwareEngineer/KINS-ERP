@@ -2895,23 +2895,17 @@ app.get('/api/dashboard/stats', auth, wrap(async (req, res) => {
     WHERE g.issue_date >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
     GROUP BY DATE(g.issue_date) ORDER BY d ASC`);
 
-  // ---- ปริมาณการขาย/สต็อก แยกเป็น ผ้าประจำ / ผ้าไม่ประจำ / ผ้าดิบ ----
-  // แยกจากตารางต้นทางของรหัสสินค้า: อยู่ใน fabric_raw = ผ้าดิบ, fabric_irregular = ผ้าไม่ประจำ, นอกนั้น = ผ้าประจำ
-  const [volRows] = await mysqlPool.query(`
-    SELECT
-      CASE
-        WHEN f.sku IN (SELECT sku FROM fabric_raw)        THEN 'ผ้าดิบ'
-        WHEN f.sku IN (SELECT sku FROM fabric_irregular)  THEN 'ผ้าไม่ประจำ'
-        ELSE 'ผ้าประจำ'
-      END AS label,
-      COALESCE(SUM(r.current_yards),0) AS v
-    FROM fabric_rolls r LEFT JOIN fabrics f ON f.id = r.product_id
-    WHERE r.status <> 'depleted'
-    GROUP BY label`);
-  // ให้ครบ 3 ประเภทเสมอ (ที่ไม่มีสต็อกให้เป็น 0)
-  const volMap = { 'ผ้าประจำ': 0, 'ผ้าไม่ประจำ': 0, 'ผ้าดิบ': 0 };
-  volRows.forEach(r => { volMap[r.label] = Number(r.v) || 0; });
-  const volume3 = Object.keys(volMap).map(k => ({ label: k, value: volMap[k] }));
+  // ---- สัดส่วนชนิดผ้าในระบบ: นับจำนวนรายการผ้าแต่ละประเภท (ต้นแบบ/แคตตาล็อก) ----
+  // ผ้าประจำ = fabrics, ผ้าไม่ประจำ = fabric_irregular, ผ้าดิบ = fabric_raw
+  // (เดิมนับจากสต๊อกจริง แต่ผ้าดิบ/ไม่ประจำยังไม่มีม้วนในสต๊อก จึงเป็น 0 — เปลี่ยนมานับชนิดผ้าให้เห็นครบ)
+  const [[{ regN }]] = await mysqlPool.query('SELECT COUNT(*) AS regN FROM fabrics');
+  const [[{ irrN }]] = await mysqlPool.query('SELECT COUNT(*) AS irrN FROM fabric_irregular');
+  const [[{ rawN }]] = await mysqlPool.query('SELECT COUNT(*) AS rawN FROM fabric_raw');
+  const volume3 = [
+    { label: 'ผ้าประจำ', value: Number(regN) || 0 },
+    { label: 'ผ้าไม่ประจำ', value: Number(irrN) || 0 },
+    { label: 'ผ้าดิบ', value: Number(rawN) || 0 },
+  ];
 
   // ---- ออร์เดอร์ล่าสุด (ตารางสถานะคำสั่งซื้อ) ----
   const [recentOrders] = await mysqlPool.query(
