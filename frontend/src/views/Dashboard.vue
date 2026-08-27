@@ -132,6 +132,7 @@ export default {
     CustAccGenericPage,
     PartnerAccGenericPage,
     ReportGenericPage,
+    PoReportPage,
     ReportViewPage,
     ShelfStockReportPage,
     RawStockReportPage,
@@ -4730,6 +4731,7 @@ data() {
       <GoodsTransferReportPage v-else-if="currentPage === 'report-stock-move'" />
       <RawTransferReportPage v-else-if="currentPage === 'report-stock-move-raw'" />
       <RackTransferReportPage v-else-if="currentPage === 'report-stock-move-shelf'" />
+      <PoReportPage v-else-if="currentPage === 'report-po'" />
       <ReportViewPage v-else-if="reportPages[currentPage]" />
 
       <!-- ============ สิทธิ์การเข้าใช้งาน ============ -->
