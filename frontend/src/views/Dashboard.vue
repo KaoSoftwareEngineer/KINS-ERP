@@ -4591,12 +4591,12 @@ data() {
     flex-direction: column;
     min-height: 0;
     overflow: hidden;   /* กันกราฟหลุดออกนอกกรอบการ์ดตอนปรับแต่ง/ย่อขยาย */
-    padding: 14px 18px;
+    padding: 8px 18px 12px;
   }
   .dash-chart-section .section-header,
   .dash-list-section .section-header {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    margin-bottom: 3px;
+    padding-bottom: 4px;
   }
   .dash-chart-section .section-header h2,
   .dash-list-section .section-header h2 { font-size: 13px; }
@@ -4989,12 +4989,12 @@ data() {
     flex-direction: column;
     min-height: 0;
     overflow: hidden;   /* กันกราฟหลุดออกนอกกรอบการ์ดตอนปรับแต่ง/ย่อขยาย */
-    padding: 14px 18px;
+    padding: 8px 18px 12px;
   }
   .dash-chart-section .section-header,
   .dash-list-section .section-header {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    margin-bottom: 3px;
+    padding-bottom: 4px;
   }
   .dash-chart-section .section-header h2,
   .dash-list-section .section-header h2 { font-size: 13px; }
