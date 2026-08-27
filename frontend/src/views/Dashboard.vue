@@ -1462,7 +1462,7 @@ data() {
         else if (normalized <= 2) niceStep = 2 * magnitude;
         else if (normalized <= 5) niceStep = 5 * magnitude;
         else niceStep = 10 * magnitude;
-        const niceMin = Math.floor(rawMin / niceStep) * niceStep;
+        const niceMin = 0; // เริ่มแกน y ที่ 0 เสมอ (พื้นที่ใต้เส้นเต็มจากล่าง เหมือนกราฟแท่งซ้าย)
         const niceMax = Math.ceil(rawMax / niceStep) * niceStep;
         const ticks = [];
         for (let v = niceMin; v <= niceMax + 1e-6; v += niceStep) ticks.push(Math.round(v));
@@ -1659,7 +1659,7 @@ data() {
         else if (normalized <= 2) niceStep = 2 * magnitude;
         else if (normalized <= 5) niceStep = 5 * magnitude;
         else niceStep = 10 * magnitude;
-        const niceMin = Math.floor(rawMin / niceStep) * niceStep;
+        const niceMin = 0; // เริ่มแกน y ที่ 0 เสมอ (พื้นที่ใต้เส้นเต็มจากล่าง เหมือนกราฟแท่งซ้าย)
         const niceMax = Math.ceil(rawMax / niceStep) * niceStep;
         const ticks = [];
         for (let v = niceMin; v <= niceMax + 1e-6; v += niceStep) ticks.push(Math.round(v));
