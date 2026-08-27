@@ -1543,6 +1543,25 @@ data() {
         const first = pts[0];
         return `${this.dashTrendLinePath2} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
       },
+      dashRegularPct() {
+        // % ผ้าประจำ (ตัวเลขหลักในเกจ)
+        const segs = this.dashVolumeSegments || [];
+        const seg = segs.find(s => s.label && s.label.indexOf('ประจำ') !== -1 && s.label.indexOf('ไม่') === -1);
+        return seg ? seg.pct : 0;
+      },
+      dashGaugeArc() {
+        // เกจครึ่งวง 270° (เปิดด้านล่าง) — คืน stroke-dasharray ของราง/ค่าจริง
+        const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360;
+        const pct = Math.max(0, Math.min(100, this.dashRegularPct));
+        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}`, value: `${(arc * pct / 100).toFixed(1)} ${C.toFixed(1)}` };
+      },
+      dashLast3Months() {
+        // มินิบาร์ 3 เดือนล่าสุด (ใช้ชุดข้อมูลรายเดือนเดียวกับกราฟแนวโน้ม)
+        const data = this.dashTrendChartData || [];
+        const last3 = data.slice(-3);
+        const max = Math.max(1, ...last3.map(d => Number(d.value) || 0));
+        return last3.map(d => ({ label: d.label, value: Number(d.value) || 0, h: Math.round((Number(d.value) || 0) / max * 100) }));
+      },
       dashVolumeSegments() {
         const data = this.dashVolumeData;
         const total = data.reduce((s, d) => s + d.value, 0) || 1;
@@ -1699,6 +1718,25 @@ data() {
         const last = pts[pts.length - 1];
         const first = pts[0];
         return `${this.dashTrendLinePath2} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
+      },
+      dashRegularPct() {
+        // % ผ้าประจำ (ตัวเลขหลักในเกจ)
+        const segs = this.dashVolumeSegments || [];
+        const seg = segs.find(s => s.label && s.label.indexOf('ประจำ') !== -1 && s.label.indexOf('ไม่') === -1);
+        return seg ? seg.pct : 0;
+      },
+      dashGaugeArc() {
+        // เกจครึ่งวง 270° (เปิดด้านล่าง) — คืน stroke-dasharray ของราง/ค่าจริง
+        const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360;
+        const pct = Math.max(0, Math.min(100, this.dashRegularPct));
+        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}`, value: `${(arc * pct / 100).toFixed(1)} ${C.toFixed(1)}` };
+      },
+      dashLast3Months() {
+        // มินิบาร์ 3 เดือนล่าสุด (ใช้ชุดข้อมูลรายเดือนเดียวกับกราฟแนวโน้ม)
+        const data = this.dashTrendChartData || [];
+        const last3 = data.slice(-3);
+        const max = Math.max(1, ...last3.map(d => Number(d.value) || 0));
+        return last3.map(d => ({ label: d.label, value: Number(d.value) || 0, h: Math.round((Number(d.value) || 0) / max * 100) }));
       },
       dashVolumeSegments() {
         const data = this.dashVolumeData;
@@ -4792,6 +4830,27 @@ data() {
   .dash-donut-swatch { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
   .dash-donut-legend-label { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dash-donut-legend-pct { color: var(--muted); font-weight: 600; flex-shrink: 0; }
+  /* เกจวัด % ผ้าประจำ (แทนโดนัท) */
+  .dash-gauge-row { display: flex; align-items: center; gap: 18px; flex: 1; min-height: 0; }
+  .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .dash-gauge-svg { width: 132px; height: 132px; }
+  .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
+  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
+  .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
+  .dash-gauge-ends { display: flex; justify-content: space-between; width: 104px; margin-top: -16px; font-size: 10px; color: var(--muted); }
+  .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  .dash-gauge-legend { display: flex; flex-direction: column; gap: 6px; }
+  .dash-gauge-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
+  .dash-gauge-legend-label { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dash-gauge-legend-pct { color: var(--text); font-weight: 700; flex-shrink: 0; }
+  .dash-mini3 { border-top: 1px solid var(--field-border); padding-top: 10px; }
+  .dash-mini3-title { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .dash-mini3-bars { display: flex; align-items: flex-end; gap: 12px; height: 56px; }
+  .dash-mini3-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; height: 100%; }
+  .dash-mini3-track { flex: 1; width: 100%; max-width: 34px; display: flex; align-items: flex-end; }
+  .dash-mini3-bar { width: 100%; border-radius: 5px 5px 3px 3px; background: linear-gradient(180deg, #5b8def, #22d3ee); min-height: 4px; transition: height .4s ease; }
+  .dash-mini3-lbl { font-size: 10px; color: var(--muted); }
 
   @media (max-width: 900px) {
     .dash-donut-box { flex-direction: column; }
@@ -5058,6 +5117,27 @@ data() {
   .dash-donut-swatch { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
   .dash-donut-legend-label { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dash-donut-legend-pct { color: var(--muted); font-weight: 600; flex-shrink: 0; }
+  /* เกจวัด % ผ้าประจำ (แทนโดนัท) */
+  .dash-gauge-row { display: flex; align-items: center; gap: 18px; flex: 1; min-height: 0; }
+  .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .dash-gauge-svg { width: 132px; height: 132px; }
+  .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
+  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
+  .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
+  .dash-gauge-ends { display: flex; justify-content: space-between; width: 104px; margin-top: -16px; font-size: 10px; color: var(--muted); }
+  .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  .dash-gauge-legend { display: flex; flex-direction: column; gap: 6px; }
+  .dash-gauge-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
+  .dash-gauge-legend-label { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dash-gauge-legend-pct { color: var(--text); font-weight: 700; flex-shrink: 0; }
+  .dash-mini3 { border-top: 1px solid var(--field-border); padding-top: 10px; }
+  .dash-mini3-title { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .dash-mini3-bars { display: flex; align-items: flex-end; gap: 12px; height: 56px; }
+  .dash-mini3-col { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; height: 100%; }
+  .dash-mini3-track { flex: 1; width: 100%; max-width: 34px; display: flex; align-items: flex-end; }
+  .dash-mini3-bar { width: 100%; border-radius: 5px 5px 3px 3px; background: linear-gradient(180deg, #5b8def, #22d3ee); min-height: 4px; transition: height .4s ease; }
+  .dash-mini3-lbl { font-size: 10px; color: var(--muted); }
 
   @media (max-width: 900px) {
     .dash-donut-box { flex-direction: column; }

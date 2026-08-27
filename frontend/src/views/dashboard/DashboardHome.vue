@@ -209,32 +209,44 @@
         <h2>{{ dash.t[dash.lang].volumeTitle }}</h2>
       </div>
       <div class="dash-chart-box dash-donut-box">
-        <div class="dash-donut-row">
-          <svg viewBox="0 0 160 160" class="dash-donut-svg">
-            <circle cx="80" cy="80" r="60" class="dash-donut-track" />
-            <circle v-for="(seg, i) in dash.dashVolumeSegments" :key="i" cx="80" cy="80" r="60" fill="none"
-                    :stroke="seg.color" stroke-width="18" :stroke-dasharray="seg.dasharray"
-                    :stroke-dashoffset="seg.dashoffset" transform="rotate(-90 80 80)"
-                    class="dash-donut-seg" :class="{ 'is-active': dash.dashVolumeHoverIdx === i }"
-                    @mouseenter="dash.dashVolumeHoverIdx = i" @mouseleave="dash.dashVolumeHoverIdx = null" />
-            <text x="80" y="76" text-anchor="middle" class="dash-donut-center-value">
-              {{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].pct + '%' : '100%' }}
-            </text>
-            <text x="80" y="94" text-anchor="middle" class="dash-donut-center-label">
-              {{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].label : dash.t[dash.lang].volumeTitle }}
-            </text>
-          </svg>
-          <div class="dash-donut-legend">
-            <div v-for="(seg, i) in dash.dashVolumeSegments" :key="i" class="dash-donut-legend-item"
-                 :class="{ 'is-active': dash.dashVolumeHoverIdx === i }"
-                 @mouseenter="dash.dashVolumeHoverIdx = i" @mouseleave="dash.dashVolumeHoverIdx = null">
-              <span class="dash-donut-swatch" :style="{ background: seg.color }"></span>
-              <span class="dash-donut-legend-label">{{ seg.label }}</span>
-              <span class="dash-donut-legend-pct">{{ seg.pct }}%</span>
+        <div class="dash-gauge-row">
+          <!-- เกจวัด % ผ้าประจำ (270°) -->
+          <div class="dash-gauge">
+            <svg viewBox="0 0 160 160" class="dash-gauge-svg">
+              <defs>
+                <linearGradient id="dashGaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#5b8def" />
+                  <stop offset="100%" stop-color="#22d3ee" />
+                </linearGradient>
+              </defs>
+              <circle cx="80" cy="80" r="62" class="dash-gauge-track" :stroke-dasharray="dash.dashGaugeArc.track" transform="rotate(135 80 80)" />
+              <circle cx="80" cy="80" r="62" class="dash-gauge-value" :stroke-dasharray="dash.dashGaugeArc.value" transform="rotate(135 80 80)" />
+              <text x="80" y="76" text-anchor="middle" class="dash-gauge-num">{{ dash.dashRegularPct }}%</text>
+              <text x="80" y="95" text-anchor="middle" class="dash-gauge-cap">ผ้าประจำ</text>
+            </svg>
+            <div class="dash-gauge-ends"><span>0%</span><span>100%</span></div>
+          </div>
+          <!-- ขวา: สัดส่วน 3 ประเภท + ยอดขาย 3 เดือนล่าสุด -->
+          <div class="dash-gauge-side">
+            <div class="dash-gauge-legend">
+              <div v-for="(seg, i) in dash.dashVolumeSegments" :key="i" class="dash-gauge-legend-item">
+                <span class="dash-donut-swatch" :style="{ background: seg.color }"></span>
+                <span class="dash-gauge-legend-label">{{ seg.label }}</span>
+                <span class="dash-gauge-legend-pct">{{ seg.pct }}%</span>
+              </div>
+            </div>
+            <div class="dash-mini3">
+              <div class="dash-mini3-title">3 เดือนล่าสุด</div>
+              <div class="dash-mini3-bars">
+                <div v-for="(b, i) in dash.dashLast3Months" :key="i" class="dash-mini3-col">
+                  <div class="dash-mini3-track"><div class="dash-mini3-bar" :style="{ height: Math.max(6, b.h) + '%' }"></div></div>
+                  <span class="dash-mini3-lbl">{{ b.label }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="dash-chart-note">ปริมาณแยกตามประเภทผ้า (ผ้าประจำ / ผ้าไม่ประจำ / ผ้าดิบ) — ข้อมูลจริงจากคลัง</div>
+        <div class="dash-chart-note">สัดส่วนประเภทผ้าในคลัง (เกจ = ผ้าประจำ) + ยอดขาย 3 เดือนล่าสุด — {{ dash.dashTrendDemo ? 'ยอดขายเป็นข้อมูลตัวอย่าง' : 'ข้อมูลจริงจากระบบ' }}</div>
       </div>
     </div>
   </div>
