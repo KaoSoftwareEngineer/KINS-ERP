@@ -4641,7 +4641,7 @@ data() {
     position: absolute;
     bottom: 0;
     transform: translateX(-50%);
-    font-size: 10.5px;
+    font-size: 9.5px;
     color: var(--muted);
     white-space: nowrap;
   }
@@ -4676,6 +4676,11 @@ data() {
   .dash-trend-col-right { padding-left: 18px; border-left: 1px solid var(--field-border); }
   .dash-trend-col-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .dash-trend-col-title { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .dash-trend-legend { display: flex; gap: 16px; margin: 4px 0 2px; font-size: 11px; color: var(--muted); }
+  .dash-trend-legend .dtl { display: inline-flex; align-items: center; gap: 6px; }
+  .dash-trend-legend .dtl-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dash-trend-legend .dtl-a { background: #14b8a6; }
+  .dash-trend-legend .dtl-b { background: #3b6ef5; }
   .dash-trend-col-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
   /* ปุ่มช่วงเวลาในกราฟ — เล็กกระชับ ไม่เบียดพื้นที่กราฟ */
   .dash-trend-col-controls .btn-small,
@@ -5035,7 +5040,7 @@ data() {
     position: absolute;
     bottom: 0;
     transform: translateX(-50%);
-    font-size: 10.5px;
+    font-size: 9.5px;
     color: var(--muted);
     white-space: nowrap;
   }

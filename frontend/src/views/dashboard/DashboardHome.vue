@@ -149,9 +149,13 @@
               <select v-if="dash.dashTrendViewMode === 'month' && !dash.dashTrendDemo" v-model.number="dash.dashTrendYear" class="dash-year-select">
                 <option v-for="y in dash.dashAvailableYears" :key="y" :value="y">{{ y }}</option>
               </select>
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'month' }" @click="dash.dashTrendViewMode = 'month'">{{ dash.t[dash.lang].month }}</button>
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'year' }" @click="dash.dashTrendViewMode = 'year'">{{ dash.t[dash.lang].year }}</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'month' }" @click="dash.dashTrendViewMode = 'month'">วัน</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'year' }" @click="dash.dashTrendViewMode = 'year'">ปี</button>
             </div>
+          </div>
+          <div class="dash-trend-legend" v-if="dash.dashTrendChartData2.length">
+            <span class="dtl"><i class="dtl-dot dtl-a"></i>ปัจจุบัน</span>
+            <span class="dtl"><i class="dtl-dot dtl-b"></i>ก่อนหน้า</span>
           </div>
           <div class="dash-chart-box dash-linechart-box">
             <div class="dash-linechart">
