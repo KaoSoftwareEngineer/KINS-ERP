@@ -11,40 +11,40 @@
     <div class="oe-row1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[150px_1.3fr_1.1fr_1.6fr_90px]">
       <div class="fr-field-group">
         <label>วันที่</label>
-        <input type="date" v-model="dash.oeForm.date" />
+        <input type="date" v-model="order.oeForm.date" />
       </div>
       <div class="fr-field-group">
         <label>ลูกค้า</label>
-        <input type="text" v-model="dash.oeForm.customer" list="oe-customer-list" placeholder="พิมพ์เพื่อค้นหาลูกค้า" autocomplete="off" />
+        <input type="text" v-model="order.oeForm.customer" list="oe-customer-list" placeholder="พิมพ์เพื่อค้นหาลูกค้า" autocomplete="off" />
         <datalist id="oe-customer-list">
-          <option v-for="c in dash.oeCustomerOptions" :key="c.name" :value="c.name" />
+          <option v-for="c in order.oeCustomerOptions" :key="c.name" :value="c.name" />
         </datalist>
       </div>
       <div class="fr-field-group">
         <label>พนักงานขาย</label>
-        <select v-model="dash.oeForm.salesperson">
+        <select v-model="order.oeForm.salesperson">
           <option value="">เลือกพนักงานขาย</option>
-          <option v-for="opt in dash.oeSalespersonOptions" :key="opt" :value="opt">{{ opt }}</option>
+          <option v-for="opt in order.oeSalespersonOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group">
         <label>หมายเหตุ</label>
-        <textarea v-model="dash.oeForm.note" rows="2" placeholder="หมายเหตุเพิ่มเติม"></textarea>
+        <textarea v-model="order.oeForm.note" rows="2" placeholder="หมายเหตุเพิ่มเติม"></textarea>
       </div>
       <div class="fr-field-group fr-checkbox-group">
-        <input type="checkbox" id="oeUrgent" v-model="dash.oeForm.urgent" />
+        <input type="checkbox" id="oeUrgent" v-model="order.oeForm.urgent" />
         <label for="oeUrgent">ด่วน</label>
       </div>
     </div>
     <div class="oe-row2 grid grid-cols-1 sm:grid-cols-2">
       <div class="fr-field-group">
         <label>เลขที่ออร์เดอร์</label>
-        <input type="text" :value="dash.oeForm.orderNo" readonly class="oe-readonly" />
+        <input type="text" :value="order.oeForm.orderNo" readonly class="oe-readonly" />
       </div>
       <div class="fr-field-group">
         <label>เงื่อนไขบัญชี</label>
-        <select v-model="dash.oeForm.paymentTerm">
-          <option v-for="opt in dash.oePaymentTermOptions" :key="opt" :value="opt">{{ opt }}</option>
+        <select v-model="order.oeForm.paymentTerm">
+          <option v-for="opt in order.oePaymentTermOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
     </div>
@@ -70,22 +70,22 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(row, idx) in dash.oeItems" :key="row._key">
+          <tr v-for="(row, idx) in order.oeItems" :key="row._key">
             <td>{{ row.no }}</td>
-            <td><input type="text" v-model="row.sku" list="oe-fabric-list" placeholder="พิมพ์รหัส/ชื่อผ้า" @change="dash.oeOnSkuChange(row)" /></td>
-            <td><input type="text" v-model="row.colorCode" list="oe-color-list" placeholder="พิมพ์รหัสสี" @change="dash.oeOnColorChange(row)" /></td>
+            <td><input type="text" v-model="row.sku" list="oe-fabric-list" placeholder="พิมพ์รหัส/ชื่อผ้า" @change="order.oeOnSkuChange(row)" /></td>
+            <td><input type="text" v-model="row.colorCode" list="oe-color-list" placeholder="พิมพ์รหัสสี" @change="order.oeOnColorChange(row)" /></td>
             <td><input type="text" v-model="row.width" placeholder='เช่น 44"' /></td>
             <td><input type="text" v-model="row.availableQty" placeholder="0" /></td>
             <td><input type="number" min="0" v-model="row.orderedQty" placeholder="0" /></td>
             <td>
               <select v-model="row.unit">
-                <option v-for="opt in dash.oeUnitOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option v-for="opt in order.oeUnitOptions" :key="opt" :value="opt">{{ opt }}</option>
               </select>
             </td>
             <td>
               <select v-model="row.pack">
                 <option value="">เลือก</option>
-                <option v-for="opt in dash.oePackOptions" :key="opt" :value="opt">{{ opt }}</option>
+                <option v-for="opt in order.oePackOptions" :key="opt" :value="opt">{{ opt }}</option>
               </select>
             </td>
             <td><input type="text" v-model="row.custCode" placeholder="Cust Code" /></td>
@@ -100,10 +100,10 @@
                 <button class="oe-act-btn oe-act-img" title="ดูรูปสินค้า">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
                 </button>
-                <button class="oe-act-btn oe-act-add" title="เพิ่มแถว" @click="dash.oeAddRow(idx)">
+                <button class="oe-act-btn oe-act-add" title="เพิ่มแถว" @click="order.oeAddRow(idx)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                 </button>
-                <button class="oe-act-btn oe-act-remove" title="ลบแถว" @click="dash.oeRemoveRow(idx)">
+                <button class="oe-act-btn oe-act-remove" title="ลบแถว" @click="order.oeRemoveRow(idx)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/><path d="M10 11v6M14 11v6"/></svg>
                 </button>
                 <button class="oe-act-btn oe-act-search" title="ค้นหาสินค้า">
@@ -115,30 +115,35 @@
         </tbody>
       </table>
       <datalist id="oe-fabric-list">
-        <option v-for="f in dash.oeFabricOptions" :key="'p'+f.sku" :value="f.display" />
+        <option v-for="f in order.oeFabricOptions" :key="'p'+f.sku" :value="f.display" />
       </datalist>
       <datalist id="oe-color-list">
-        <option v-for="f in dash.oeFabricOptions" :key="'c'+f.sku" :value="f.colorText" />
+        <option v-for="f in order.oeFabricOptions" :key="'c'+f.sku" :value="f.colorText" />
       </datalist>
     </div>
   </div>
 
   <!-- ---- Footer ---- -->
   <div class="oe-footer">
-    <div class="oe-save-success" v-if="dash.oeSaved">ระบบได้ทำการเพิ่มข้อมูลเรียบร้อยแล้ว</div>
+    <div class="oe-save-success" v-if="order.oeSaved">ระบบได้ทำการเพิ่มข้อมูลเรียบร้อยแล้ว</div>
     <div v-else></div>
     <div class="oe-footer-actions">
-      <button class="btn-small" @click="dash.oeReport">👁️ รายงาน</button>
-      <button v-if="!dash.oeSaved" class="btn-small" @click="dash.oeSave">💾 บันทึก</button>
-      <button v-else class="btn-small" @click="dash.oeSlipPdf">🖨️ ใบออร์เดอร์</button>
+      <button class="btn-small" @click="order.oeReport">👁️ รายงาน</button>
+      <button v-if="!order.oeSaved" class="btn-small" @click="order.oeSave">💾 บันทึก</button>
+      <button v-else class="btn-small" @click="order.oeSlipPdf">🖨️ ใบออร์เดอร์</button>
     </div>
   </div>
 </div>
 </template>
 
 <script>
+import { useOrderStore } from '../../stores/order.js';
+
 export default {
   name: 'OrderReceivePage',
   inject: ['dash'],
+  setup() {
+    return { order: useOrderStore() };
+  },
 };
 </script>

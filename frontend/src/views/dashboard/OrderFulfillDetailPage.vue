@@ -12,7 +12,7 @@
       <div class="po-field"><label>เลขที่ออร์เดอร์</label><input :value="order.orderNo" readonly class="po-ro" /></div>
       <div class="po-field"><label>ประเภทการเบิก</label>
         <select v-model="d.issueType">
-          <option v-for="t in dash.ofIssueTypeOptions" :key="t" :value="t">{{ t }}</option>
+          <option v-for="t in orderStore.ofIssueTypeOptions" :key="t" :value="t">{{ t }}</option>
         </select>
       </div>
     </div>
@@ -37,7 +37,7 @@
         type="text"
         v-model="d.scanInput"
         placeholder="ยิง QR ม้วนผ้า เพื่อจับคู่รายการ..."
-        @keyup.enter="dash.ofDetailScan"
+        @keyup.enter="orderStore.ofDetailScan"
       />
     </div>
     <div class="of-scan-ym"><input :value="d.scanY" readonly class="po-num" /><span>Y</span></div>
@@ -95,12 +95,17 @@
 </template>
 
 <script>
+import { useOrderStore } from '../../stores/order.js';
+
 export default {
   name: 'OrderFulfillDetailPage',
   inject: ['dash'],
+  setup() {
+    return { orderStore: useOrderStore() };
+  },
   computed: {
-    d() { return this.dash.ofDetail; },
-    order() { return this.dash.ofDetail.order || {}; },
+    d() { return this.orderStore.ofDetail; },
+    order() { return this.orderStore.ofDetail.order || {}; },
     totalCut() { return this.d.rows.reduce((s, r) => s + (Number(r.cutQty) || 0), 0); },
   },
   mounted() {

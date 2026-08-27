@@ -17,7 +17,7 @@
         ref="barcodeInput"
         type="text"
         class="of-barcode-input"
-        v-model="dash.ofBarcodeInput"
+        v-model="orderStore.ofBarcodeInput"
         placeholder="ยิงบาร์โค้ด หรือพิมพ์เลขที่ออร์เดอร์..."
         @keyup.enter="dash.ofHandleBarcodeEnter"
       />
@@ -29,53 +29,53 @@
     <div class="of-filter-row1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[180px_1.5fr_1fr]">
       <div class="fr-field-group">
         <label>วันที่</label>
-        <input type="date" v-model="dash.ofFilters.date" />
+        <input type="date" v-model="orderStore.ofFilters.date" />
       </div>
       <div class="fr-field-group">
         <label>ลูกค้า</label>
-        <input type="text" v-model="dash.ofFilters.customer" placeholder="ชื่อลูกค้า" />
+        <input type="text" v-model="orderStore.ofFilters.customer" placeholder="ชื่อลูกค้า" />
       </div>
       <div class="fr-field-group">
         <label>พนักงานขาย</label>
-        <select v-model="dash.ofFilters.salesperson">
+        <select v-model="orderStore.ofFilters.salesperson">
           <option value="">ทั้งหมด</option>
-          <option v-for="opt in dash.ofSalespersonOptions" :key="opt" :value="opt">{{ opt }}</option>
+          <option v-for="opt in orderStore.ofSalespersonOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
     </div>
     <div class="of-filter-row2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[1.3fr_1fr_.9fr_1.2fr_80px_auto]">
       <div class="fr-field-group">
         <label>คำค้นหา</label>
-        <input type="text" v-model="dash.ofFilters.search" placeholder="เลขที่ออร์เดอร์ / หมายเหตุ" />
+        <input type="text" v-model="orderStore.ofFilters.search" placeholder="เลขที่ออร์เดอร์ / หมายเหตุ" />
       </div>
       <div class="fr-field-group">
         <label>รหัสสินค้า</label>
-        <input type="text" v-model="dash.ofFilters.sku" placeholder="รหัสสินค้า" />
+        <input type="text" v-model="orderStore.ofFilters.sku" placeholder="รหัสสินค้า" />
       </div>
       <div class="fr-field-group">
         <label>รหัสสี</label>
-        <select v-model="dash.ofFilters.colorCode">
+        <select v-model="orderStore.ofFilters.colorCode">
           <option value="">ทั้งหมด</option>
-          <option v-for="opt in dash.ofColorCodeOptions" :key="opt" :value="opt">{{ opt }}</option>
+          <option v-for="opt in orderStore.ofColorCodeOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group">
         <label>สถานะ</label>
-        <select v-model="dash.ofFilters.status">
+        <select v-model="orderStore.ofFilters.status">
           <option value="">ทั้งหมด</option>
-          <option v-for="opt in dash.ofStatusOptions" :key="opt" :value="opt">{{ opt }}</option>
+          <option v-for="opt in orderStore.ofStatusOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group fr-checkbox-group">
-        <input type="checkbox" id="ofUrgent" v-model="dash.ofFilters.urgent" />
+        <input type="checkbox" id="ofUrgent" v-model="orderStore.ofFilters.urgent" />
         <label for="ofUrgent">ด่วน</label>
       </div>
       <div class="of-filter-actions">
-        <button class="fr-btn-util" @click="dash.ofSearch">
+        <button class="fr-btn-util" @click="orderStore.ofSearch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           ค้นหา
         </button>
-        <button class="fr-btn-util" @click="dash.ofResetFilters">
+        <button class="fr-btn-util" @click="orderStore.ofResetFilters">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 16v-4h4"/></svg>
           รีเซต
         </button>
@@ -84,7 +84,7 @@
   </div>
 
   <!-- ---- Order List Table ---- -->
-  <div class="of-summary">พบ {{ dash.ofFilteredOrders.length }} รายการ</div>
+  <div class="of-summary">พบ {{ orderStore.ofFilteredOrders.length }} รายการ</div>
   <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
     <div class="fr-table-scroll">
       <table class="of-table">
@@ -103,7 +103,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(order, idx) in dash.ofFilteredOrders" :key="order.id">
+          <tr v-for="(order, idx) in orderStore.ofFilteredOrders" :key="order.id">
             <td>{{ idx + 1 }}</td>
             <td><strong>{{ order.orderNo }}</strong> <span v-if="order.urgent" class="of-urgent-tag">ด่วน</span></td>
             <td>{{ order.date }}</td>
@@ -115,12 +115,12 @@
             <td>{{ order.note }}</td>
             <td>
               <div class="of-status-cell">
-                <span class="of-status-badge" :class="dash.ofStatusClass(order.status)">{{ order.status }}</span>
+                <span class="of-status-badge" :class="orderStore.ofStatusClass(order.status)">{{ order.status }}</span>
                 <div class="oe-act-group">
-                  <button class="oe-act-btn oe-act-dark" title="รายละเอียด" @click="dash.ofViewInfo(order)">
+                  <button class="oe-act-btn oe-act-dark" title="รายละเอียด" @click="orderStore.ofViewInfo(order)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   </button>
-                  <button class="oe-act-btn oe-act-dark" title="พิมพ์" @click="dash.ofPrintOrder(order)">
+                  <button class="oe-act-btn oe-act-dark" title="พิมพ์" @click="orderStore.ofPrintOrder(order)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                   </button>
                   <button class="oe-act-btn oe-act-cut" title="ตัดสินค้า" @click="dash.ofFulfillOrder(order)">
@@ -130,7 +130,7 @@
               </div>
             </td>
           </tr>
-          <tr v-if="dash.ofFilteredOrders.length === 0" class="fr-empty-row">
+          <tr v-if="orderStore.ofFilteredOrders.length === 0" class="fr-empty-row">
             <td colspan="10">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</td>
           </tr>
         </tbody>
@@ -141,9 +141,14 @@
 </template>
 
 <script>
+import { useOrderStore } from '../../stores/order.js';
+
 export default {
   name: 'OrderFulfillPage',
   inject: ['dash'],
+  setup() {
+    return { orderStore: useOrderStore() };
+  },
   mounted() {
     this.$refs.barcodeInput.focus();
   },

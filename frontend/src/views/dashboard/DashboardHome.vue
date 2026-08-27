@@ -224,12 +224,12 @@
   <div v-if="cards.mini" class="dash-cards-grid dash-cards-grid-compact">
     <div class="mini-stat-card mini-stat-pink">
       <div class="mini-stat-label">📋 ออร์เดอร์รอดำเนินการ</div>
-      <div class="mini-stat-value">{{ dash.ofOrders.filter(o => o.status !== 'Prepared').length }}</div>
+      <div class="mini-stat-value">{{ orderStore.ofOrders.filter(o => o.status !== 'Prepared').length }}</div>
       <div class="mini-stat-detail">รายการ</div>
     </div>
     <div class="mini-stat-card mini-stat-purple">
       <div class="mini-stat-label">⚡ ออร์เดอร์ด่วน</div>
-      <div class="mini-stat-value">{{ dash.ofOrders.filter(o => o.urgent).length }}</div>
+      <div class="mini-stat-value">{{ orderStore.ofOrders.filter(o => o.urgent).length }}</div>
       <div class="mini-stat-detail">ต้องเร่งจัดส่ง</div>
     </div>
     <div class="mini-stat-card mini-stat-blue">
@@ -239,7 +239,7 @@
     </div>
     <div class="mini-stat-card mini-stat-orange">
       <div class="mini-stat-label">🛍️ ออร์เดอร์ทั้งหมด</div>
-      <div class="mini-stat-value">{{ dash.ofOrders.length }}</div>
+      <div class="mini-stat-value">{{ orderStore.ofOrders.length }}</div>
       <div class="mini-stat-detail">เดือนนี้</div>
     </div>
   </div>
@@ -299,9 +299,14 @@
 </template>
 
 <script>
+import { useOrderStore } from '../../stores/order.js';
+
 export default {
   name: 'DashboardHome',
   inject: ['dash'],
+  setup() {
+    return { orderStore: useOrderStore() };
+  },
   data() {
     return {
       customizeOpen: false,
@@ -342,14 +347,14 @@ export default {
     orderRows() {
       const s = this.dash.dashStats;
       if (s && s.recentOrders && s.recentOrders.length) return s.recentOrders;
-      return (this.dash.ofOrders || []).slice(0, 6).map(o => ({
+      return (this.orderStore.ofOrders || []).slice(0, 6).map(o => ({
         order_no: o.orderNo, customer: o.customer, salesperson: o.salesperson,
         ordered_qty: o.orderedQty, withdrawn_qty: o.withdrawnQty, status: o.status,
       }));
     },
     // งานที่รอจัดการ — ประกอบจากสถานะออร์เดอร์จริง
     myTasks() {
-      const o = this.dash.ofOrders || [];
+      const o = this.orderStore.ofOrders || [];
       const tasks = [];
       const waiting = o.filter(x => x.status !== 'Prepared');
       if (waiting.length) tasks.push({ key: 'prep', icon: '📋', title: 'ออร์เดอร์รอจัดเตรียม', hint: 'กดเพื่อไปจัดเตรียมสินค้า', count: waiting.length, unit: ' รายการ', page: 'order-fulfill', tone: 'blue' });
