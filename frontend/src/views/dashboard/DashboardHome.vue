@@ -210,19 +210,25 @@
       </div>
       <div class="dash-chart-box dash-donut-box">
         <div class="dash-gauge-row">
-          <!-- เกจสัดส่วนประเภทผ้า (270°) — แต่ละช่วงลงสีตามชนิด -->
+          <!-- เกจ % ผ้าประจำ — โค้งไล่เฉดเนียน (ฟ้าน้ำทะเล→น้ำเงิน→คราม) แบบภาพตัวอย่าง -->
           <div class="dash-gauge">
             <svg viewBox="0 0 160 160" class="dash-gauge-svg">
+              <defs>
+                <linearGradient id="dashGaugeGrad" x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#38d6e0" />
+                  <stop offset="55%" stop-color="#4f7cf7" />
+                  <stop offset="100%" stop-color="#7c6cf0" />
+                </linearGradient>
+              </defs>
               <circle cx="80" cy="80" r="62" class="dash-gauge-track" :stroke-dasharray="dash.dashGaugeArc.track" transform="rotate(135 80 80)" />
-              <circle v-for="(seg, i) in dash.dashGaugeSegs" :key="i" cx="80" cy="80" r="62" fill="none"
-                      :stroke="seg.color" stroke-width="14" stroke-linecap="round"
-                      :stroke-dasharray="seg.dasharray" :stroke-dashoffset="seg.dashoffset"
-                      transform="rotate(135 80 80)" class="dash-gauge-seg"
-                      :class="{ 'is-active': dash.dashVolumeHoverIdx === i }"
-                      @mouseenter="dash.dashVolumeHoverIdx = i" @mouseleave="dash.dashVolumeHoverIdx = null" />
-              <text x="80" y="76" text-anchor="middle" class="dash-gauge-num">{{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].pct : dash.dashRegularPct }}%</text>
-              <text x="80" y="95" text-anchor="middle" class="dash-gauge-cap">{{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].label : 'ผ้าประจำ' }}</text>
+              <circle cx="80" cy="80" r="62" class="dash-gauge-value" :stroke-dasharray="dash.dashGaugeArc.value" transform="rotate(135 80 80)" />
+              <text x="80" y="74" text-anchor="middle" class="dash-gauge-num">{{ dash.dashRegularPct }}%</text>
+              <text x="80" y="92" text-anchor="middle" class="dash-gauge-cap">ผ้าประจำ</text>
             </svg>
+            <div class="dash-gauge-delta">
+              <span class="up">▲ {{ dash.dashRegularPct }}%</span>
+              <span class="down">▼ {{ dash.dashOtherPct }}%</span>
+            </div>
             <div class="dash-gauge-ends"><span>0%</span><span>100%</span></div>
           </div>
           <!-- ขวา: สัดส่วน 3 ประเภท (ลงสีตามชนิด) -->

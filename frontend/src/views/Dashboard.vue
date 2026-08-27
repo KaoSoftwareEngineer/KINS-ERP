@@ -1556,9 +1556,13 @@ data() {
         return seg ? seg.pct : 0;
       },
       dashGaugeArc() {
-        // เกจครึ่งวง 270° (เปิดด้านล่าง) — รางพื้นหลัง
+        // เกจครึ่งวง 270° (เปิดด้านล่าง) — ราง + ค่า (% ผ้าประจำ) ไล่เฉดเนียน
         const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360;
-        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}` };
+        const pct = Math.max(0, Math.min(100, this.dashRegularPct));
+        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}`, value: `${(arc * pct / 100).toFixed(1)} ${C.toFixed(1)}` };
+      },
+      dashOtherPct() {
+        return Math.max(0, 100 - this.dashRegularPct);
       },
       dashGaugeSegs() {
         // แบ่งเกจ 270° เป็นช่วงสีตามสัดส่วน 3 ประเภทผ้า (สีตาม dashVolumeSegments)
@@ -1749,9 +1753,13 @@ data() {
         return seg ? seg.pct : 0;
       },
       dashGaugeArc() {
-        // เกจครึ่งวง 270° (เปิดด้านล่าง) — รางพื้นหลัง
+        // เกจครึ่งวง 270° (เปิดด้านล่าง) — ราง + ค่า (% ผ้าประจำ) ไล่เฉดเนียน
         const r = 62, C = 2 * Math.PI * r, arc = C * 270 / 360;
-        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}` };
+        const pct = Math.max(0, Math.min(100, this.dashRegularPct));
+        return { track: `${arc.toFixed(1)} ${(C - arc).toFixed(1)}`, value: `${(arc * pct / 100).toFixed(1)} ${C.toFixed(1)}` };
+      },
+      dashOtherPct() {
+        return Math.max(0, 100 - this.dashRegularPct);
       },
       dashGaugeSegs() {
         // แบ่งเกจ 270° เป็นช่วงสีตามสัดส่วน 3 ประเภทผ้า (สีตาม dashVolumeSegments)
@@ -4887,11 +4895,13 @@ data() {
   .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
   .dash-gauge-svg { width: 132px; height: 132px; }
   .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
-  .dash-gauge-seg { cursor: pointer; transition: stroke-width .15s; }
-  .dash-gauge-seg.is-active { stroke-width: 17; }
+  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  .dash-gauge-delta { display: flex; gap: 14px; margin-top: -20px; font-size: 12px; font-weight: 700; }
+  .dash-gauge-delta .up { color: #16a34a; }
+  .dash-gauge-delta .down { color: #ef4444; }
   .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
   .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
-  .dash-gauge-ends { display: flex; justify-content: space-between; width: 104px; margin-top: -16px; font-size: 10px; color: var(--muted); }
+  .dash-gauge-ends { display: flex; justify-content: space-between; width: 112px; margin-top: 2px; font-size: 10px; color: var(--muted); }
   .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; justify-content: center; }
   .dash-gauge-legend { display: flex; flex-direction: column; gap: 6px; }
   .dash-gauge-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
@@ -5175,11 +5185,13 @@ data() {
   .dash-gauge { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
   .dash-gauge-svg { width: 132px; height: 132px; }
   .dash-gauge-track { fill: none; stroke: var(--field-border); stroke-width: 14; stroke-linecap: round; }
-  .dash-gauge-seg { cursor: pointer; transition: stroke-width .15s; }
-  .dash-gauge-seg.is-active { stroke-width: 17; }
+  .dash-gauge-value { fill: none; stroke: url(#dashGaugeGrad); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  .dash-gauge-delta { display: flex; gap: 14px; margin-top: -20px; font-size: 12px; font-weight: 700; }
+  .dash-gauge-delta .up { color: #16a34a; }
+  .dash-gauge-delta .down { color: #ef4444; }
   .dash-gauge-num { fill: var(--text); font-size: 30px; font-weight: 800; }
   .dash-gauge-cap { fill: var(--muted); font-size: 11px; font-weight: 600; }
-  .dash-gauge-ends { display: flex; justify-content: space-between; width: 104px; margin-top: -16px; font-size: 10px; color: var(--muted); }
+  .dash-gauge-ends { display: flex; justify-content: space-between; width: 112px; margin-top: 2px; font-size: 10px; color: var(--muted); }
   .dash-gauge-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; justify-content: center; }
   .dash-gauge-legend { display: flex; flex-direction: column; gap: 6px; }
   .dash-gauge-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11.5px; }
