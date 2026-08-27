@@ -4616,7 +4616,8 @@ data() {
   /* ============ Dashboard: กราฟแนวโน้มยอดขาย / ปริมาณการขาย ============ */
   .dash-linechart-box,
   .dash-donut-box { padding: 12px; display: flex; }
-  .dash-linechart { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; }
+  .dash-linechart-box { flex-direction: column; }
+  .dash-linechart { position: relative; width: 100%; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
@@ -4679,8 +4680,8 @@ data() {
   .dash-trend-legend { display: flex; gap: 16px; margin: 4px 0 2px; font-size: 11px; color: var(--muted); }
   .dash-trend-legend .dtl { display: inline-flex; align-items: center; gap: 6px; }
   .dash-trend-legend .dtl-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .dash-trend-legend .dtl-a { background: #14b8a6; }
-  .dash-trend-legend .dtl-b { background: #3b6ef5; }
+  .dtl-a { background: #14b8a6; }
+  .dtl-b { background: #3b6ef5; }
   .dash-trend-col-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
   /* ปุ่มช่วงเวลาในกราฟ — เล็กกระชับ ไม่เบียดพื้นที่กราฟ */
   .dash-trend-col-controls .btn-small,
@@ -5013,7 +5014,8 @@ data() {
   /* ============ Dashboard: กราฟแนวโน้มยอดขาย / ปริมาณการขาย ============ */
   .dash-linechart-box,
   .dash-donut-box { padding: 12px; display: flex; }
-  .dash-linechart { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; }
+  .dash-linechart-box { flex-direction: column; }
+  .dash-linechart { position: relative; width: 100%; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }

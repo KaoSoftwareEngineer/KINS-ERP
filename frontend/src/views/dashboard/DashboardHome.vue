@@ -153,10 +153,6 @@
               <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'year' }" @click="dash.dashTrendViewMode = 'year'">ปี</button>
             </div>
           </div>
-          <div class="dash-trend-legend" v-if="dash.dashTrendChartData2.length">
-            <span class="dtl"><i class="dtl-dot dtl-a"></i>ปัจจุบัน</span>
-            <span class="dtl"><i class="dtl-dot dtl-b"></i>ก่อนหน้า</span>
-          </div>
           <div class="dash-chart-box dash-linechart-box">
             <div class="dash-linechart">
               <div class="dash-linechart-plot">
@@ -201,6 +197,10 @@
                 <span v-for="(p, i) in dash.dashTrendPoints" :key="i" :style="{ left: p.xPct + '%' }"
                       :class="{ 'is-active': dash.dashTrendHoverIdx2 === i }">{{ p.label }}</span>
               </div>
+            </div>
+            <div class="dash-bar-legend" v-if="dash.dashTrendChartData2.length">
+              <span class="dash-legend-item"><i class="dash-legend-dot dtl-a"></i> ปัจจุบัน</span>
+              <span class="dash-legend-item"><i class="dash-legend-dot dtl-b"></i> ก่อนหน้า</span>
             </div>
           </div>
         </div>
