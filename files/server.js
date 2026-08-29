@@ -41,16 +41,21 @@ initTables()
     console.error('  ❌ เชื่อมต่อ/เตรียมตาราง MySQL ไม่สำเร็จ:', err.message);
   });
 
-// ---- บัญชีผู้ดูแลระบบ (superadmin) สำหรับแก้ปัญหาหลังบ้าน: login "admin" / รหัส "admin" ----
+// ---- บัญชีผู้ดูแลระบบ (superadmin) สำหรับแก้ปัญหาหลังบ้าน: login "admin" ----
+// สุ่มรหัสผ่านทุกครั้งที่ต้องสร้างใหม่ (ไม่ใช้ "admin" ตายตัวแบบเดิม — เดิมเป็นช่องโหว่ความปลอดภัย
+// เพราะใครก็เดารหัสนี้ได้จากซอร์สโค้ด) แล้วพิมพ์ให้เห็นครั้งเดียวตอนสร้างผ่าน console log
 async function ensureAdminUser() {
   try {
     const [rows] = await mysqlPool.query('SELECT id FROM users WHERE email = ?', ['admin']);
     if (rows.length === 0) {
+      const tempPassword = crypto.randomBytes(9).toString('base64url');
       await mysqlPool.query(
         'INSERT INTO users (name, email, phone, avatar, password, role) VALUES (?, ?, ?, ?, ?, ?)',
-        ['ผู้ดูแลระบบ', 'admin', '', null, hashPassword('admin'), 'ผู้ดูแลระบบ (Admin)']
+        ['ผู้ดูแลระบบ', 'admin', '', null, hashPassword(tempPassword), 'ผู้ดูแลระบบ (Admin)']
       );
-      console.log('  ➕ สร้างบัญชีผู้ดูแลระบบ: login "admin" / รหัส "admin" (สิทธิ์เต็ม)');
+      console.log('  ➕ สร้างบัญชีผู้ดูแลระบบสำรอง: login "admin"');
+      console.log(`  🔑 รหัสผ่านชั่วคราว (โชว์ครั้งนี้ครั้งเดียว): ${tempPassword}`);
+      console.log('  ⚠️  เข้าสู่ระบบแล้วเปลี่ยนรหัสผ่านทันทีผ่านหน้าตั้งค่า');
     }
   } catch (err) {
     console.error('  ❌ สร้างบัญชี admin ไม่สำเร็จ:', err.message);
@@ -130,9 +135,32 @@ app.post('/api/register', async (req, res) => {
 // ------------------------------------------------------------
 //  เข้าสู่ระบบ
 // ------------------------------------------------------------
+// ---- กันเดารหัสผ่านถี่ๆ (brute force) — จำกัดจำนวนครั้งต่อ IP+อีเมล ในหน้าต่างเวลาสั้นๆ ----
+const loginAttempts = new Map(); // key: "ip|email" -> { count, resetAt }
+function checkLoginRateLimit(ip, email) {
+  const key = ip + '|' + email;
+  const now = Date.now();
+  const rec = loginAttempts.get(key);
+  if (!rec || now > rec.resetAt) {
+    loginAttempts.set(key, { count: 1, resetAt: now + 10 * 60 * 1000 });
+    return true;
+  }
+  if (rec.count >= 8) return false;
+  rec.count++;
+  return true;
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of loginAttempts) if (now > v.resetAt) loginAttempts.delete(k);
+}, 15 * 60 * 1000).unref?.();
+
 app.post('/api/login', async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const password = req.body.password || '';
+  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+  if (!checkLoginRateLimit(ip, email)) {
+    return res.status(429).json({ ok: false, message: 'พยายามเข้าสู่ระบบถี่เกินไป กรุณารอสักครู่แล้วลองใหม่' });
+  }
 
   try {
     const [rows] = await mysqlPool.query('SELECT * FROM users WHERE email = ?', [email]);
