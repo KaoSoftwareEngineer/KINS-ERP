@@ -1,11 +1,11 @@
 // ============================================================================
-//  stores/fabric.js — โดเมนผ้าประจำ (fr*) + กลุ่มผ้าประจำ (frg*)
+//  stores/fabric.js — โดเมนผ้าประจำ (fr*) + กลุ่มผ้าประจำ (frg*) + ผ้าไม่ประจำ (fi*)
 //  แยกออกจาก Dashboard.vue เพื่อให้ดูแลง่ายและ reuse ได้ทุก component
 //
 //  หมายเหตุ: ระบบ "เฉดสี" (frShade* / frOpenShadeModal / frSaveShades ฯลฯ)
 //  เป็นโครงสร้างที่ใช้ร่วมกันระหว่างผ้าประจำ/ผ้าไม่ประจำ/กลุ่มผ้า จึงยังคงอยู่
 //  ใน Dashboard.vue (ไม่ย้ายเข้า store นี้) เช่นเดียวกับตัวเลือก dropdown
-//  (frTypeOptions ฯลฯ) ที่อิงข้อมูล master data (md/mdMerge) ของ Dashboard
+//  (frTypeOptions/fiTypeOptions ฯลฯ) ที่อิงข้อมูล master data (md/mdMerge) ของ Dashboard
 // ============================================================================
 import { defineStore } from 'pinia';
 import { useAuthStore } from './auth.js';
@@ -50,6 +50,27 @@ export const useFabricStore = defineStore('fabric', {
     frgNewItem: { name: '', width: '', weight: '', retail_price: '' },
     frgWidthChoices: ['36"', '44"', '58', '60"', '72"'],
     frgWeightChoices: ['บาง', 'ปานกลาง', 'หนา'],
+
+    // ---- ผ้าไม่ประจำ (fabric-irregular / fi*) ----
+    fiFilters: {
+      search: '', type: '', weight: '', active: '',
+      skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
+    },
+    fiItems: [],
+    fiPage: 1,
+    fiPageSize: 50,
+    fiSelected: [],
+    fiSortBy: '',
+    fiSortDir: 'asc',
+    fiLoading: false,
+    fiShowModal: false,
+    fiModalMode: 'add', // 'add' | 'edit' | 'view'
+    fiEditingId: null,
+    fiNewItem: {
+      type: '', sku: '', name: '', structure: '', composition: '', width: '',
+      finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
+      imageName: '', substitute: 'no', active: true,
+    },
   }),
 
   getters: {
@@ -126,6 +147,49 @@ export const useFabricStore = defineStore('fabric', {
     },
     frgAllSelectedOnPage() {
       return this.frgPagedRows.length > 0 && this.frgPagedRows.every(r => this.frgSelected.includes(r.id));
+    },
+
+    // ---- ผ้าไม่ประจำ (fi*) ----
+    fiFilteredItems() {
+      const f = this.fiFilters;
+      const q = f.search.trim().toLowerCase();
+      return this.fiItems.filter(item => {
+        if (q && !(item.name.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))) return false;
+        if (f.type && item.type !== f.type) return false;
+        if (f.weight && this.frWeightBucket(item.weight) !== f.weight) return false;
+        if (f.active === 'active' && !item.active) return false;
+        if (f.active === 'inactive' && item.active) return false;
+        if (f.composition && item.composition !== f.composition) return false;
+        if (f.width && item.width !== f.width) return false;
+        if (f.substitute && !item.substitute) return false;
+        if (f.skuFrom && item.sku < f.skuFrom) return false;
+        if (f.skuTo && item.sku > f.skuTo) return false;
+        return true;
+      });
+    },
+    fiSortedFilteredItems() {
+      const items = [...this.fiFilteredItems];
+      if (!this.fiSortBy) return items;
+      const key = this.fiSortBy;
+      const dir = this.fiSortDir === 'asc' ? 1 : -1;
+      return items.sort((a, b) => {
+        if (key === 'colors' || key === 'weight') return ((Number(a[key]) || 0) - (Number(b[key]) || 0)) * dir;
+        const av = String(a[key] || '').toLowerCase();
+        const bv = String(b[key] || '').toLowerCase();
+        if (av < bv) return -1 * dir;
+        if (av > bv) return 1 * dir;
+        return 0;
+      });
+    },
+    fiTotalPages() {
+      return Math.max(1, Math.ceil(this.fiSortedFilteredItems.length / this.fiPageSize));
+    },
+    fiPagedItems() {
+      const start = (this.fiPage - 1) * this.fiPageSize;
+      return this.fiSortedFilteredItems.slice(start, start + this.fiPageSize);
+    },
+    fiAllSelectedOnPage() {
+      return this.fiPagedItems.length > 0 && this.fiPagedItems.every(i => this.fiSelected.includes(i.sku));
     },
   },
 
@@ -498,6 +562,214 @@ export const useFabricStore = defineStore('fabric', {
       }
       this.frgSelected = []; await this.frgLoadItems();
       failed ? ui.fbFail('ลบบางรายการไม่สำเร็จ') : ui.fbDone('ลบข้อมูลแล้ว');
+    },
+
+    // ---- ผ้าไม่ประจำ (fi*) ----
+    fiSearch() {
+      // v-model ผูกกับ fiFilters อยู่แล้ว ปุ่มนี้ไว้สำหรับกรณีเชื่อมต่อ API จริงในอนาคต
+    },
+    fiResetFilters() {
+      this.fiFilters = {
+        search: '', type: '', weight: '', active: '',
+        skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
+      };
+    },
+    fiSort(key) {
+      if (this.fiSortBy === key) {
+        this.fiSortDir = this.fiSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.fiSortBy = key;
+        this.fiSortDir = 'asc';
+      }
+    },
+    fiPrevPage() {
+      if (this.fiPage > 1) this.fiPage -= 1;
+    },
+    fiNextPage() {
+      if (this.fiPage < this.fiTotalPages) this.fiPage += 1;
+    },
+    fiToggleSelectAll() {
+      if (this.fiAllSelectedOnPage) {
+        const pageSkus = this.fiPagedItems.map(i => i.sku);
+        this.fiSelected = this.fiSelected.filter(sku => !pageSkus.includes(sku));
+      } else {
+        const newSkus = this.fiPagedItems.map(i => i.sku).filter(sku => !this.fiSelected.includes(sku));
+        this.fiSelected = [...this.fiSelected, ...newSkus];
+      }
+    },
+    fiToggleSelect(sku) {
+      const idx = this.fiSelected.indexOf(sku);
+      if (idx === -1) this.fiSelected.push(sku);
+      else this.fiSelected.splice(idx, 1);
+    },
+    async fiBulkDelete() {
+      const auth = useAuthStore();
+      const ui = useUiStore();
+      if (this.fiSelected.length === 0) return;
+      if (!(await ui.fbAskDelete(`ต้องการลบ ${this.fiSelected.length} รายการที่เลือกใช่หรือไม่?`))) return;
+      ui.fbLoading('กำลังลบ...');
+      const items = this.fiItems.filter(i => this.fiSelected.includes(i.sku));
+      let failed = false;
+      for (const item of items) {
+        try {
+          await fetch(API + `/api/fabric-irregular/${item.id}`, {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + auth.token },
+          });
+        } catch (e) { failed = true; }
+      }
+      this.fiSelected = [];
+      await this.fiLoadItems();
+      failed ? ui.fbFail('ลบบางรายการไม่สำเร็จ') : ui.fbDone('ลบข้อมูลแล้ว');
+    },
+    async fiExportExcel(selectedOnly) {
+      const ui = useUiStore();
+      const rows = selectedOnly ? this.fiItems.filter(i => this.fiSelected.includes(i.sku)) : this.fiSortedFilteredItems;
+      if (rows.length === 0) {
+        ui.fbFail('ไม่มีข้อมูลให้ส่งออก');
+        return;
+      }
+      const XLSX = await import('xlsx');
+      const aoa = [
+        ['ประเภท', 'รหัสสินค้า', 'จำนวนสี', 'ชื่อ', 'โครงสร้างผ้า', 'ส่วนประกอบ', 'หน้ากว้าง', 'Finishing', 'น้ำหนัก', 'หน่วย'],
+        ...rows.map(i => [i.type, i.sku, i.colors, i.name, i.structure, i.composition, i.width, i.finishing, i.weight, i.unit]),
+      ];
+      const sheet = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, sheet, 'ผ้าไม่ประจำ');
+      XLSX.writeFile(wb, `ผ้าไม่ประจำ-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    },
+    async fiLoadItems() {
+      const auth = useAuthStore();
+      this.fiLoading = true;
+      try {
+        const res = await fetch(API + '/api/fabric-irregular', {
+          headers: { Authorization: 'Bearer ' + auth.token },
+        });
+        if (res.status === 401) { auth.sessionExpired(); return; }
+        const data = await res.json();
+        this.fiItems = (data.items || []).map(row => ({
+          id: row.id,
+          type: row.type || '',
+          sku: row.sku,
+          colors: row.colors || 1,
+          name: row.name || '',
+          structure: row.structure || '',
+          composition: row.composition || '',
+          width: row.width || '',
+          finishing: row.finishing || '',
+          weight: row.weight || '',
+          unit: row.unit || 'หลา',
+          description: row.description || '',
+          productionDays: row.production_days,
+          imageName: row.image_name || '',
+          active: !!row.active,
+          substitute: !!row.substitute,
+        }));
+      } catch (e) {
+        this.fiItems = [];
+      } finally {
+        this.fiLoading = false;
+      }
+    },
+    fiHandleFileChange(e) {
+      this.fiNewItem.imageName = e.target.files[0] ? e.target.files[0].name : '';
+    },
+    fiOpenAdd() {
+      this.fiModalMode = 'add';
+      this.fiEditingId = null;
+      this.fiNewItem = {
+        type: '', sku: '', name: '', structure: '', composition: '', width: '',
+        finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
+        imageName: '', substitute: 'no', active: true,
+      };
+      this.fiShowModal = true;
+    },
+    fiEditItem(item) {
+      this.fiModalMode = 'edit';
+      this.fiEditingId = item.id;
+      this.fiNewItem = {
+        type: item.type, sku: item.sku, name: item.name, structure: item.structure,
+        composition: item.composition, width: item.width, finishing: item.finishing,
+        weight: item.weight, unit: item.unit || 'หลา', description: item.description || '',
+        productionDays: item.productionDays || '', imageName: item.imageName || '',
+        substitute: item.substitute ? 'yes' : 'no', active: item.active,
+      };
+      this.fiShowModal = true;
+    },
+    fiViewItem(item) {
+      this.fiEditItem(item);
+      this.fiModalMode = 'view';
+    },
+    fiCloseModal() {
+      this.fiShowModal = false;
+    },
+    async fiDeleteItem(item) {
+      const auth = useAuthStore();
+      const ui = useUiStore();
+      if (!(await ui.fbAskDelete(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`))) return;
+      ui.fbLoading('กำลังลบ...');
+      try {
+        const res = await fetch(API + `/api/fabric-irregular/${item.id}`, {
+          method: 'DELETE',
+          headers: { Authorization: 'Bearer ' + auth.token },
+        });
+        if (res.status === 401) { ui.fbHide(); auth.sessionExpired(); return; }
+        const data = await res.json();
+        if (data.ok) {
+          this.fiItems = this.fiItems.filter(i => i.id !== item.id);
+          ui.fbDone('ลบข้อมูลแล้ว');
+        } else {
+          ui.fbFail(data.message || 'ลบไม่สำเร็จ');
+        }
+      } catch (e) {
+        ui.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+      }
+    },
+    async fiSaveItem() {
+      const auth = useAuthStore();
+      const ui = useUiStore();
+      if (!this.fiNewItem.type || !this.fiNewItem.sku || !this.fiNewItem.width) {
+        ui.fbFail('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
+        return;
+      }
+      const payload = {
+        type: this.fiNewItem.type,
+        sku: this.fiNewItem.sku,
+        name: this.fiNewItem.name,
+        structure: this.fiNewItem.structure,
+        composition: this.fiNewItem.composition,
+        width: this.fiNewItem.width,
+        finishing: this.fiNewItem.finishing,
+        weight: this.fiNewItem.weight,
+        unit: this.fiNewItem.unit,
+        description: this.fiNewItem.description,
+        production_days: this.fiNewItem.productionDays || null,
+        image_name: this.fiNewItem.imageName,
+        substitute: this.fiNewItem.substitute === 'yes',
+        active: this.fiNewItem.active,
+      };
+      ui.fbLoading('กำลังบันทึก...');
+      try {
+        const url = this.fiEditingId ? API + `/api/fabric-irregular/${this.fiEditingId}` : API + '/api/fabric-irregular';
+        const method = this.fiEditingId ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + auth.token },
+          body: JSON.stringify(payload),
+        });
+        if (res.status === 401) { ui.fbHide(); auth.sessionExpired(); return; }
+        const data = await res.json();
+        if (data.ok) {
+          await this.fiLoadItems();
+          this.fiCloseModal();
+          ui.fbDone('บันทึกแล้ว');
+        } else {
+          ui.fbFail(data.message || 'บันทึกไม่สำเร็จ');
+        }
+      } catch (e) {
+        ui.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
+      }
     },
   },
 });

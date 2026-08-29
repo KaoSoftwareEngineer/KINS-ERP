@@ -314,7 +314,7 @@
             <td>{{ o.customer || '-' }}</td>
             <td>{{ o.salesperson || '-' }}</td>
             <td>{{ Number(o.withdrawn_qty || 0).toFixed(2) }} / {{ Number(o.ordered_qty || 0).toFixed(2) }}</td>
-            <td><span class="badge" :class="o.status === 'Prepared' ? 'success' : 'warning'">{{ o.status === 'Prepared' ? '✓ ' : '⏳ ' }}{{ o.status }}</span></td>
+            <td><span class="badge" :class="['Prepared', 'Completed'].includes(o.status) ? 'success' : 'warning'">{{ ['Prepared', 'Completed'].includes(o.status) ? '✓ ' : '⏳ ' }}{{ o.status }}</span></td>
           </tr>
           <tr v-if="orderRows.length === 0"><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;">ยังไม่มีออร์เดอร์</td></tr>
         </tbody>

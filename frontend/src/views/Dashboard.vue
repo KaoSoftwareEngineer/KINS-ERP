@@ -822,48 +822,7 @@ data() {
         frShadeKeySeq: 1,
         frShadeGroups: [],
         frShadeGroupSel: '',
-        fiFilters: {
-          search: '', type: '', weight: '', active: '',
-          skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
-        },
-        fiItems: [],
-        fiPage: 1,
-        fiPageSize: 50,
-        fiSelected: [],
-        fiSortBy: '',
-        fiSortDir: 'asc',
-        fiLoading: false,
-        fiShowModal: false,
-        fiModalMode: 'add',
-        fiEditingId: null,
-        fiNewItem: {
-          type: '', sku: '', name: '', structure: '', composition: '', width: '',
-          finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
-          imageName: '', substitute: 'no', active: true,
-        },
-        frShowShadeModal: false,
-        frShadeContext: 'fabric', // 'fabric' | 'irregular'
-        frShadeFabric: null,
-        frShadeRows: [],
-        frShadeSearch: '',
-        frShadeLoading: false,
-        frShadeKeySeq: 1,
-        frShadeGroups: [],
-        frShadeGroupSel: '',
-        fiFilters: {
-          search: '', type: '', weight: '', active: '',
-          skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
-        },
-        fiItems: [],
-        fiLoading: false,
-        fiShowModal: false,
-        fiModalMode: 'add',
-        fiEditingId: null,
-        fiNewItem: {
-          type: '', sku: '', name: '', structure: '', composition: '', width: '',
-          finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
-          imageName: '', substitute: 'no', active: true,
-        },
+        // ผ้าไม่ประจำ (fi*) ย้ายไปที่ stores/fabric.js แล้ว
         // token / currentUser ย้ายไปที่ auth store (เป็น computed proxy ด้านล่าง)
         settingsEditOpen: false,
         settingsEditForm: { name: '', phone: '', avatar: '' },
@@ -1172,13 +1131,11 @@ data() {
         if (val === 'fabric-regular') {
           this.fabric.frLoadItems(); this.loadMasterData();
         } else if (val === 'fabric-irregular') {
-          this.fiLoadItems(); this.loadMasterData();
+          this.fabric.fiLoadItems(); this.loadMasterData();
         } else if (val === 'fabric-regular-group' || val === 'fabric-irregular-group') {
           this.fabric.frgKind = val === 'fabric-irregular-group' ? 'irregular' : 'regular';
           this.fabric.frgSelected = []; this.fabric.frgPage = 1;
           this.fabric.frgLoadItems();
-        } else if (val === 'fabric-irregular') {
-          this.fiLoadItems();
         } else if (val === 'customers') {
           this.customer.cuLoadItems();
         } else if (val === 'order-receive') {
@@ -1291,100 +1248,26 @@ data() {
       genAllSelectedOnPage() {
         return this.genPagedRows.length > 0 && this.genPagedRows.every(r => this.genSelected.includes(r));
       },
+      // ตัวเลือก dropdown ของผ้าไม่ประจำ — อิง md/mdMerge (master data) ของ Dashboard + fiItems จาก fabric store
       fiTypeOptions() {
-        return [...new Set(this.fiItems.map(i => i.type))].sort();
+        return [...new Set(this.fabric.fiItems.map(i => i.type))].sort();
       },
       fiCompositionOptions() {
-        return this.mdMerge('composition', this.fiItems.map(i => i.composition));
+        return this.mdMerge('composition', this.fabric.fiItems.map(i => i.composition));
       },
       fiWidthOptions() {
-        return this.mdMerge('width', this.fiItems.map(i => i.width));
+        return this.mdMerge('width', this.fabric.fiItems.map(i => i.width));
       },
       fiStructureOptions() {
-        return this.mdMerge('structure', this.fiItems.map(i => i.structure));
+        return this.mdMerge('structure', this.fabric.fiItems.map(i => i.structure));
       },
       fiFinishingOptions() {
-        return this.mdMerge('finishing', this.fiItems.map(i => i.finishing));
+        return this.mdMerge('finishing', this.fabric.fiItems.map(i => i.finishing));
       },
       fiWeightOptions() {
-        return this.mdMerge('weight', this.fiItems.map(i => i.weight)).sort((a, b) => (Number(a) || 0) - (Number(b) || 0));
+        return this.mdMerge('weight', this.fabric.fiItems.map(i => i.weight)).sort((a, b) => (Number(a) || 0) - (Number(b) || 0));
       },
-      fiFilteredItems() {
-        const f = this.fiFilters;
-        const q = f.search.trim().toLowerCase();
-        return this.fiItems.filter(item => {
-          if (q && !(item.name.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))) return false;
-          if (f.type && item.type !== f.type) return false;
-          if (f.weight && this.frWeightBucket(item.weight) !== f.weight) return false;
-          if (f.active === 'active' && !item.active) return false;
-          if (f.active === 'inactive' && item.active) return false;
-          if (f.composition && item.composition !== f.composition) return false;
-          if (f.width && item.width !== f.width) return false;
-          if (f.substitute && !item.substitute) return false;
-          if (f.skuFrom && item.sku < f.skuFrom) return false;
-          if (f.skuTo && item.sku > f.skuTo) return false;
-          return true;
-        });
-      },
-      fiTypeOptions() {
-        return [...new Set(this.fiItems.map(i => i.type))].sort();
-      },
-      fiCompositionOptions() {
-        return this.mdMerge('composition', this.fiItems.map(i => i.composition));
-      },
-      fiWidthOptions() {
-        return this.mdMerge('width', this.fiItems.map(i => i.width));
-      },
-      fiStructureOptions() {
-        return this.mdMerge('structure', this.fiItems.map(i => i.structure));
-      },
-      fiFinishingOptions() {
-        return this.mdMerge('finishing', this.fiItems.map(i => i.finishing));
-      },
-      fiWeightOptions() {
-        return this.mdMerge('weight', this.fiItems.map(i => i.weight)).sort((a, b) => (Number(a) || 0) - (Number(b) || 0));
-      },
-      fiFilteredItems() {
-        const f = this.fiFilters;
-        const q = f.search.trim().toLowerCase();
-        return this.fiItems.filter(item => {
-          if (q && !(item.name.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q))) return false;
-          if (f.type && item.type !== f.type) return false;
-          if (f.weight && this.frWeightBucket(item.weight) !== f.weight) return false;
-          if (f.active === 'active' && !item.active) return false;
-          if (f.active === 'inactive' && item.active) return false;
-          if (f.composition && item.composition !== f.composition) return false;
-          if (f.width && item.width !== f.width) return false;
-          if (f.substitute && !item.substitute) return false;
-          if (f.skuFrom && item.sku < f.skuFrom) return false;
-          if (f.skuTo && item.sku > f.skuTo) return false;
-          return true;
-        });
-      },
-      fiSortedFilteredItems() {
-        const items = [...this.fiFilteredItems];
-        if (!this.fiSortBy) return items;
-        const key = this.fiSortBy;
-        const dir = this.fiSortDir === 'asc' ? 1 : -1;
-        return items.sort((a, b) => {
-          if (key === 'colors' || key === 'weight') return ((Number(a[key]) || 0) - (Number(b[key]) || 0)) * dir;
-          const av = String(a[key] || '').toLowerCase();
-          const bv = String(b[key] || '').toLowerCase();
-          if (av < bv) return -1 * dir;
-          if (av > bv) return 1 * dir;
-          return 0;
-        });
-      },
-      fiTotalPages() {
-        return Math.max(1, Math.ceil(this.fiSortedFilteredItems.length / this.fiPageSize));
-      },
-      fiPagedItems() {
-        const start = (this.fiPage - 1) * this.fiPageSize;
-        return this.fiSortedFilteredItems.slice(start, start + this.fiPageSize);
-      },
-      fiAllSelectedOnPage() {
-        return this.fiPagedItems.length > 0 && this.fiPagedItems.every(i => this.fiSelected.includes(i.sku));
-      },
+      // fi* list/pagination getters ย้ายไปที่ stores/fabric.js แล้ว
       frVisibleShadeRows() {
         const q = this.frShadeSearch.trim().toLowerCase();
         if (!q) return this.frShadeRows;
@@ -1903,7 +1786,7 @@ data() {
         this.fabric.frgKind = this.currentPage === 'fabric-irregular-group' ? 'irregular' : 'regular';
         this.fabric.frgLoadItems();
       }
-      else if (this.currentPage === 'fabric-irregular') this.fiLoadItems();
+      else if (this.currentPage === 'fabric-irregular') this.fabric.fiLoadItems();
       else if (this.currentPage === 'customers') this.customer.cuLoadItems();
       else if (this.currentPage === 'order-receive') this.order.oeLoadFabrics();
     },
@@ -2202,205 +2085,7 @@ data() {
       fiOpenShades(item) {
         this.frOpenShadeModal({ id: item.id, sku: '', name: item.name, apiPath: `/api/fabric-irregular/${item.id}/shades` }, 'irregular');
       },
-      async fiLoadItems() {
-        this.fiLoading = true;
-        try {
-          const res = await fetch(API + '/api/fabric-irregular', {
-            headers: { Authorization: 'Bearer ' + this.token },
-          });
-          if (res.status === 401) { this.sessionExpired(); return; }
-          const data = await res.json();
-          this.fiItems = (data.items || []).map(row => ({
-            id: row.id,
-            type: row.type || '',
-            sku: row.sku,
-            colors: row.colors || 1,
-            name: row.name || '',
-            structure: row.structure || '',
-            composition: row.composition || '',
-            width: row.width || '',
-            finishing: row.finishing || '',
-            weight: row.weight || '',
-            unit: row.unit || 'หลา',
-            description: row.description || '',
-            productionDays: row.production_days,
-            imageName: row.image_name || '',
-            active: !!row.active,
-            substitute: !!row.substitute,
-          }));
-        } catch (e) {
-          this.fiItems = [];
-        } finally {
-          this.fiLoading = false;
-        }
-      },
-      fiSearch() {
-        this.fiPage = 1;
-      },
-      fiResetFilters() {
-        this.fiFilters = {
-          search: '', type: '', weight: '', active: '',
-          skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
-        };
-        this.fiPage = 1;
-      },
-      fiSort(key) {
-        if (this.fiSortBy === key) {
-          this.fiSortDir = this.fiSortDir === 'asc' ? 'desc' : 'asc';
-        } else {
-          this.fiSortBy = key;
-          this.fiSortDir = 'asc';
-        }
-      },
-      fiPrevPage() {
-        if (this.fiPage > 1) this.fiPage -= 1;
-      },
-      fiNextPage() {
-        if (this.fiPage < this.fiTotalPages) this.fiPage += 1;
-      },
-      fiToggleSelectAll() {
-        if (this.fiAllSelectedOnPage) {
-          const pageSkus = this.fiPagedItems.map(i => i.sku);
-          this.fiSelected = this.fiSelected.filter(sku => !pageSkus.includes(sku));
-        } else {
-          const newSkus = this.fiPagedItems.map(i => i.sku).filter(sku => !this.fiSelected.includes(sku));
-          this.fiSelected = [...this.fiSelected, ...newSkus];
-        }
-      },
-      fiToggleSelect(sku) {
-        const idx = this.fiSelected.indexOf(sku);
-        if (idx === -1) this.fiSelected.push(sku);
-        else this.fiSelected.splice(idx, 1);
-      },
-      async fiBulkDelete() {
-        if (this.fiSelected.length === 0) return;
-        if (!(await this.fbAskDelete(`ต้องการลบ ${this.fiSelected.length} รายการที่เลือกใช่หรือไม่?`))) return;
-        this.fbLoading('กำลังลบ...');
-        let failed = false;
-        const items = this.fiItems.filter(i => this.fiSelected.includes(i.sku));
-        for (const item of items) {
-          try {
-            await fetch(API + `/api/fabric-irregular/${item.id}`, {
-              method: 'DELETE',
-              headers: { Authorization: 'Bearer ' + this.token },
-            });
-          } catch (e) { failed = true; }
-        }
-        this.fiSelected = [];
-        await this.fiLoadItems();
-        failed ? this.fbFail('ลบบางรายการไม่สำเร็จ') : this.fbDone('ลบข้อมูลแล้ว');
-      },
-      async fiExportExcel(selectedOnly) {
-        const rows = selectedOnly ? this.fiItems.filter(i => this.fiSelected.includes(i.sku)) : this.fiSortedFilteredItems;
-        if (rows.length === 0) {
-          this.fbFail('ไม่มีข้อมูลให้ส่งออก');
-          return;
-        }
-        const XLSX = await import('xlsx');
-        const aoa = [
-          ['ประเภท', 'รหัสสินค้า', 'จำนวนสี', 'ชื่อ', 'โครงสร้างผ้า', 'ส่วนประกอบ', 'หน้ากว้าง', 'Finishing', 'น้ำหนัก', 'หน่วย'],
-          ...rows.map(i => [i.type, i.sku, i.colors, i.name, i.structure, i.composition, i.width, i.finishing, i.weight, i.unit]),
-        ];
-        const sheet = XLSX.utils.aoa_to_sheet(aoa);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, sheet, 'ผ้าไม่ประจำ');
-        XLSX.writeFile(wb, `ผ้าไม่ประจำ-${new Date().toISOString().slice(0, 10)}.xlsx`);
-      },
-      fiHandleFileChange(e) {
-        this.fiNewItem.imageName = e.target.files[0] ? e.target.files[0].name : '';
-      },
-      fiOpenAdd() {
-        this.fiModalMode = 'add';
-        this.fiEditingId = null;
-        this.fiNewItem = {
-          type: '', sku: '', name: '', structure: '', composition: '', width: '',
-          finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
-          imageName: '', substitute: 'no', active: true,
-        };
-        this.fiShowModal = true;
-      },
-      fiEditItem(item) {
-        this.fiModalMode = 'edit';
-        this.fiEditingId = item.id;
-        this.fiNewItem = {
-          type: item.type, sku: item.sku, name: item.name, structure: item.structure,
-          composition: item.composition, width: item.width, finishing: item.finishing,
-          weight: item.weight, unit: item.unit || 'หลา', description: item.description || '',
-          productionDays: item.productionDays || '', imageName: item.imageName || '',
-          substitute: item.substitute ? 'yes' : 'no', active: item.active,
-        };
-        this.fiShowModal = true;
-      },
-      fiViewItem(item) {
-        this.fiEditItem(item);
-        this.fiModalMode = 'view';
-      },
-      fiCloseModal() {
-        this.fiShowModal = false;
-      },
-      async fiDeleteItem(item) {
-        if (!(await this.fbAskDelete(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`))) return;
-        this.fbLoading('กำลังลบ...');
-        try {
-          const res = await fetch(API + `/api/fabric-irregular/${item.id}`, {
-            method: 'DELETE',
-            headers: { Authorization: 'Bearer ' + this.token },
-          });
-          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
-          const data = await res.json();
-          if (data.ok) {
-            this.fiItems = this.fiItems.filter(i => i.id !== item.id);
-            this.fbDone('ลบข้อมูลแล้ว');
-          } else {
-            this.fbFail(data.message || 'ลบไม่สำเร็จ');
-          }
-        } catch (e) {
-          this.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
-        }
-      },
-      async fiSaveItem() {
-        if (!this.fiNewItem.type || !this.fiNewItem.sku || !this.fiNewItem.width) {
-          this.fbFail('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
-          return;
-        }
-        const payload = {
-          type: this.fiNewItem.type,
-          sku: this.fiNewItem.sku,
-          name: this.fiNewItem.name,
-          structure: this.fiNewItem.structure,
-          composition: this.fiNewItem.composition,
-          width: this.fiNewItem.width,
-          finishing: this.fiNewItem.finishing,
-          weight: this.fiNewItem.weight,
-          unit: this.fiNewItem.unit,
-          description: this.fiNewItem.description,
-          production_days: this.fiNewItem.productionDays || null,
-          image_name: this.fiNewItem.imageName,
-          substitute: this.fiNewItem.substitute === 'yes',
-          active: this.fiNewItem.active,
-        };
-        this.fbLoading('กำลังบันทึก...');
-        try {
-          const url = this.fiEditingId ? API + `/api/fabric-irregular/${this.fiEditingId}` : API + '/api/fabric-irregular';
-          const method = this.fiEditingId ? 'PUT' : 'POST';
-          const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
-            body: JSON.stringify(payload),
-          });
-          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
-          const data = await res.json();
-          if (data.ok) {
-            await this.fiLoadItems();
-            this.fiCloseModal();
-            this.fbDone('บันทึกแล้ว');
-          } else {
-            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
-          }
-        } catch (e) {
-          this.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
-        }
-      },
+      // fi* CRUD/list/pagination methods ย้ายไปที่ stores/fabric.js แล้ว
       // เปิด/ปิดกล่องแจ้งเตือน — เปิดแล้วถือว่าอ่านแล้ว (ตัวเลขหาย จนกว่าจะมีอัปเดตใหม่)
       toggleNotif() {
         this.topnavNotifOpen = !this.topnavNotifOpen;
@@ -2567,7 +2252,7 @@ data() {
           const data = await res.json();
           if (data.ok) {
             if (this.frShadeContext === 'irregular') {
-              await this.fiLoadItems();
+              await this.fabric.fiLoadItems();
             } else if (this.frShadeContext === 'regular-group') {
               await this.fabric.frgLoadItems();
             } else {
@@ -2593,148 +2278,6 @@ data() {
           fabric_cost: base ? base.fabric_cost : '',
           dye_cost: base ? base.dye_cost : '',
         };
-      },
-      frOpenShades(item) {
-        this.frOpenShadeModal({ id: item.id, sku: item.sku, name: item.name, apiPath: `/api/fabrics/${item.id}/shades` }, 'fabric');
-      },
-      fiOpenShades(item) {
-        this.frOpenShadeModal({ id: item.id, sku: '', name: item.name, apiPath: `/api/fabric-irregular/${item.id}/shades` }, 'irregular');
-      },
-      async fiLoadItems() {
-        this.fiLoading = true;
-        try {
-          const res = await fetch(API + '/api/fabric-irregular', {
-            headers: { Authorization: 'Bearer ' + this.token },
-          });
-          if (res.status === 401) { this.sessionExpired(); return; }
-          const data = await res.json();
-          this.fiItems = (data.items || []).map(row => ({
-            id: row.id,
-            type: row.type || '',
-            sku: row.sku,
-            colors: row.colors || 1,
-            name: row.name || '',
-            structure: row.structure || '',
-            composition: row.composition || '',
-            width: row.width || '',
-            finishing: row.finishing || '',
-            weight: row.weight || '',
-            unit: row.unit || 'หลา',
-            description: row.description || '',
-            productionDays: row.production_days,
-            imageName: row.image_name || '',
-            active: !!row.active,
-            substitute: !!row.substitute,
-          }));
-        } catch (e) {
-          this.fiItems = [];
-        } finally {
-          this.fiLoading = false;
-        }
-      },
-      fiSearch() {
-        // v-model ผูกกับ fiFilters อยู่แล้ว ปุ่มนี้ไว้สำหรับกรณีเชื่อมต่อ API จริงในอนาคต
-      },
-      fiResetFilters() {
-        this.fiFilters = {
-          search: '', type: '', weight: '', active: '',
-          skuFrom: '', skuTo: '', composition: '', width: '', substitute: false,
-        };
-      },
-      fiHandleFileChange(e) {
-        this.fiNewItem.imageName = e.target.files[0] ? e.target.files[0].name : '';
-      },
-      fiOpenAdd() {
-        this.fiModalMode = 'add';
-        this.fiEditingId = null;
-        this.fiNewItem = {
-          type: '', sku: '', name: '', structure: '', composition: '', width: '',
-          finishing: '', weight: '', unit: 'หลา', description: '', productionDays: '',
-          imageName: '', substitute: 'no', active: true,
-        };
-        this.fiShowModal = true;
-      },
-      fiEditItem(item) {
-        this.fiModalMode = 'edit';
-        this.fiEditingId = item.id;
-        this.fiNewItem = {
-          type: item.type, sku: item.sku, name: item.name, structure: item.structure,
-          composition: item.composition, width: item.width, finishing: item.finishing,
-          weight: item.weight, unit: item.unit || 'หลา', description: item.description || '',
-          productionDays: item.productionDays || '', imageName: item.imageName || '',
-          substitute: item.substitute ? 'yes' : 'no', active: item.active,
-        };
-        this.fiShowModal = true;
-      },
-      fiViewItem(item) {
-        this.fiEditItem(item);
-        this.fiModalMode = 'view';
-      },
-      fiCloseModal() {
-        this.fiShowModal = false;
-      },
-      async fiDeleteItem(item) {
-        if (!(await this.fbAskDelete(`ต้องการลบ "${item.name || item.sku}" ใช่หรือไม่?`))) return;
-        this.fbLoading('กำลังลบ...');
-        try {
-          const res = await fetch(API + `/api/fabric-irregular/${item.id}`, {
-            method: 'DELETE',
-            headers: { Authorization: 'Bearer ' + this.token },
-          });
-          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
-          const data = await res.json();
-          if (data.ok) {
-            this.fiItems = this.fiItems.filter(i => i.id !== item.id);
-            this.fbDone('ลบข้อมูลแล้ว');
-          } else {
-            this.fbFail(data.message || 'ลบไม่สำเร็จ');
-          }
-        } catch (e) {
-          this.fbFail('ลบข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
-        }
-      },
-      async fiSaveItem() {
-        if (!this.fiNewItem.type || !this.fiNewItem.sku || !this.fiNewItem.width) {
-          this.fbFail('กรุณากรอกข้อมูลที่จำเป็น (ประเภท, รหัสสินค้า, หน้ากว้าง) ให้ครบถ้วน');
-          return;
-        }
-        const payload = {
-          type: this.fiNewItem.type,
-          sku: this.fiNewItem.sku,
-          name: this.fiNewItem.name,
-          structure: this.fiNewItem.structure,
-          composition: this.fiNewItem.composition,
-          width: this.fiNewItem.width,
-          finishing: this.fiNewItem.finishing,
-          weight: this.fiNewItem.weight,
-          unit: this.fiNewItem.unit,
-          description: this.fiNewItem.description,
-          production_days: this.fiNewItem.productionDays || null,
-          image_name: this.fiNewItem.imageName,
-          substitute: this.fiNewItem.substitute === 'yes',
-          active: this.fiNewItem.active,
-        };
-        this.fbLoading('กำลังบันทึก...');
-        try {
-          const url = this.fiEditingId ? API + `/api/fabric-irregular/${this.fiEditingId}` : API + '/api/fabric-irregular';
-          const method = this.fiEditingId ? 'PUT' : 'POST';
-          const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
-            body: JSON.stringify(payload),
-          });
-          if (res.status === 401) { this.fbHide(); this.sessionExpired(); return; }
-          const data = await res.json();
-          if (data.ok) {
-            await this.fiLoadItems();
-            this.fiCloseModal();
-            this.fbDone('บันทึกแล้ว');
-          } else {
-            this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
-          }
-        } catch (e) {
-          this.fbFail('บันทึกข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์');
-        }
       },
       // กดปุ่มกรรไกร → เปิดหน้าจัดออร์เดอร์/ตัดผ้า พร้อมดึงข้อมูลออร์เดอร์มาเติม (ยังอยู่ Dashboard.vue เพราะต้องสลับ currentPage)
       async ofFulfillOrder(order) {
@@ -3036,7 +2579,7 @@ data() {
           const data = await res.json();
           if (data.ok) {
             if (this.frShadeContext === 'irregular') {
-              await this.fiLoadItems();
+              await this.fabric.fiLoadItems();
             } else if (this.frShadeContext === 'regular-group') {
               await this.fabric.frgLoadItems();
             } else {
@@ -6047,9 +5590,9 @@ data() {
 
   .badge {
     display: inline-block;
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
   }
   .badge.success { background: rgba(23, 160, 106, 0.1); color: var(--ok); }
