@@ -12,48 +12,48 @@
     </div>
     <div class="fr-filter-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[18px] gap-y-[14px]">
       <div class="fr-field-group">
-        <label>คำค้นหา</label>
-        <input type="text" v-model="customer.cuFilters.search" placeholder="ค้นหาชื่อบริษัท / ผู้ติดต่อ / เบอร์โทร / ที่อยู่" />
+        <label>{{ dash.t[dash.lang].searchInput }}</label>
+        <input type="text" v-model="customer.cuFilters.search" :placeholder="dash.t[dash.lang].searchCustomerPlaceholder" />
       </div>
       <div class="fr-field-group">
-        <label>กลุ่มลูกค้า</label>
+        <label>{{ dash.t[dash.lang].customerGroupLabel }}</label>
         <select v-model="customer.cuFilters.group">
-          <option value="">ทั้งหมด</option>
+          <option value="">{{ dash.t[dash.lang].allWord }}</option>
           <option v-for="opt in customer.cuGroupOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group">
-        <label>จังหวัด</label>
+        <label>{{ dash.t[dash.lang].provinceLabel }}</label>
         <select v-model="customer.cuFilters.province">
-          <option value="">ทั้งหมด</option>
+          <option value="">{{ dash.t[dash.lang].allWord }}</option>
           <option v-for="opt in customer.cuProvinceOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group">
-        <label>โซน</label>
+        <label>{{ dash.t[dash.lang].zoneLabel }}</label>
         <select v-model="customer.cuFilters.zone">
-          <option value="">ทั้งหมด</option>
+          <option value="">{{ dash.t[dash.lang].allWord }}</option>
           <option v-for="opt in customer.cuZoneOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group">
-        <label>เงื่อนไขบัญชี</label>
+        <label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
         <select v-model="customer.cuFilters.accountTerms">
-          <option value="">ทั้งหมด</option>
+          <option value="">{{ dash.t[dash.lang].allWord }}</option>
           <option v-for="opt in customer.cuAccountTermsOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group">
-        <label>เงื่อนไขเงินสด</label>
+        <label>{{ dash.t[dash.lang].cashTermsLabel }}</label>
         <select v-model="customer.cuFilters.cashTerms">
-          <option value="">ทั้งหมด</option>
+          <option value="">{{ dash.t[dash.lang].allWord }}</option>
           <option v-for="opt in customer.cuCashTermsOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
       <div class="fr-field-group">
-        <label>พนักงานขาย</label>
+        <label>{{ dash.t[dash.lang].salespersonLabel }}</label>
         <select v-model="customer.cuFilters.salesperson">
-          <option value="">ทั้งหมด</option>
+          <option value="">{{ dash.t[dash.lang].allWord }}</option>
           <option v-for="opt in customer.cuSalespersonOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
       </div>
@@ -74,8 +74,8 @@
   <div class="fr-summary fr-summary-row">
     <span>{{ dash.t[dash.lang].foundItems }} {{ customer.cuFilteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span>
     <div class="fr-summary-actions">
-      <button class="btn-small" @click="customer.cuExportExcel(false)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออก Excel</button>
-      <button class="btn-small fr-btn-add" @click="customer.cuOpenAdd">+ เพิ่ม ลูกค้า</button>
+      <button class="btn-small" @click="customer.cuExportExcel(false)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>{{ dash.t[dash.lang].exportExcel }}</button>
+      <button class="btn-small fr-btn-add" @click="customer.cuOpenAdd">+ {{ dash.t[dash.lang].add }} {{ dash.t[dash.lang].customerWord }}</button>
     </div>
   </div>
 
@@ -83,12 +83,12 @@
     <div class="fr-bulk-bar" v-if="customer.cuSelected.length > 0">
       <span class="fr-bulk-count">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-        เลือกไว้ <strong>{{ customer.cuSelected.length }}</strong> รายการ
+        {{ dash.t[dash.lang].selectedCountWord }} <strong>{{ customer.cuSelected.length }}</strong> {{ dash.t[dash.lang].itemsUnit }}
       </span>
       <div class="fr-bulk-actions">
-        <button class="fr-bulk-btn danger" @click="customer.cuBulkDelete">🗑️ ลบรายการที่เลือก ({{ customer.cuSelected.length }})</button>
-        <button class="fr-bulk-btn" @click="customer.cuExportExcel(true)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ส่งออกที่เลือก</button>
-        <button class="fr-bulk-btn ghost" @click="customer.cuClearSelection">✕ ยกเลิกการเลือก</button>
+        <button class="fr-bulk-btn danger" @click="customer.cuBulkDelete">🗑️ {{ dash.t[dash.lang].deleteSelected }} ({{ customer.cuSelected.length }})</button>
+        <button class="fr-bulk-btn" @click="customer.cuExportExcel(true)"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>{{ dash.t[dash.lang].exportExcel }}</button>
+        <button class="fr-bulk-btn ghost" @click="customer.cuClearSelection">{{ dash.t[dash.lang].clearSelection }}</button>
       </div>
     </div>
   </transition>
@@ -99,19 +99,19 @@
         <thead>
           <tr>
             <th class="fr-th-check"><input type="checkbox" :checked="customer.cuAllSelectedOnPage" @change="customer.cuToggleSelectAll" /></th>
-            <th>ที่</th>
-            <th class="fr-th-sort" @click="customer.cuSort('company_name')" title="คลิกเพื่อเรียงลำดับ">ชื่อบริษัท <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'company_name' }">{{ customer.cuSortIcon('company_name') }}</span></th>
-            <th class="fr-th-sort" @click="customer.cuSort('contact')" title="คลิกเพื่อเรียงลำดับ">ผู้ติดต่อ <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'contact' }">{{ customer.cuSortIcon('contact') }}</span></th>
-            <th class="fr-th-sort" @click="customer.cuSort('phone')" title="คลิกเพื่อเรียงลำดับ">เบอร์โทร <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'phone' }">{{ customer.cuSortIcon('phone') }}</span></th>
-            <th>ที่อยู่</th>
-            <th class="fr-th-sort" @click="customer.cuSort('customer_group')" title="คลิกเพื่อเรียงลำดับ">กลุ่มลูกค้า <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'customer_group' }">{{ customer.cuSortIcon('customer_group') }}</span></th>
-            <th class="fr-th-sort" @click="customer.cuSort('zone')" title="คลิกเพื่อเรียงลำดับ">โซน <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'zone' }">{{ customer.cuSortIcon('zone') }}</span></th>
-            <th class="fr-th-sort" @click="customer.cuSort('account_terms')" title="คลิกเพื่อเรียงลำดับ">เงื่อนไขบัญชี <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'account_terms' }">{{ customer.cuSortIcon('account_terms') }}</span></th>
-            <th class="fr-th-sort" @click="customer.cuSort('cash_terms')" title="คลิกเพื่อเรียงลำดับ">เงื่อนไขเงินสด <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'cash_terms' }">{{ customer.cuSortIcon('cash_terms') }}</span></th>
-            <th>สกุลเงิน</th>
-            <th>วงเงิน</th>
-            <th class="fr-th-sort" @click="customer.cuSort('salesperson')" title="คลิกเพื่อเรียงลำดับ">พนักงานขาย <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'salesperson' }">{{ customer.cuSortIcon('salesperson') }}</span></th>
-            <th>จัดการ</th>
+            <th>{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+            <th class="fr-th-sort" @click="customer.cuSort('company_name')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].companyNameLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'company_name' }">{{ customer.cuSortIcon('company_name') }}</span></th>
+            <th class="fr-th-sort" @click="customer.cuSort('contact')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].contactLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'contact' }">{{ customer.cuSortIcon('contact') }}</span></th>
+            <th class="fr-th-sort" @click="customer.cuSort('phone')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].phoneLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'phone' }">{{ customer.cuSortIcon('phone') }}</span></th>
+            <th>{{ dash.t[dash.lang].addressLabel }}</th>
+            <th class="fr-th-sort" @click="customer.cuSort('customer_group')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].customerGroupLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'customer_group' }">{{ customer.cuSortIcon('customer_group') }}</span></th>
+            <th class="fr-th-sort" @click="customer.cuSort('zone')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].zoneLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'zone' }">{{ customer.cuSortIcon('zone') }}</span></th>
+            <th class="fr-th-sort" @click="customer.cuSort('account_terms')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].accountTermsLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'account_terms' }">{{ customer.cuSortIcon('account_terms') }}</span></th>
+            <th class="fr-th-sort" @click="customer.cuSort('cash_terms')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].cashTermsLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'cash_terms' }">{{ customer.cuSortIcon('cash_terms') }}</span></th>
+            <th>{{ dash.t[dash.lang].currencyLabel }}</th>
+            <th>{{ dash.t[dash.lang].creditLimitLabel }}</th>
+            <th class="fr-th-sort" @click="customer.cuSort('salesperson')" :title="dash.t[dash.lang].clickToSort">{{ dash.t[dash.lang].salespersonLabel }} <span class="fr-sort-icon" :class="{ active: customer.cuSortBy === 'salesperson' }">{{ customer.cuSortIcon('salesperson') }}</span></th>
+            <th>{{ dash.t[dash.lang].manageWord }}</th>
           </tr>
         </thead>
         <tbody>
@@ -131,37 +131,37 @@
             <td>{{ item.salesperson }}</td>
             <td>
               <div class="fr-action-group">
-                <button class="fr-action-btn edit" title="แก้ไข" @click="customer.cuEditItem(item)">
+                <button class="fr-action-btn edit" :title="dash.t[dash.lang].edit" @click="customer.cuEditItem(item)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                 </button>
-                <button class="fr-action-btn delete" title="ลบ" @click="customer.cuDeleteItem(item)">
+                <button class="fr-action-btn delete" :title="dash.t[dash.lang].delete" @click="customer.cuDeleteItem(item)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
                 </button>
-                <button class="fr-action-btn view" title="ดูรายละเอียด" @click="customer.cuViewItem(item)">
+                <button class="fr-action-btn view" :title="dash.t[dash.lang].viewDetails" @click="customer.cuViewItem(item)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                 </button>
               </div>
             </td>
           </tr>
           <tr v-if="customer.cuLoading" class="fr-empty-row">
-            <td colspan="14">กำลังโหลดข้อมูล...</td>
+            <td colspan="14">{{ dash.t[dash.lang].loadingWord }}</td>
           </tr>
           <tr v-else-if="customer.cuFilteredItems.length === 0" class="fr-empty-row">
-            <td colspan="14">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</td>
+            <td colspan="14">{{ dash.t[dash.lang].noResultsFound }}</td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="xl-pagination" v-if="customer.cuFilteredItems.length > 0">
       <select v-model.number="customer.cuPageSize" class="fr-page-size-select">
-        <option :value="10">10 / หน้า</option>
-        <option :value="20">20 / หน้า</option>
-        <option :value="50">50 / หน้า</option>
-        <option :value="100">100 / หน้า</option>
+        <option :value="10">10 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="20">20 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="100">100 {{ dash.t[dash.lang].perPageWord }}</option>
       </select>
-      <button class="fr-btn-util" :disabled="customer.cuPage === 1" @click="customer.cuPrevPage">‹ ก่อนหน้า</button>
-      <span><strong>หน้า {{ customer.cuPage }} / {{ customer.cuTotalPages }}</strong> — แสดง {{ (customer.cuPage - 1) * customer.cuPageSize + 1 }}-{{ Math.min(customer.cuPage * customer.cuPageSize, customer.cuFilteredItems.length) }} จากทั้งหมด {{ customer.cuFilteredItems.length }} รายการ</span>
-      <button class="fr-btn-util" :disabled="customer.cuPage === customer.cuTotalPages" @click="customer.cuNextPage">ถัดไป ›</button>
+      <button class="fr-btn-util" :disabled="customer.cuPage === 1" @click="customer.cuPrevPage">{{ dash.t[dash.lang].prevPage }}</button>
+      <span><strong>{{ dash.t[dash.lang].pageWord }} {{ customer.cuPage }} / {{ customer.cuTotalPages }}</strong> — {{ dash.t[dash.lang].showingWord }} {{ (customer.cuPage - 1) * customer.cuPageSize + 1 }}-{{ Math.min(customer.cuPage * customer.cuPageSize, customer.cuFilteredItems.length) }} {{ dash.t[dash.lang].ofTotalWord }} {{ customer.cuFilteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span>
+      <button class="fr-btn-util" :disabled="customer.cuPage === customer.cuTotalPages" @click="customer.cuNextPage">{{ dash.t[dash.lang].nextPage }}</button>
     </div>
   </div>
 
@@ -169,36 +169,36 @@
   <div class="erp-overlay" v-if="customer.cuShowAddModal" @click.self="customer.cuCloseAddModal">
     <div class="erp-modal">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">🧑‍💼</span> {{ customer.cuModalMode === 'edit' ? 'แก้ไข' : customer.cuModalMode === 'view' ? 'รายละเอียด' : 'เพิ่ม' }} ลูกค้า</span>
-        <button class="erp-x" @click="customer.cuCloseAddModal" title="ปิด">✕</button>
+        <span><span class="erp-head-ic">🧑‍💼</span> {{ customer.cuModalMode === 'edit' ? dash.t[dash.lang].edit : customer.cuModalMode === 'view' ? dash.t[dash.lang].detailsWord : dash.t[dash.lang].add }} {{ dash.t[dash.lang].customerWord }}</span>
+        <button class="erp-x" @click="customer.cuCloseAddModal" :title="dash.t[dash.lang].close">✕</button>
       </div>
       <div class="erp-modal-body">
       <fieldset :disabled="customer.cuModalMode === 'view'" style="border:0;margin:0;padding:0;min-width:0;">
-        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลลูกค้า</div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].customerInfoSection }}</div>
         <div class="erp-grid">
-          <div class="erp-field"><label>รหัสลูกค้า</label><input type="text" v-model="customer.cuNewItem.code" placeholder="รหัส (เว้นว่างได้)" /></div>
-          <div class="erp-field"><label>ชื่อบริษัท <span class="erp-req">*</span></label><input type="text" v-model="customer.cuNewItem.company_name" placeholder="ชื่อบริษัท / ร้าน" /></div>
-          <div class="erp-field"><label>ผู้ติดต่อ</label><input type="text" v-model="customer.cuNewItem.contact" placeholder="ชื่อผู้ติดต่อ" /></div>
-          <div class="erp-field"><label>เบอร์โทร</label><input type="text" v-model="customer.cuNewItem.phone" placeholder="เบอร์โทรศัพท์" /></div>
-          <div class="erp-field erp-col-2"><label>ที่อยู่</label><input type="text" v-model="customer.cuNewItem.address" placeholder="ที่อยู่" /></div>
-          <div class="erp-field"><label>จังหวัด</label><input type="text" v-model="customer.cuNewItem.province" placeholder="จังหวัด" /></div>
-          <div class="erp-field"><label>กลุ่มลูกค้า</label><input type="text" v-model="customer.cuNewItem.customer_group" placeholder="กลุ่มลูกค้า" /></div>
-          <div class="erp-field"><label>โซน</label><input type="text" v-model="customer.cuNewItem.zone" placeholder="โซน" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].customerCodeLabel }}</label><input type="text" v-model="customer.cuNewItem.code" :placeholder="dash.t[dash.lang].codeOptionalPlaceholder" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].companyNameLabel }} <span class="erp-req">*</span></label><input type="text" v-model="customer.cuNewItem.company_name" :placeholder="dash.t[dash.lang].companyNamePlaceholder" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].contactLabel }}</label><input type="text" v-model="customer.cuNewItem.contact" :placeholder="dash.t[dash.lang].contactNamePlaceholder" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].phoneLabel }}</label><input type="text" v-model="customer.cuNewItem.phone" :placeholder="dash.t[dash.lang].phoneNumberPlaceholder" /></div>
+          <div class="erp-field erp-col-2"><label>{{ dash.t[dash.lang].addressLabel }}</label><input type="text" v-model="customer.cuNewItem.address" :placeholder="dash.t[dash.lang].addressLabel" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].provinceLabel }}</label><input type="text" v-model="customer.cuNewItem.province" :placeholder="dash.t[dash.lang].provinceLabel" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].customerGroupLabel }}</label><input type="text" v-model="customer.cuNewItem.customer_group" :placeholder="dash.t[dash.lang].customerGroupLabel" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].zoneLabel }}</label><input type="text" v-model="customer.cuNewItem.zone" :placeholder="dash.t[dash.lang].zoneLabel" /></div>
         </div>
-        <div class="erp-sec-title"><span class="erp-sec-bar"></span>เงื่อนไขการค้า / การเงิน</div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].tradeFinanceSection }}</div>
         <div class="erp-grid">
-          <div class="erp-field"><label>เงื่อนไขบัญชี</label><input type="text" v-model="customer.cuNewItem.account_terms" placeholder="เช่น 30 Days" /></div>
-          <div class="erp-field"><label>เงื่อนไขเงินสด</label><input type="text" v-model="customer.cuNewItem.cash_terms" placeholder="เช่น ปกติ" /></div>
-          <div class="erp-field"><label>สกุลเงิน</label><input type="text" v-model="customer.cuNewItem.currency" placeholder="THB" /></div>
-          <div class="erp-field"><label>วงเงิน</label><input type="text" v-model="customer.cuNewItem.credit_limit" placeholder="วงเงิน" /></div>
-          <div class="erp-field"><label>พนักงานขาย</label><input type="text" v-model="customer.cuNewItem.salesperson" placeholder="พนักงานขาย" /></div>
-          <div class="erp-field"><label>เลขผู้เสียภาษี</label><input type="text" v-model="customer.cuNewItem.tax_id" placeholder="เลขประจำตัวผู้เสียภาษี" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label><input type="text" v-model="customer.cuNewItem.account_terms" placeholder="e.g. 30 Days" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].cashTermsLabel }}</label><input type="text" v-model="customer.cuNewItem.cash_terms" :placeholder="dash.lang === 'th' ? 'เช่น ปกติ' : 'e.g. Normal'" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].currencyLabel }}</label><input type="text" v-model="customer.cuNewItem.currency" placeholder="THB" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].creditLimitLabel }}</label><input type="text" v-model="customer.cuNewItem.credit_limit" :placeholder="dash.t[dash.lang].creditLimitLabel" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].salespersonLabel }}</label><input type="text" v-model="customer.cuNewItem.salesperson" :placeholder="dash.t[dash.lang].salespersonLabel" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].taxIdLabel }}</label><input type="text" v-model="customer.cuNewItem.tax_id" :placeholder="dash.t[dash.lang].taxIdPlaceholder" /></div>
         </div>
       </fieldset>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="customer.cuCloseAddModal">{{ customer.cuModalMode === 'view' ? 'ปิด' : 'ยกเลิก' }}</button>
-        <button v-if="customer.cuModalMode !== 'view'" class="erp-btn erp-btn-save" @click="customer.cuSaveAdd">💾 บันทึก</button>
+        <button class="erp-btn erp-btn-cancel" @click="customer.cuCloseAddModal">{{ customer.cuModalMode === 'view' ? dash.t[dash.lang].close : dash.t[dash.lang].cancelWord }}</button>
+        <button v-if="customer.cuModalMode !== 'view'" class="erp-btn erp-btn-save" @click="customer.cuSaveAdd">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>
