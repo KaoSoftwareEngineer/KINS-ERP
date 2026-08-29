@@ -162,12 +162,9 @@
                   <path :d="dash.dashTrendLinePath2" class="dash-line-stroke-2" vector-effect="non-scaling-stroke" />
                   <path :d="dash.dashTrendLinePath" class="dash-line-stroke" vector-effect="non-scaling-stroke" />
                 </svg>
-                <!-- จุดข้าวหลามตัด (overlay HTML → ไม่บิดตาม preserveAspectRatio ของ SVG) -->
+                <!-- เอาจุดออกหมด — เหลือแค่ hit-area โปร่งใสไว้ hover ดู tooltip -->
                 <div class="dash-line-dots">
-                  <span v-for="(p, i) in dash.dashTrendPoints2" :key="'b' + i" class="dash-dot dash-dot-2"
-                        :style="{ left: p.xPct + '%', top: p.yPct + '%' }"></span>
-                  <span v-for="(p, i) in dash.dashTrendPoints" :key="i" class="dash-dot"
-                        :class="{ 'is-active': dash.dashTrendHoverIdx2 === i }"
+                  <span v-for="(p, i) in dash.dashTrendPoints" :key="i" class="dash-hit"
                         :style="{ left: p.xPct + '%', top: p.yPct + '%' }"
                         @mouseenter="dash.dashTrendHoverIdx2 = i" @mouseleave="dash.dashTrendHoverIdx2 = null"></span>
                 </div>

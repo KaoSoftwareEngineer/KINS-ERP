@@ -4144,9 +4144,7 @@ data() {
   .dash-line-stroke { fill: none; stroke: #c9a227; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #c9a227; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #c9a227; box-shadow: 0 0 0 4px rgba(201,162,39,.22); }
-  .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
+  .dash-hit { position: absolute; width: 18px; height: 18px; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
@@ -4541,9 +4539,7 @@ data() {
   .dash-line-stroke { fill: none; stroke: #c9a227; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #c9a227; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #c9a227; box-shadow: 0 0 0 4px rgba(201,162,39,.22); }
-  .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
+  .dash-hit { position: absolute; width: 18px; height: 18px; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
