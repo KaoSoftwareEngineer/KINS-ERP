@@ -6,6 +6,10 @@
     <div class="po-head-col">
       <div class="po-field"><label>วันที่</label><input type="date" v-model="form.cut_date" /></div>
       <div class="po-field"><label>เลขที่เบิกสินค้า</label><input :value="form.vo_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>ประเภทการขาย</label>
+        <select v-model="form.sale_type"><option value="ขายส่ง">ขายส่ง</option><option value="ขายปลีก">ขายปลีก</option></select>
+      </div>
+      <div class="po-field"><label>ลูกค้า</label><input v-model="form.customer" placeholder="ชื่อลูกค้า" /></div>
     </div>
     <div class="po-head-col po-head-col-wide">
       <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
@@ -64,7 +68,7 @@ export default {
   inject: ['dash'],
   data() {
     return {
-      form: { vo_no: '', cut_date: new Date().toISOString().slice(0, 10), remark: '' },
+      form: { vo_no: '', cut_date: new Date().toISOString().slice(0, 10), sale_type: 'ขายส่ง', customer: '', remark: '' },
       items: [this.newRow()], priceOptions: [], saved: false, savedMsg: '', _seq: 1,
     };
   },
@@ -92,7 +96,7 @@ export default {
       } catch (e) {}
     },
     resetForm() {
-      this.form = { vo_no: '', cut_date: new Date().toISOString().slice(0, 10), remark: '' };
+      this.form = { vo_no: '', cut_date: new Date().toISOString().slice(0, 10), sale_type: 'ขายส่ง', customer: '', remark: '' };
       this.items = [this.newRow()]; this.saved = false; this.savedMsg = ''; this.loadNextNo();
     },
     async save() {
@@ -122,9 +126,9 @@ export default {
 .po-head-col-wide { flex: 1; min-width: 220px; }
 .po-field { display: flex; align-items: flex-start; gap: 8px; }
 .po-field > label { min-width: 96px; text-align: right; padding-top: 6px; color: var(--muted); font-size: 12px; font-weight: 600; }
-.po-field input { height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 150px; }
+.po-field input, .po-field select { height: 36px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); min-width: 150px; }
 .po-field textarea { width: 100%; resize: vertical; padding: 8px 10px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text); }
-.po-field input:focus, .po-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
+.po-field input:focus, .po-field select:focus, .po-field textarea:focus { outline: none; border-color: #2F65F6; box-shadow: 0 0 0 3px rgba(47,101,246,.12); }
 .po-ro { background: var(--field) !important; font-weight: 700; }
 .po-items { padding: 8px 12px; }
 .po-item-table { width: 100%; border-collapse: collapse; }
@@ -150,6 +154,6 @@ export default {
 .po-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border: 1px solid var(--field-border); border-radius: 8px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 12px; background: #e7eaf1; color: var(--text); }
 .po-btn-save, .po-btn-new { background: #1a9c54; color: #fff; border-color: #1a9c54; }
 .po-btn-save:hover, .po-btn-new:hover { background: #158045; }
-.po-page input:not([type="checkbox"]), .po-page textarea { background: var(--field); }
-.po-page input:focus, .po-page textarea:focus { background: var(--surface); }
+.po-page input:not([type="checkbox"]), .po-page select, .po-page textarea { background: var(--field); }
+.po-page input:focus, .po-page select:focus, .po-page textarea:focus { background: var(--surface); }
 </style>

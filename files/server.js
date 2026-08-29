@@ -15,7 +15,6 @@ const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const Anthropic = require('@anthropic-ai/sdk');
 const { OAuth2Client } = require('google-auth-library');
 const { pool: mysqlPool, initTables } = require('./db-mysql');
 const app = express();
@@ -73,7 +72,8 @@ function verifyPassword(password, stored) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-app.use(cors());
+// CORS: ค่าเริ่มต้นเปิดทุก origin (dev); ตั้ง CORS_ORIGIN ใน .env (คั่นด้วย ,) เพื่อจำกัดโดเมนตอน go-live
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()) : true }));
 // เก็บ raw body ไว้ด้วย — จำเป็นสำหรับตรวจลายเซ็น webhook ของ LINE (HMAC ต้องใช้ body ดิบ)
 app.use(express.json({ limit: '3mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -239,7 +239,8 @@ app.post('/api/login', async (req, res) => {
     }
 
     const token = crypto.randomBytes(24).toString('hex');
-    await mysqlPool.query('INSERT INTO sessions (token, user_id) VALUES (?, ?)', [token, user.id]);
+    await mysqlPool.query('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))', [token, user.id]);
+    mysqlPool.query('DELETE FROM sessions WHERE expires_at < NOW()').catch(() => {}); // ล้าง session หมดอายุ (fire-and-forget)
 
     return res.json({
       ok: true,
@@ -373,7 +374,7 @@ app.post('/api/auth/google', async (req, res) => {
     }
 
     const token = crypto.randomBytes(24).toString('hex');
-    await mysqlPool.query('INSERT INTO sessions (token, user_id) VALUES (?, ?)', [token, user.id]);
+    await mysqlPool.query('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))', [token, user.id]);
     return res.json({
       ok: true,
       message: 'เข้าสู่ระบบด้วย Google สำเร็จ',
@@ -391,7 +392,7 @@ async function auth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : (req.query.token || '');
   try {
-    const [rows] = await mysqlPool.query('SELECT user_id FROM sessions WHERE token = ?', [token]);
+    const [rows] = await mysqlPool.query('SELECT user_id FROM sessions WHERE token = ? AND (expires_at IS NULL OR expires_at > NOW())', [token]);
     if (rows.length === 0) return res.status(401).json({ ok: false, message: 'กรุณาเข้าสู่ระบบ' });
     req.userId = rows[0].user_id;
     next();
@@ -406,6 +407,21 @@ const wrap = (fn) => (req, res) => fn(req, res).catch((err) => {
   console.error(err);
   res.status(500).json({ ok: false, message: 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ' });
 });
+
+// ---- Rate limit ง่ายๆ ในตัว (in-memory ต่อ IP) — กัน endpoint สาธารณะ (/pay) ถูกยิงถี่/สุ่มโทเคน ----
+const _rlHits = new Map();
+function rateLimit({ windowMs = 60000, max = 60 } = {}) {
+  return (req, res, next) => {
+    const ip = (req.ip || req.socket?.remoteAddress || 'unknown');
+    const now = Date.now();
+    const rec = _rlHits.get(ip);
+    if (!rec || now > rec.reset) { _rlHits.set(ip, { count: 1, reset: now + windowMs }); return next(); }
+    if (++rec.count > max) return res.status(429).json({ ok: false, message: 'คำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่' });
+    next();
+  };
+}
+// เก็บกวาด map เป็นระยะ กันบวม
+setInterval(() => { const now = Date.now(); for (const [k, v] of _rlHits) if (now > v.reset) _rlHits.delete(k); }, 300000).unref?.();
 
 // ---- อัปโหลดไฟล์ทั่วไป (สลิปโอนเงิน ฯลฯ) — คืน url ให้เก็บลง DB ---
 app.post('/api/uploads', auth, upload.single('file'), (req, res) => {
@@ -2877,7 +2893,7 @@ app.post('/api/order-leads/:id/confirm-payment', auth, wrap(async (req, res) => 
 }));
 
 // ---- [สาธารณะ ไม่ต้องล็อกอิน] หน้าลูกค้าดูบิล + QR ----
-app.get('/api/public/bill/:token', wrap(async (req, res) => {
+app.get('/api/public/bill/:token', rateLimit({ windowMs: 60000, max: 60 }), wrap(async (req, res) => {
   const token = (req.params.token || '').toString().trim();
   if (!token) return res.status(400).json({ ok: false, message: 'ลิงก์ไม่ถูกต้อง' });
   const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE pay_token = ?', [token]);
@@ -2897,7 +2913,7 @@ app.get('/api/public/bill/:token', wrap(async (req, res) => {
 }));
 
 // ---- [สาธารณะ] ลูกค้าอัปโหลดสลิป ----
-app.post('/api/public/bill/:token/slip', upload.single('file'), wrap(async (req, res) => {
+app.post('/api/public/bill/:token/slip', rateLimit({ windowMs: 60000, max: 15 }), upload.single('file'), wrap(async (req, res) => {
   const token = (req.params.token || '').toString().trim();
   const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE pay_token = ?', [token]);
   if (!lead) return res.status(404).json({ ok: false, message: 'ไม่พบบิลนี้' });
@@ -4261,28 +4277,10 @@ app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: `ปรับปรุง ${rollQr} จาก ${before} เป็น ${newYards} หลา`, current_yards: newYards });
 }));
 
-app.get('/', (req, res) => res.redirect('http://localhost:5173/login'));
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+app.get('/', (req, res) => res.redirect(FRONTEND_URL + '/login'));
 
 app.listen(PORT, () => {
   console.log(`\n  ✅ API + ฐานข้อมูล (MySQL: plum_erp) ทำงานที่  http://localhost:${PORT}`);
-  console.log(`     • หน้าเว็บ (Vue SPA) -> http://localhost:5173  (cd ../frontend && npm run dev)\n`);
-});
-
-const anthropic = new Anthropic({
-  apiKey: 'ใส่_API_KEY_ของ_Claude_ที่นี่',
-});
-
-app.post('/api/chat', async (req, res) => {
-  try {
-    const { message } = req.body;
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: message }],
-    });
-    res.json({ reply: response.content[0].text });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Claude API Error' });
-  }
+  console.log(`     • หน้าเว็บ (Vue SPA) -> ${FRONTEND_URL}  (cd ../frontend && npm run dev)\n`);
 });

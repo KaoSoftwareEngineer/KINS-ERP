@@ -593,9 +593,11 @@ async function initTables() {
       token      VARCHAR(64) PRIMARY KEY,
       user_id    INT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  await ensureColumn('sessions', 'expires_at', 'DATETIME NULL');   // session หมดอายุ (login เซ็ต +30 วัน)
 
   // ---- ผ้าประจำ ----
   await pool.query(`

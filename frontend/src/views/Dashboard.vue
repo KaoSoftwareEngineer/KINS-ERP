@@ -1897,8 +1897,8 @@ data() {
       this.loadLowStock();
       this.loadDashboardStats();   // สถิติจริงของแดชบอร์ด
       this.loadMe();      // โหลด role ตัวเองล่าสุด (โปรไฟล์/สิทธิ์)
-      this.loadRoles();   // โหลดบทบาท+สิทธิ์จาก MySQL
-      this.loadMasterData();  // โหลดข้อมูลผ้า (master data) สำหรับ dropdown ในฟอร์มผ้า
+      this.loadRoles();   // โหลดบทบาท+สิทธิ์จาก MySQL (คงไว้ที่ mount — คุมสิทธิ์เมนู canAccess)
+      // loadMasterData ย้ายไป lazy — โหลดตอนเข้าหน้าผ้าจริง (บรรทัด ~1177/1179) เพื่อให้เข้าระบบไวขึ้น
       // ถ้าหน้าที่ค้างไว้เกินสิทธิ์ → กลับแดชบอร์ด
       this.$nextTick(() => { if (!this.canAccess(this.currentPage)) this.currentPage = 'dashboard'; });
       // ตัวอย่างการอัพเดทสถิติ
