@@ -4141,11 +4141,11 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-line-stroke { fill: none; stroke: #d97706; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-line-stroke { fill: none; stroke: #c9a227; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #d97706; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #d97706; box-shadow: 0 0 0 4px rgba(217,119,6,.22); }
+  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #c9a227; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #c9a227; box-shadow: 0 0 0 4px rgba(201,162,39,.22); }
   .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
@@ -4199,7 +4199,7 @@ data() {
   .dash-trend-legend { display: flex; gap: 16px; margin: 4px 0 2px; font-size: 11px; color: var(--muted); }
   .dash-trend-legend .dtl { display: inline-flex; align-items: center; gap: 6px; }
   .dash-trend-legend .dtl-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .dtl-a { background: #d97706; }
+  .dtl-a { background: #c9a227; }
   .dtl-b { background: #3b6ef5; }
   .dash-trend-col-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
   /* ปุ่มช่วงเวลาในกราฟ — เล็กกระชับ ไม่เบียดพื้นที่กราฟ */
@@ -4538,11 +4538,11 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-line-stroke { fill: none; stroke: #d97706; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .dash-line-stroke { fill: none; stroke: #c9a227; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #d97706; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #d97706; box-shadow: 0 0 0 4px rgba(217,119,6,.22); }
+  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #c9a227; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #c9a227; box-shadow: 0 0 0 4px rgba(201,162,39,.22); }
   .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
