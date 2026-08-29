@@ -1401,30 +1401,10 @@ data() {
         });
       },
       dashTrendLinePath() {
-        // เส้นโค้งนุ่ม (Catmull-Rom → cubic bezier) ให้ได้ทรงเดียวกับกราฟตัวอย่าง
-        const pts = this.dashTrendPoints;
-        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
-        const t = 0.18; // ความนุ่มของเส้นโค้ง (มาก = โค้งเยอะ)
-        let d = `M${pts[0].x},${pts[0].y}`;
-        for (let i = 0; i < pts.length - 1; i++) {
-          const p0 = pts[i - 1] || pts[i];
-          const p1 = pts[i];
-          const p2 = pts[i + 1];
-          const p3 = pts[i + 2] || p2;
-          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
-          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
-          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
-        }
-        return d;
-      },
-      dashTrendAreaPath() {
+        // เส้นตรงต่อจุด (polyline) แบบกราฟการเงินตัวอย่าง — ไม่ปัดโค้ง
         const pts = this.dashTrendPoints;
         if (!pts.length) return '';
-        const h = 200, padY = 20;
-        const line = this.dashTrendLinePath;
-        const last = pts[pts.length - 1];
-        const first = pts[0];
-        return `${line} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
+        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
       },
       dashTrendPoints2() {
         const data = this.dashTrendChartData2;
@@ -1441,24 +1421,8 @@ data() {
       },
       dashTrendLinePath2() {
         const pts = this.dashTrendPoints2;
-        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
-        const t = 0.18;
-        let d = `M${pts[0].x},${pts[0].y}`;
-        for (let i = 0; i < pts.length - 1; i++) {
-          const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
-          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
-          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
-        }
-        return d;
-      },
-      dashTrendAreaPath2() {
-        const pts = this.dashTrendPoints2;
         if (!pts.length) return '';
-        const h = 200, padY = 20;
-        const last = pts[pts.length - 1];
-        const first = pts[0];
-        return `${this.dashTrendLinePath2} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
+        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
       },
       dashRegularPct() {
         // % ผ้าประจำ (ตัวเลขหลักในเกจ)
@@ -1598,30 +1562,10 @@ data() {
         });
       },
       dashTrendLinePath() {
-        // เส้นโค้งนุ่ม (Catmull-Rom → cubic bezier) ให้ได้ทรงเดียวกับกราฟตัวอย่าง
-        const pts = this.dashTrendPoints;
-        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
-        const t = 0.18; // ความนุ่มของเส้นโค้ง (มาก = โค้งเยอะ)
-        let d = `M${pts[0].x},${pts[0].y}`;
-        for (let i = 0; i < pts.length - 1; i++) {
-          const p0 = pts[i - 1] || pts[i];
-          const p1 = pts[i];
-          const p2 = pts[i + 1];
-          const p3 = pts[i + 2] || p2;
-          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
-          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
-          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
-        }
-        return d;
-      },
-      dashTrendAreaPath() {
+        // เส้นตรงต่อจุด (polyline) แบบกราฟการเงินตัวอย่าง — ไม่ปัดโค้ง
         const pts = this.dashTrendPoints;
         if (!pts.length) return '';
-        const h = 200, padY = 20;
-        const line = this.dashTrendLinePath;
-        const last = pts[pts.length - 1];
-        const first = pts[0];
-        return `${line} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
+        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
       },
       dashTrendPoints2() {
         const data = this.dashTrendChartData2;
@@ -1638,24 +1582,8 @@ data() {
       },
       dashTrendLinePath2() {
         const pts = this.dashTrendPoints2;
-        if (pts.length < 2) return pts.length ? `M${pts[0].x},${pts[0].y}` : '';
-        const t = 0.18;
-        let d = `M${pts[0].x},${pts[0].y}`;
-        for (let i = 0; i < pts.length - 1; i++) {
-          const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
-          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
-          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
-        }
-        return d;
-      },
-      dashTrendAreaPath2() {
-        const pts = this.dashTrendPoints2;
         if (!pts.length) return '';
-        const h = 200, padY = 20;
-        const last = pts[pts.length - 1];
-        const first = pts[0];
-        return `${this.dashTrendLinePath2} L${last.x},${h - padY} L${first.x},${h - padY} Z`;
+        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
       },
       dashRegularPct() {
         // % ผ้าประจำ (ตัวเลขหลักในเกจ)
@@ -4215,13 +4143,15 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-area-fill { fill: url(#dashTrendGradA); }
-  .dash-area-fill-2 { fill: url(#dashTrendGradB); }
   .dash-line-stroke { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
+  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
+  .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
+  .dash-point-label { position: absolute; font-size: 9px; font-weight: 700; white-space: nowrap; pointer-events: none; }
+  .dash-point-label-above { transform: translate(-50%, -18px); color: #0d9488; }
+  .dash-point-label-below { transform: translate(-50%, 9px); color: #3b6ef5; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
@@ -4613,13 +4543,15 @@ data() {
   .dash-linechart-plot { position: relative; flex: 1; min-height: 0; overflow: hidden; }
   .dash-line-svg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto; }
   .dash-grid-line { stroke: var(--field-border); stroke-width: 1; }
-  .dash-area-fill { fill: url(#dashTrendGradA); }
-  .dash-area-fill-2 { fill: url(#dashTrendGradB); }
   .dash-line-stroke { fill: none; stroke: #14b8a6; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
   .dash-line-stroke-2 { fill: none; stroke: #3b6ef5; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
   .dash-line-dots { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-  .dash-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
-  .dash-dot:hover, .dash-dot.is-active { width: 13px; height: 13px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
+  .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
+  .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
+  .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
+  .dash-point-label { position: absolute; font-size: 9px; font-weight: 700; white-space: nowrap; pointer-events: none; }
+  .dash-point-label-above { transform: translate(-50%, -18px); color: #0d9488; }
+  .dash-point-label-below { transform: translate(-50%, 9px); color: #3b6ef5; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;

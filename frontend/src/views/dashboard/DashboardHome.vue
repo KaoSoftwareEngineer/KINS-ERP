@@ -157,31 +157,23 @@
             <div class="dash-linechart">
               <div class="dash-linechart-plot">
                 <svg viewBox="0 0 560 200" preserveAspectRatio="none" class="dash-line-svg">
-                  <defs>
-                    <!-- คลื่นหน้า (เขียวเทอร์คอยส์) — ลงสีเต็มโทนแบบภาพตัวอย่าง -->
-                    <linearGradient id="dashTrendGradA" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.6" />
-                      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.04" />
-                    </linearGradient>
-                    <!-- คลื่นหลัง (ฟ้า) -->
-                    <linearGradient id="dashTrendGradB" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#4f7cf7" stop-opacity="0.62" />
-                      <stop offset="100%" stop-color="#4f7cf7" stop-opacity="0.05" />
-                    </linearGradient>
-                  </defs>
                   <line v-for="(gl, gi) in dash.dashTrendGridLines" :key="gi" x1="52" x2="544" :y1="gl.y" :y2="gl.y" class="dash-grid-line" />
-                  <!-- คลื่นหลัง (ฟ้า) วาดก่อน แล้วคลื่นหน้า (เขียว) ทับแบบโปร่งให้เห็นซ้อนกัน -->
-                  <path :d="dash.dashTrendAreaPath2" class="dash-area-fill-2" />
+                  <!-- เส้นตรงล้วน ไม่ลงสีพื้นที่ใต้เส้น แบบกราฟการเงินตัวอย่าง -->
                   <path :d="dash.dashTrendLinePath2" class="dash-line-stroke-2" vector-effect="non-scaling-stroke" />
-                  <path :d="dash.dashTrendAreaPath" class="dash-area-fill" />
                   <path :d="dash.dashTrendLinePath" class="dash-line-stroke" vector-effect="non-scaling-stroke" />
                 </svg>
-                <!-- จุดกลม (overlay HTML → กลมเสมอ ไม่บิดตาม preserveAspectRatio ของ SVG) -->
+                <!-- จุดข้าวหลามตัด (overlay HTML → ไม่บิดตาม preserveAspectRatio ของ SVG) + ป้ายค่าเหนือ/ใต้จุด -->
                 <div class="dash-line-dots">
+                  <span v-for="(p, i) in dash.dashTrendPoints2" :key="'b' + i" class="dash-dot dash-dot-2"
+                        :style="{ left: p.xPct + '%', top: p.yPct + '%' }"></span>
+                  <span v-for="(p, i) in dash.dashTrendPoints2" :key="'bl' + i" class="dash-point-label dash-point-label-below"
+                        :style="{ left: p.xPct + '%', top: p.yPct + '%' }">{{ p.value >= 1000 ? Math.round(p.value / 1000) + 'k' : p.value }}</span>
                   <span v-for="(p, i) in dash.dashTrendPoints" :key="i" class="dash-dot"
                         :class="{ 'is-active': dash.dashTrendHoverIdx2 === i }"
                         :style="{ left: p.xPct + '%', top: p.yPct + '%' }"
                         @mouseenter="dash.dashTrendHoverIdx2 = i" @mouseleave="dash.dashTrendHoverIdx2 = null"></span>
+                  <span v-for="(p, i) in dash.dashTrendPoints" :key="'al' + i" class="dash-point-label dash-point-label-above"
+                        :style="{ left: p.xPct + '%', top: p.yPct + '%' }">{{ p.value >= 1000 ? Math.round(p.value / 1000) + 'k' : p.value }}</span>
                 </div>
                 <div class="dash-axis-y">
                   <span v-for="(gl, gi) in dash.dashTrendGridLines" :key="gi" :style="{ top: gl.yPct + '%' }">{{ gl.label }}</span>
