@@ -4149,9 +4149,6 @@ data() {
   .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
   .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
   .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
-  .dash-point-label { position: absolute; font-size: 9px; font-weight: 700; white-space: nowrap; pointer-events: none; }
-  .dash-point-label-above { transform: translate(-50%, -18px); color: #0d9488; }
-  .dash-point-label-below { transform: translate(-50%, 9px); color: #3b6ef5; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;
@@ -4549,9 +4546,6 @@ data() {
   .dash-dot { position: absolute; width: 8px; height: 8px; background: var(--surface); border: 2px solid #14b8a6; transform: translate(-50%, -50%) rotate(45deg); cursor: pointer; pointer-events: auto; transition: width .15s, height .15s, box-shadow .15s; }
   .dash-dot:hover, .dash-dot.is-active { width: 11px; height: 11px; background: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.22); }
   .dash-dot-2 { border-color: #3b6ef5; cursor: default; pointer-events: none; }
-  .dash-point-label { position: absolute; font-size: 9px; font-weight: 700; white-space: nowrap; pointer-events: none; }
-  .dash-point-label-above { transform: translate(-50%, -18px); color: #0d9488; }
-  .dash-point-label-below { transform: translate(-50%, 9px); color: #3b6ef5; }
   .dash-axis-y { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
   .dash-axis-y span {
     position: absolute;

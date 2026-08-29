@@ -162,18 +162,14 @@
                   <path :d="dash.dashTrendLinePath2" class="dash-line-stroke-2" vector-effect="non-scaling-stroke" />
                   <path :d="dash.dashTrendLinePath" class="dash-line-stroke" vector-effect="non-scaling-stroke" />
                 </svg>
-                <!-- จุดข้าวหลามตัด (overlay HTML → ไม่บิดตาม preserveAspectRatio ของ SVG) + ป้ายค่าเหนือ/ใต้จุด -->
+                <!-- จุดข้าวหลามตัด (overlay HTML → ไม่บิดตาม preserveAspectRatio ของ SVG) -->
                 <div class="dash-line-dots">
                   <span v-for="(p, i) in dash.dashTrendPoints2" :key="'b' + i" class="dash-dot dash-dot-2"
                         :style="{ left: p.xPct + '%', top: p.yPct + '%' }"></span>
-                  <span v-for="(p, i) in dash.dashTrendPoints2" :key="'bl' + i" class="dash-point-label dash-point-label-below"
-                        :style="{ left: p.xPct + '%', top: p.yPct + '%' }">{{ p.value >= 1000 ? Math.round(p.value / 1000) + 'k' : p.value }}</span>
                   <span v-for="(p, i) in dash.dashTrendPoints" :key="i" class="dash-dot"
                         :class="{ 'is-active': dash.dashTrendHoverIdx2 === i }"
                         :style="{ left: p.xPct + '%', top: p.yPct + '%' }"
                         @mouseenter="dash.dashTrendHoverIdx2 = i" @mouseleave="dash.dashTrendHoverIdx2 = null"></span>
-                  <span v-for="(p, i) in dash.dashTrendPoints" :key="'al' + i" class="dash-point-label dash-point-label-above"
-                        :style="{ left: p.xPct + '%', top: p.yPct + '%' }">{{ p.value >= 1000 ? Math.round(p.value / 1000) + 'k' : p.value }}</span>
                 </div>
                 <div class="dash-axis-y">
                   <span v-for="(gl, gi) in dash.dashTrendGridLines" :key="gi" :style="{ top: gl.yPct + '%' }">{{ gl.label }}</span>
