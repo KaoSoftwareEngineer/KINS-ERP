@@ -88,7 +88,6 @@ export const PERM_ACCESS = [
   {
     key: 'grp.order', label: 'จัดการออร์เดอร์',
     children: [
-      { key: 'order-leads', label: 'รับออเดอร์เข้า (รวมช่องทาง)' },
       { key: 'order-receive', label: 'รับออร์เดอร์' },
       { key: 'order-fulfill', label: 'จัดออร์เดอร์' },
       { key: 'invoice-open', label: 'เปิดอินวอยส์' },
@@ -179,7 +178,7 @@ export const ROLE_PRESETS = [
   },
   {
     key: 'order', label: 'ฝ่ายรับออเดอร์', desc: 'รับออร์เดอร์ เปิดอินวอยส์ สัญญาขาย',
-    presetKeys: ['order-leads', 'order-receive', 'order-fulfill', 'invoice-open', 'invoice-return',
+    presetKeys: ['order-receive', 'order-fulfill', 'invoice-open', 'invoice-return',
       'sales-contract', 'customers', 'fabric-regular', 'fabric-irregular',
       'report-order', 'report-sales', 'report-sales-contract'],
   },

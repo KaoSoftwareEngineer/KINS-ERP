@@ -784,48 +784,6 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
-  // ---- ลิงก์ออร์เดอร์กลับไปหาช่องทางที่ลูกค้าทักเข้ามา (ถ้าแปลงมาจากออเดอร์เข้า) ----
-  await ensureColumn('orders', 'channel', "VARCHAR(20) DEFAULT ''");
-  await ensureColumn('orders', 'lead_id', 'INT NULL');
-
-  // ---- ออเดอร์เข้า (order_leads) — รวมออเดอร์จากทุกช่องทาง (Line/WhatsApp/Facebook/โทร/หน้าร้าน) กันตกหล่น ----
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS order_leads (
-      id            INT AUTO_INCREMENT PRIMARY KEY,
-      channel       VARCHAR(20) NOT NULL DEFAULT 'other',
-      customer_name VARCHAR(255) NOT NULL DEFAULT '',
-      contact       VARCHAR(255) DEFAULT '',
-      message       TEXT,
-      urgent        TINYINT DEFAULT 0,
-      status        VARCHAR(20) NOT NULL DEFAULT 'new',
-      assigned_to   VARCHAR(255) DEFAULT '',
-      order_no      VARCHAR(191) DEFAULT '',
-      created_by    VARCHAR(255) DEFAULT '',
-      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-  `);
-  // เก็บ LINE user id (ไว้ตอบกลับถึงลูกค้า) + ประวัติแชท (JSON) + สลิปแนบล่าสุด
-  await ensureColumn('order_leads', 'line_user_id', "VARCHAR(64) DEFAULT ''");
-  await ensureColumn('order_leads', 'reply_log', 'MEDIUMTEXT');
-  await ensureColumn('order_leads', 'slip_url', "VARCHAR(255) DEFAULT ''");
-  // บิล/ลิงก์ชำระเงิน (ปิดวงจรเก็บเงิน): รายการบิล + ยอด + token ลิงก์สาธารณะ + สถานะจ่าย
-  await ensureColumn('order_leads', 'bill_items', 'MEDIUMTEXT');
-  await ensureColumn('order_leads', 'bill_amount', 'DOUBLE DEFAULT 0');
-  await ensureColumn('order_leads', 'pay_token', 'VARCHAR(64) NULL');
-  await ensureColumn('order_leads', 'pay_status', "VARCHAR(20) DEFAULT 'none'");
-  await ensureColumn('order_leads', 'paid_at', 'DATETIME NULL');
-  await ensureColumn('order_leads', 'pay_check', 'MEDIUMTEXT');   // ผลตรวจสลิปอัตโนมัติ (SlipOK) เก็บเป็น JSON
-
-  // ---- ค่าตั้งค่าระบบแบบ key-value (เช่น เลข PromptPay ของร้าน) ----
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS app_settings (
-      k          VARCHAR(64) PRIMARY KEY,
-      v          TEXT,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-  `);
-
   // ---- คอลัมน์เสริมสำหรับหน้ารายงาน (สถานะใบสั่งย้อม / ยอดชำระอินวอยส์) ----
   await ensureColumn('dye_orders', 'status', "VARCHAR(32) DEFAULT ''");            // Pending/Received Complete/Canceled ฯลฯ (ถ้าตั้งไว้ใช้ตรงๆ)
   await ensureColumn('sale_invoices', 'order_ref', "VARCHAR(64) DEFAULT ''");      // เผื่อฐานเก่ายังไม่มี

@@ -43,7 +43,6 @@ import PoFabricRawPage from './dashboard/PoFabricRawPage.vue';
 import PoDyeOrderPage from './dashboard/PoDyeOrderPage.vue';
 import StockGenericPage from './dashboard/StockGenericPage.vue';
 import VatGenericPage from './dashboard/VatGenericPage.vue';
-import OrderLeadsPage from './dashboard/OrderLeadsPage.vue';
 import OrderReceivePage from './dashboard/OrderReceivePage.vue';
 import OrderFulfillPage from './dashboard/OrderFulfillPage.vue';
 import OrderFulfillDetailPage from './dashboard/OrderFulfillDetailPage.vue';
@@ -140,7 +139,6 @@ export default {
     PoDyeOrderPage,
     StockGenericPage,
     VatGenericPage,
-    OrderLeadsPage,
     OrderReceivePage,
     OrderFulfillPage,
     OrderFulfillDetailPage,
@@ -192,8 +190,6 @@ export default {
   },
 data() {
       return {
-        // จำนวนออเดอร์เข้าใหม่ (order_leads สถานะ 'new') — โชว์เป็น badge แดงที่เมนู กันตกหล่น
-        orderLeadsNewCount: 0,
         // fb / fbAskState ย้ายไปที่ ui store (เป็น computed proxy ด้านล่าง)
         // ===== โมดัลสิทธิ์การเข้าใช้งาน =====
         pmShow: false,
@@ -1852,7 +1848,6 @@ data() {
         if (cp === 'analytics') return [home, g.analytics];
         if (cp === 'settings') return [home, g.settingsTitle];
         if (cp === 'sales-contract') return [home, g.salesContractTitle];
-        if (cp === 'order-leads') return [home, this.lang === 'th' ? 'รับออเดอร์เข้า (รวมช่องทาง)' : 'Incoming Orders'];
         if (this.basicDataPages[cp] || cp === 'fabric-regular' || cp === 'fabric-irregular' || cp === 'customers') {
           return [home, g.groupBasicData, this.pageTitle(cp)];
         }
@@ -1893,7 +1888,6 @@ data() {
       } catch (e) {}
       this.loadMembers();
       this.order.loadOrders();
-      this.refreshOrderLeadsCount();
       this.loadLowStock();
       this.loadDashboardStats();   // สถิติจริงของแดชบอร์ด
       this.loadMe();      // โหลด role ตัวเองล่าสุด (โปรไฟล์/สิทธิ์)
@@ -2867,14 +2861,6 @@ data() {
           d.saving = false;
         }
       },
-      async refreshOrderLeadsCount() {
-        try {
-          const res = await fetch(API + '/api/order-leads?status=new', { headers: { Authorization: 'Bearer ' + this.token } });
-          if (res.status === 401) return;
-          const d = await res.json();
-          if (d.ok) this.orderLeadsNewCount = d.total || 0;
-        } catch (e) { /* เชื่อมต่อไม่ได้ */ }
-      },
       pipelineBadgeCount(key) {
         const o = this.order.ofOrders;
         if (key === 'order-receive') return o.filter(x => !x.vatDone).length;
@@ -3670,13 +3656,6 @@ data() {
           <span>{{ t[lang].dashboard }}</span>
         </div>
 
-        <!-- ====== รับออเดอร์เข้า (รวมทุกช่องทาง) — เมนูเดี่ยว ให้เห็นชัด กันออเดอร์ตกหล่น ====== -->
-        <div class="menu-item" v-if="canAccess('order-leads')" :class="{ active: currentPage === 'order-leads' }" @click="currentPage = 'order-leads'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5.17L4 17.17V4z"/><path d="M8 9h8M8 12h5"/></svg>
-          <span>{{ lang === 'th' ? 'รับออเดอร์เข้า' : 'Incoming Orders' }}</span>
-          <span v-if="orderLeadsNewCount > 0" class="menu-badge">{{ orderLeadsNewCount }}</span>
-        </div>
-
         <!-- ====== ข้อมูลพื้นฐาน (เมนูหลัก + เมนูย่อย) ====== -->
         <div class="menu-group" v-if="menuGroupVisible(basicDataMenu)">
           <div class="menu-item menu-group-header"
@@ -3990,9 +3969,6 @@ data() {
       <VatInvoicePage v-else-if="currentPage === 'vat-invoice'" />
       <VatInvoiceCutPage v-else-if="currentPage === 'vat-stock-cut-from-invoice'" />
       <VatGenericPage v-else-if="vatPages[currentPage]" />
-
-      <!-- ============ รับออเดอร์เข้า (รวมทุกช่องทาง) ============ -->
-      <OrderLeadsPage v-else-if="currentPage === 'order-leads'" />
 
       <!-- ============ รับออร์เดอร์ (Order Entry Form) ============ -->
       <OrderReceivePage v-else-if="currentPage === 'order-receive'" />
