@@ -121,7 +121,8 @@
             <td><strong>{{ item.sku }}</strong></td>
             <td>
               <button class="fr-color-badge" @click="dash.fiOpenShades(item)" title="จัดการเฉดสี">
-                {{ item.colors }} 🎨
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.85"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a1 1 0 0 1 1-1h9"/></svg>
+                {{ item.colors }}
               </button>
             </td>
             <td class="fr-td-wrap"><span class="fr-clamp">{{ item.name }}</span></td>

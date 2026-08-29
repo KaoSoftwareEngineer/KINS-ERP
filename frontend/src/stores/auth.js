@@ -62,6 +62,9 @@ export const useAuthStore = defineStore('auth', {
       if (allowed === null) return true;
       if (['dashboard', 'analytics', 'settings'].includes(key)) return true;
       if (typeof key === 'string' && key.startsWith('grp.')) return true;
+      // "รับออเดอร์เข้า" (รวมช่องทาง) เป็นเวิร์กโฟลว์เดียวกับ "รับออร์เดอร์" —
+      // ใครมีสิทธิ์ order-leads เอง หรือมีสิทธิ์รับออร์เดอร์อยู่แล้ว ก็เข้าถึงได้ (กันสิทธิ์เก่าที่บันทึกก่อนเพิ่มเมนูนี้)
+      if (key === 'order-leads') return allowed.has('order-leads') || allowed.has('order-receive');
       // หน้าย่อยใช้สิทธิ์ของหน้าแม่ (เช่น จัดออร์เดอร์ → หน้าตัดผ้า)
       const subPageParent = { 'order-fulfill-detail': 'order-fulfill' };
       if (subPageParent[key]) return allowed.has(subPageParent[key]);

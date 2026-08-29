@@ -782,6 +782,63 @@ async function initTables() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
 
+  // ---- ลิงก์ออร์เดอร์กลับไปหาช่องทางที่ลูกค้าทักเข้ามา (ถ้าแปลงมาจากออเดอร์เข้า) ----
+  await ensureColumn('orders', 'channel', "VARCHAR(20) DEFAULT ''");
+  await ensureColumn('orders', 'lead_id', 'INT NULL');
+
+  // ---- ออเดอร์เข้า (order_leads) — รวมออเดอร์จากทุกช่องทาง (Line/WhatsApp/Facebook/โทร/หน้าร้าน) กันตกหล่น ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS order_leads (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      channel       VARCHAR(20) NOT NULL DEFAULT 'other',
+      customer_name VARCHAR(255) NOT NULL DEFAULT '',
+      contact       VARCHAR(255) DEFAULT '',
+      message       TEXT,
+      urgent        TINYINT DEFAULT 0,
+      status        VARCHAR(20) NOT NULL DEFAULT 'new',
+      assigned_to   VARCHAR(255) DEFAULT '',
+      order_no      VARCHAR(191) DEFAULT '',
+      created_by    VARCHAR(255) DEFAULT '',
+      created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  // เก็บ LINE user id (ไว้ตอบกลับถึงลูกค้า) + ประวัติแชท (JSON) + สลิปแนบล่าสุด
+  await ensureColumn('order_leads', 'line_user_id', "VARCHAR(64) DEFAULT ''");
+  await ensureColumn('order_leads', 'reply_log', 'MEDIUMTEXT');
+  await ensureColumn('order_leads', 'slip_url', "VARCHAR(255) DEFAULT ''");
+  // บิล/ลิงก์ชำระเงิน (ปิดวงจรเก็บเงิน): รายการบิล + ยอด + token ลิงก์สาธารณะ + สถานะจ่าย
+  await ensureColumn('order_leads', 'bill_items', 'MEDIUMTEXT');
+  await ensureColumn('order_leads', 'bill_amount', 'DOUBLE DEFAULT 0');
+  await ensureColumn('order_leads', 'pay_token', 'VARCHAR(64) NULL');
+  await ensureColumn('order_leads', 'pay_status', "VARCHAR(20) DEFAULT 'none'");
+  await ensureColumn('order_leads', 'paid_at', 'DATETIME NULL');
+  await ensureColumn('order_leads', 'pay_check', 'MEDIUMTEXT');   // ผลตรวจสลิปอัตโนมัติ (SlipOK) เก็บเป็น JSON
+
+  // ---- ค่าตั้งค่าระบบแบบ key-value (เช่น เลข PromptPay ของร้าน) ----
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      k          VARCHAR(64) PRIMARY KEY,
+      v          TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+
+  // ---- คอลัมน์เสริมสำหรับหน้ารายงาน (สถานะใบสั่งย้อม / ยอดชำระอินวอยส์) ----
+  await ensureColumn('dye_orders', 'status', "VARCHAR(32) DEFAULT ''");            // Pending/Received Complete/Canceled ฯลฯ (ถ้าตั้งไว้ใช้ตรงๆ)
+  await ensureColumn('sale_invoices', 'order_ref', "VARCHAR(64) DEFAULT ''");      // เผื่อฐานเก่ายังไม่มี
+  await ensureColumn('sale_invoices', 'due_date', "VARCHAR(20) DEFAULT ''");       // วันครบกำหนด
+  await ensureColumn('sale_invoices', 'total_amount', 'DOUBLE DEFAULT 0');         // ยอดรวม
+  await ensureColumn('sale_invoices', 'paid_amount', 'DOUBLE DEFAULT 0');          // ชำระแล้ว
+  await ensureColumn('sale_invoices', 'pay_status', "VARCHAR(32) DEFAULT ''");     // ชำระแล้ว/ชำระบางส่วน/ยังไม่ชำระ/ยกเลิก
+  await ensureColumn('sale_invoices', 'total_cost', 'DOUBLE DEFAULT 0');           // ต้นทุนรวม (สำหรับรายงานกำไร-ขาดทุน)
+  await ensureColumn('purchase_orders', 'status', "VARCHAR(32) DEFAULT ''");       // Pending/Completed/Canceled (ถ้าตั้งไว้ใช้ตรงๆ)
+  await ensureColumn('vat_invoices', 'inv_ref', "VARCHAR(64) DEFAULT ''");         // เลขที่อินวอยส์อ้างอิง
+  await ensureColumn('vat_invoices', 'sale_type', "VARCHAR(24) DEFAULT ''");       // Wholesale/Retail
+  await ensureColumn('vat_invoices', 'vat_cut', "TINYINT DEFAULT 0");              // ตัดสต็อก VAT แล้ว (Yes/No)
+  await ensureColumn('vat_invoices', 'due_date', "VARCHAR(20) DEFAULT ''");        // วันครบกำหนด
+  await ensureColumn('vat_invoices', 'pay_status', "VARCHAR(32) DEFAULT ''");      // สถานะชำระเงิน
+
   // ============================================================
   //  ระบบคลังผ้า (WMS)
   // ============================================================

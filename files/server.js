@@ -10,14 +10,30 @@
 // ============================================================
 
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
 const Anthropic = require('@anthropic-ai/sdk');
 const { OAuth2Client } = require('google-auth-library');
 const { pool: mysqlPool, initTables } = require('./db-mysql');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ---- โฟลเดอร์เก็บไฟล์อัปโหลด (สลิปโอนเงิน ฯลฯ) — เสิร์ฟผ่าน /uploads/... ----
+const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname || '').slice(0, 10);
+      cb(null, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`);
+    },
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+});
 
 // ---- เตรียมตารางทั้งหมดใน MySQL (สร้างอัตโนมัติถ้ายังไม่มี) ----
 initTables()
@@ -58,8 +74,105 @@ function verifyPassword(password, stored) {
 }
 
 app.use(cors());
-app.use(express.json({ limit: '3mb' }));
+// เก็บ raw body ไว้ด้วย — จำเป็นสำหรับตรวจลายเซ็น webhook ของ LINE (HMAC ต้องใช้ body ดิบ)
+app.use(express.json({ limit: '3mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ------------------------------------------------------------
+//  LINE Messaging API — ต่อ LINE Official Account (อ่าน credential จาก .env)
+//  ตั้งค่าใน files/.env:
+//    LINE_CHANNEL_ACCESS_TOKEN=xxxxx   (Long-lived token จาก LINE Developers)
+//    LINE_CHANNEL_SECRET=xxxxx         (Channel secret — ใช้ตรวจลายเซ็น webhook)
+//  แล้วตั้ง Webhook URL ใน LINE Developers เป็น  https://<โดเมนสาธารณะ>/api/line/webhook
+// ------------------------------------------------------------
+const LINE_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
+const LINE_SECRET = process.env.LINE_CHANNEL_SECRET || '';
+const lineConfigured = () => !!(LINE_TOKEN && LINE_SECRET);
+
+// ส่งข้อความหาลูกค้าทาง LINE (push) — คืน {ok, error?}
+async function linePush(userId, text) {
+  if (!lineConfigured()) return { ok: false, error: 'ยังไม่ได้ตั้งค่า LINE ใน .env' };
+  if (!userId) return { ok: false, error: 'ไม่มี LINE user id ของลูกค้ารายนี้' };
+  try {
+    const res = await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + LINE_TOKEN },
+      body: JSON.stringify({ to: userId, messages: [{ type: 'text', text: String(text).slice(0, 4900) }] }),
+    });
+    if (!res.ok) { const t = await res.text(); return { ok: false, error: `LINE API ${res.status}: ${t.slice(0, 200)}` }; }
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e.message }; }
+}
+
+// ดึงชื่อโปรไฟล์ลูกค้าจาก LINE (ใช้ตอนสร้าง lead อัตโนมัติ)
+async function lineProfileName(userId) {
+  if (!lineConfigured() || !userId) return '';
+  try {
+    const res = await fetch('https://api.line.me/v2/bot/profile/' + encodeURIComponent(userId), {
+      headers: { Authorization: 'Bearer ' + LINE_TOKEN },
+    });
+    if (!res.ok) return '';
+    const d = await res.json();
+    return d.displayName || '';
+  } catch (e) { return ''; }
+}
+
+// ตรวจลายเซ็น webhook ว่ามาจาก LINE จริง
+function lineVerifySignature(req) {
+  if (!LINE_SECRET || !req.rawBody) return false;
+  const sig = crypto.createHmac('sha256', LINE_SECRET).update(req.rawBody).digest('base64');
+  return sig === (req.headers['x-line-signature'] || '');
+}
+
+// ---- Webhook: LINE เรียกเข้ามาเมื่อมีลูกค้าทัก → สร้าง/อัปเดต "ออเดอร์เข้า" อัตโนมัติ ----
+//  ไม่ใช้ wrap()/auth (LINE เรียกเข้ามาเอง) และ wrap ยังไม่ถูกประกาศ ณ จุดนี้ — จับ error เอง
+app.post('/api/line/webhook', async (req, res) => {
+ try {
+  // ตอบ 200 ให้ LINE ทันทีเสมอ (ไม่งั้น LINE จะ retry) แล้วค่อยประมวลผล
+  res.status(200).json({ ok: true });
+  if (!lineConfigured() || !lineVerifySignature(req)) return;
+  const events = (req.body && req.body.events) || [];
+  for (const ev of events) {
+    if (ev.type !== 'message') continue;
+    const userId = ev.source && ev.source.userId;
+    if (!userId) continue;
+    const m = ev.message || {};
+    // หา lead ที่ยังเปิดอยู่ของลูกค้ารายนี้ (ยังไม่แปลง/ยกเลิก) เพื่อรวมข้อความไว้ที่เดียว
+    const [openRows] = await mysqlPool.query(
+      "SELECT * FROM order_leads WHERE line_user_id = ? AND status IN ('new','confirmed') ORDER BY id DESC LIMIT 1", [userId]
+    );
+    let lead = openRows[0];
+    const incoming = m.type === 'text' ? (m.text || '') : `[${m.type}]`;
+    if (!lead) {
+      const name = (await lineProfileName(userId)) || 'ลูกค้า LINE';
+      const log = JSON.stringify([{ dir: 'in', text: incoming, at: new Date().toISOString() }]);
+      await mysqlPool.query(
+        `INSERT INTO order_leads (channel, customer_name, contact, message, status, line_user_id, reply_log)
+         VALUES ('line', ?, ?, ?, 'new', ?, ?)`,
+        [name, userId, incoming, userId, log]
+      );
+    } else {
+      let log = [];
+      try { log = JSON.parse(lead.reply_log || '[]'); } catch (e) {}
+      log.push({ dir: 'in', text: incoming, at: new Date().toISOString() });
+      const newMsg = (lead.message ? lead.message + '\n' : '') + incoming;
+      await mysqlPool.query('UPDATE order_leads SET message = ?, reply_log = ? WHERE id = ?', [newMsg.slice(0, 4000), JSON.stringify(log), lead.id]);
+    }
+    // ถ้าเป็นรูป (สลิป) — ดึงไฟล์จาก LINE มาเก็บไว้ดูได้
+    if (m.type === 'image') {
+      try {
+        const r = await fetch('https://api-data.line.me/v2/bot/message/' + m.id + '/content', { headers: { Authorization: 'Bearer ' + LINE_TOKEN } });
+        if (r.ok) {
+          const buf = Buffer.from(await r.arrayBuffer());
+          const fn = `line-${Date.now()}-${crypto.randomBytes(4).toString('hex')}.jpg`;
+          fs.writeFileSync(path.join(UPLOAD_DIR, fn), buf);
+          await mysqlPool.query("UPDATE order_leads SET slip_url = ? WHERE line_user_id = ? AND status IN ('new','confirmed') ORDER BY id DESC LIMIT 1", [`/uploads/${fn}`, userId]).catch(() => {});
+        }
+      } catch (e) {}
+    }
+  }
+ } catch (err) { console.error('LINE webhook error:', err.message); }
+});
 
 // ------------------------------------------------------------
 //  สมัครสมาชิก
@@ -292,6 +405,12 @@ async function auth(req, res, next) {
 const wrap = (fn) => (req, res) => fn(req, res).catch((err) => {
   console.error(err);
   res.status(500).json({ ok: false, message: 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ' });
+});
+
+// ---- อัปโหลดไฟล์ทั่วไป (สลิปโอนเงิน ฯลฯ) — คืน url ให้เก็บลง DB ---
+app.post('/api/uploads', auth, upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ ok: false, message: 'ไม่พบไฟล์ที่อัปโหลด' });
+  res.json({ ok: true, url: `/uploads/${req.file.filename}`, filename: req.file.originalname });
 });
 
 // ---- สิทธิ์จัดการบัญชีผู้อื่น (ตามตำแหน่ง) ----
@@ -1335,6 +1454,11 @@ app.put('/api/fabric-irregular-group/:id/shades', auth, wrap(async (req, res) =>
 // ============================================================
 app.get('/api/fabrics', auth, wrap(async (req, res) => {
   const [fabrics] = await mysqlPool.query('SELECT * FROM fabrics ORDER BY id DESC');
+  // นับ "จำนวนสี" สดจากตาราง fabric_shades จริง — กันค่าที่เก็บใน fabrics.colors ค้าง/ไม่ตรง
+  // (เช่น เพิ่มเฉดสีผ่านสคริปต์ seed ที่ไม่ได้อัปเดตคอลัมน์ colors) ถ้าไม่มีแถวเฉดสีเลยใช้ค่าที่เก็บไว้
+  const [counts] = await mysqlPool.query('SELECT fabric_id, COUNT(*) AS n FROM fabric_shades GROUP BY fabric_id');
+  const cmap = new Map(counts.map(c => [c.fabric_id, c.n]));
+  for (const f of fabrics) { const n = cmap.get(f.id); if (n > 0) f.colors = n; }
   res.json({ ok: true, total: fabrics.length, fabrics });
 }));
 
@@ -2367,7 +2491,11 @@ app.post('/api/order-issue', auth, wrap(async (req, res) => {
 //  สัญญาขาย (Sales Contract)
 // ============================================================
 app.get('/api/sales-contracts', auth, wrap(async (req, res) => {
-  const [contracts] = await mysqlPool.query('SELECT * FROM sales_contracts ORDER BY sc_id DESC LIMIT 500');
+  // แนบยอดจำนวนรวมต่อสัญญา (สำหรับหน้ารายงาน) — คำนวณครั้งเดียวด้วย subquery
+  const [contracts] = await mysqlPool.query(
+    `SELECT sc.*, (SELECT COALESCE(SUM(i.qty),0) FROM sales_contract_items i WHERE i.sc_id = sc.sc_id) AS total_qty
+     FROM sales_contracts sc ORDER BY sc.sc_id DESC LIMIT 500`
+  );
   res.json({ ok: true, total: contracts.length, contracts });
 }));
 
@@ -2564,6 +2692,234 @@ app.post('/api/goods-receipts', auth, wrap(async (req, res) => {
 }));
 
 // ============================================================
+//  ออเดอร์เข้า (order_leads) — รวมออเดอร์จากทุกช่องทาง (Line/WhatsApp/Facebook/โทร/หน้าร้าน)
+//  กันตกหล่น: บันทึกทันทีที่ลูกค้าทักมา ไม่ว่าช่องทางไหน แล้วติดตามสถานะจนกว่าจะแปลงเป็นออร์เดอร์จริง
+// ============================================================
+app.get('/api/order-leads', auth, wrap(async (req, res) => {
+  const status = (req.query.status || '').toString().trim();
+  const [rows] = status
+    ? await mysqlPool.query('SELECT * FROM order_leads WHERE status = ? ORDER BY id DESC', [status])
+    : await mysqlPool.query('SELECT * FROM order_leads ORDER BY id DESC');
+  res.json({ ok: true, total: rows.length, leads: rows, lineConfigured: lineConfigured() });
+}));
+
+app.post('/api/order-leads', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  const customerName = (b.customerName || '').trim();
+  if (!customerName) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อลูกค้า' });
+  const [info] = await mysqlPool.query(
+    `INSERT INTO order_leads (channel, customer_name, contact, message, urgent, status, assigned_to, created_by)
+     VALUES (:channel, :customer_name, :contact, :message, :urgent, 'new', :assigned_to, :created_by)`,
+    {
+      channel: b.channel || 'other', customer_name: customerName, contact: b.contact || '', message: b.message || '',
+      urgent: b.urgent ? 1 : 0, assigned_to: b.assignedTo || '', created_by: b.createdBy || '',
+    }
+  );
+  const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [info.insertId]);
+  res.json({ ok: true, message: 'บันทึกออเดอร์เข้าแล้ว', lead });
+}));
+
+app.put('/api/order-leads/:id', auth, wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  const [rows] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  const existing = rows[0];
+  if (!existing) return res.status(404).json({ ok: false, message: 'ไม่พบรายการนี้' });
+  const b = req.body || {};
+  // แก้ไขได้ทุกช่องในหน้าเดียว: สถานะ/ผู้รับผิดชอบ + เนื้อหาที่จดผิด (ช่องทาง/ชื่อลูกค้า/ผู้ติดต่อ/ข้อความ/ด่วน)
+  await mysqlPool.query(
+    `UPDATE order_leads SET status=:status, assigned_to=:assigned_to, order_no=:order_no,
+       channel=:channel, customer_name=:customer_name, contact=:contact, message=:message, urgent=:urgent WHERE id=:id`,
+    {
+      id,
+      status: b.status || existing.status,
+      assigned_to: b.assignedTo !== undefined ? b.assignedTo : existing.assigned_to,
+      order_no: b.orderNo !== undefined ? b.orderNo : existing.order_no,
+      channel: b.channel !== undefined ? b.channel : existing.channel,
+      customer_name: b.customerName !== undefined ? (b.customerName || '').trim() || existing.customer_name : existing.customer_name,
+      contact: b.contact !== undefined ? b.contact : existing.contact,
+      message: b.message !== undefined ? b.message : existing.message,
+      urgent: b.urgent !== undefined ? (b.urgent ? 1 : 0) : existing.urgent,
+    }
+  );
+  const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  res.json({ ok: true, message: 'อัปเดตแล้ว', lead });
+}));
+
+// ---- ตอบกลับลูกค้าจากในหน้านี้ (ส่งเข้า LINE ถ้าเป็น lead จาก LINE + ตั้งค่า .env แล้ว) ----
+//  ทุกกรณีบันทึกลง reply_log เพื่อเก็บประวัติแชทไว้ที่เดียว
+app.post('/api/order-leads/:id/reply', auth, wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  const text = ((req.body && req.body.text) || '').trim();
+  if (!text) return res.status(400).json({ ok: false, message: 'กรุณาพิมพ์ข้อความตอบกลับ' });
+  const [rows] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  const lead = rows[0];
+  if (!lead) return res.status(404).json({ ok: false, message: 'ไม่พบรายการนี้' });
+
+  let sent = false, sendError = '';
+  if (lead.channel === 'line' && lead.line_user_id) {
+    const r = await linePush(lead.line_user_id, text);
+    sent = r.ok; sendError = r.error || '';
+  } else if (lead.channel === 'line') {
+    sendError = 'ออเดอร์นี้ไม่มี LINE user id (ต้องเป็นออเดอร์ที่ลูกค้าทักเข้า LINE OA ผ่าน webhook)';
+  } else {
+    sendError = 'ช่องทางนี้ยังไม่รองรับส่งอัตโนมัติ — บันทึกเป็นบันทึกภายในให้แล้ว';
+  }
+
+  let log = [];
+  try { log = JSON.parse(lead.reply_log || '[]'); } catch (e) {}
+  log.push({ dir: 'out', text, at: new Date().toISOString(), sent });
+  await mysqlPool.query('UPDATE order_leads SET reply_log = ? WHERE id = ?', [JSON.stringify(log), id]);
+
+  const [[updated]] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  res.json({ ok: true, sent, sendError, lead: updated, lineConfigured: lineConfigured() });
+}));
+
+// ============================================================
+//  บิล/ชำระเงินของออเดอร์เข้า (ปิดวงจร: สร้างลิงก์บิล → ลูกค้าดู QR + อัปสลิป → ร้านยืนยัน)
+// ============================================================
+// ---- ค่าตั้งค่าเล็กๆ (key-value) เช่น เลข PromptPay ของร้าน ----
+async function getSetting(k, def = '') {
+  try { const [[r]] = await mysqlPool.query('SELECT v FROM app_settings WHERE k = ?', [k]); return r ? (r.v || '') : def; }
+  catch (e) { return def; }
+}
+async function setSetting(k, v) {
+  await mysqlPool.query('INSERT INTO app_settings (k, v) VALUES (?, ?) ON DUPLICATE KEY UPDATE v = VALUES(v)', [k, v]);
+}
+app.get('/api/settings/promptpay', auth, wrap(async (req, res) => {
+  res.json({ ok: true, promptpayId: await getSetting('promptpay_id'), promptpayName: await getSetting('promptpay_name') });
+}));
+app.put('/api/settings/promptpay', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  await setSetting('promptpay_id', (b.promptpayId || '').toString().trim());
+  await setSetting('promptpay_name', (b.promptpayName || '').toString().trim());
+  res.json({ ok: true, message: 'บันทึกเลข PromptPay แล้ว' });
+}));
+// ---- ตั้งค่า SlipOK (ตรวจสลิปอัตโนมัติ) — ปล่อยว่าง = ปิด (ใช้ยืนยันเอง) ----
+app.get('/api/settings/slipok', auth, wrap(async (req, res) => {
+  const key = await getSetting('slipok_api_key');
+  res.json({ ok: true, branchId: await getSetting('slipok_branch_id'), hasKey: !!key, keyMasked: key ? ('•'.repeat(Math.max(0, key.length - 4)) + key.slice(-4)) : '' });
+}));
+app.put('/api/settings/slipok', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  if (b.apiKey !== undefined) await setSetting('slipok_api_key', (b.apiKey || '').toString().trim());
+  await setSetting('slipok_branch_id', (b.branchId || '').toString().trim());
+  res.json({ ok: true, message: 'บันทึกการตั้งค่า SlipOK แล้ว' });
+}));
+
+// ---- ตรวจสลิปอัตโนมัติผ่าน SlipOK (ส่งรูปสลิป + ยอดที่คาดหวัง) ----
+//  คืน { verified, paid, amount, message, ref, duplicate, raw } — ไม่ throw (พังแล้วให้ตกไปยืนยันเอง)
+async function verifySlipOK(filePath, expectedAmount) {
+  const apiKey = await getSetting('slipok_api_key');
+  const branchId = await getSetting('slipok_branch_id');
+  if (!apiKey || !branchId) return { verified: false, configured: false, message: 'ยังไม่ได้ตั้งค่า SlipOK' };
+  try {
+    const buf = fs.readFileSync(filePath);
+    const fd = new FormData();
+    fd.append('files', new Blob([buf]), path.basename(filePath));
+    if (expectedAmount) fd.append('amount', String(expectedAmount));
+    fd.append('log', 'true');
+    const resp = await fetch(`https://api.slipok.com/api/line/apikey/${encodeURIComponent(branchId)}`, {
+      method: 'POST',
+      headers: { 'x-authorization': apiKey },
+      body: fd,
+    });
+    const j = await resp.json().catch(() => ({}));
+    const d = j && j.data ? j.data : {};
+    const gotAmount = Number(d.amount || d.paidLocalAmount || 0) || 0;
+    const amountOk = !expectedAmount || Math.abs(gotAmount - Number(expectedAmount)) < 0.01;
+    const isDuplicate = j && (j.code === 1012 || /เคยส่ง|duplicate/i.test(j.message || ''));
+    const success = !!(j && j.success) && !isDuplicate;
+    return {
+      verified: true, configured: true,
+      paid: success && amountOk,
+      amount: gotAmount,
+      amountOk,
+      duplicate: !!isDuplicate,
+      ref: d.transRef || d.transRefNo || '',
+      message: isDuplicate ? 'สลิปนี้เคยใช้แล้ว (กันสลิปซ้ำ)' : (success ? (amountOk ? 'ตรวจสลิปผ่าน ยอดตรง' : `ยอดในสลิป (${gotAmount}) ไม่ตรงกับบิล`) : (j.message || 'ตรวจสลิปไม่ผ่าน')),
+      raw: j,
+    };
+  } catch (e) {
+    return { verified: false, configured: true, message: 'เรียก SlipOK ไม่สำเร็จ: ' + e.message };
+  }
+}
+
+// ---- สร้าง/อัปเดตบิลของ lead แล้วคืนลิงก์ชำระเงินสาธารณะ ----
+app.post('/api/order-leads/:id/bill', auth, wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  if (!lead) return res.status(404).json({ ok: false, message: 'ไม่พบรายการนี้' });
+  const b = req.body || {};
+  const items = (Array.isArray(b.items) ? b.items : [])
+    .map(it => ({ name: (it.name || '').toString().trim(), qty: Number(it.qty) || 0, price: Number(it.price) || 0 }))
+    .filter(it => it.name && it.qty > 0);
+  if (!items.length) return res.status(400).json({ ok: false, message: 'กรุณากรอกรายการอย่างน้อย 1 รายการ (ชื่อ + จำนวน)' });
+  const amount = items.reduce((s, it) => s + it.qty * it.price, 0);
+  const token = lead.pay_token || crypto.randomBytes(12).toString('hex');
+  await mysqlPool.query(
+    "UPDATE order_leads SET bill_items = ?, bill_amount = ?, pay_token = ?, pay_status = IF(pay_status='paid','paid','unpaid') WHERE id = ?",
+    [JSON.stringify(items), amount, token, id]
+  );
+  const [[updated]] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  res.json({ ok: true, message: 'สร้างบิลแล้ว', lead: updated, token, amount });
+}));
+
+// ---- ร้านยืนยันการชำระเงินเอง (หลังตรวจสลิป) ----
+app.post('/api/order-leads/:id/confirm-payment', auth, wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  if (!lead) return res.status(404).json({ ok: false, message: 'ไม่พบรายการนี้' });
+  const paid = req.body && req.body.paid === false ? false : true;
+  await mysqlPool.query('UPDATE order_leads SET pay_status = ?, paid_at = ? WHERE id = ?',
+    [paid ? 'paid' : 'unpaid', paid ? new Date() : null, id]);
+  const [[updated]] = await mysqlPool.query('SELECT * FROM order_leads WHERE id = ?', [id]);
+  res.json({ ok: true, message: paid ? 'ยืนยันชำระเงินแล้ว' : 'ยกเลิกการยืนยัน', lead: updated });
+}));
+
+// ---- [สาธารณะ ไม่ต้องล็อกอิน] หน้าลูกค้าดูบิล + QR ----
+app.get('/api/public/bill/:token', wrap(async (req, res) => {
+  const token = (req.params.token || '').toString().trim();
+  if (!token) return res.status(400).json({ ok: false, message: 'ลิงก์ไม่ถูกต้อง' });
+  const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE pay_token = ?', [token]);
+  if (!lead) return res.status(404).json({ ok: false, message: 'ไม่พบบิลนี้ (ลิงก์อาจหมดอายุหรือถูกยกเลิก)' });
+  let items = []; try { items = JSON.parse(lead.bill_items || '[]'); } catch (e) {}
+  res.json({
+    ok: true,
+    bill: {
+      customerName: lead.customer_name, orderNo: lead.order_no || '',
+      items, amount: Number(lead.bill_amount) || 0, payStatus: lead.pay_status || 'unpaid',
+      slipUrl: lead.slip_url || '',
+      promptpayId: await getSetting('promptpay_id'),
+      promptpayName: await getSetting('promptpay_name'),
+      shopName: await getSetting('shop_name', 'ร้านผ้า'),
+    },
+  });
+}));
+
+// ---- [สาธารณะ] ลูกค้าอัปโหลดสลิป ----
+app.post('/api/public/bill/:token/slip', upload.single('file'), wrap(async (req, res) => {
+  const token = (req.params.token || '').toString().trim();
+  const [[lead]] = await mysqlPool.query('SELECT * FROM order_leads WHERE pay_token = ?', [token]);
+  if (!lead) return res.status(404).json({ ok: false, message: 'ไม่พบบิลนี้' });
+  if (!req.file) return res.status(400).json({ ok: false, message: 'ไม่พบไฟล์สลิป' });
+  const url = `/uploads/${req.file.filename}`;
+  // อัปสลิปแล้ว → ลองตรวจอัตโนมัติผ่าน SlipOK ถ้าตั้งค่าไว้; ผ่าน+ยอดตรง = ตัดยอดเป็น 'paid' อัตโนมัติ
+  // ไม่ผ่าน/ยังไม่ตั้งค่า SlipOK = 'slip_uploaded' (รอร้านยืนยันเอง) — ไม่แกล้งว่าจ่ายแล้ว
+  const check = await verifySlipOK(req.file.path, Number(lead.bill_amount) || 0);
+  const autoPaid = check.configured && check.verified && check.paid;
+  const newStatus = autoPaid ? 'paid' : 'slip_uploaded';
+  await mysqlPool.query(
+    "UPDATE order_leads SET slip_url = ?, pay_check = ?, pay_status = IF(pay_status='paid','paid',?), paid_at = IF(? = 'paid', NOW(), paid_at) WHERE id = ?",
+    [url, JSON.stringify({ at: new Date().toISOString(), ...check, raw: undefined }), newStatus, newStatus, lead.id]
+  );
+  res.json({
+    ok: true,
+    message: autoPaid ? 'ตรวจสลิปอัตโนมัติผ่าน — ชำระเงินเรียบร้อย ✅' : (check.configured && check.verified ? ('อัปโหลดแล้ว — ' + check.message + ' (รอร้านตรวจ)') : 'อัปโหลดสลิปแล้ว — รอร้านตรวจสอบ'),
+    slipUrl: url, autoPaid, check: { paid: check.paid, amountOk: check.amountOk, duplicate: check.duplicate, message: check.message },
+  });
+}));
+
+// ============================================================
 //  ออร์เดอร์ (orders + order_items)
 // ============================================================
 app.get('/api/orders', auth, wrap(async (req, res) => {
@@ -2611,10 +2967,13 @@ app.post('/api/orders', auth, wrap(async (req, res) => {
   try {
     await conn.beginTransaction();
     const [info] = await conn.query(
-      "INSERT INTO orders (order_no, `date`, customer, salesperson, payment_term, note, urgent, ordered_qty, withdrawn_qty, status) VALUES (?,?,?,?,?,?,?,?,0,'Waiting to prepare')",
-      [orderNo, b.date || '', customer, b.salesperson || '', b.paymentTerm || 'Cash', b.note || '', b.urgent ? 1 : 0, orderedQtyTotal]
+      "INSERT INTO orders (order_no, `date`, customer, salesperson, payment_term, note, urgent, ordered_qty, withdrawn_qty, status, channel, lead_id) VALUES (?,?,?,?,?,?,?,?,0,'Waiting to prepare',?,?)",
+      [orderNo, b.date || '', customer, b.salesperson || '', b.paymentTerm || 'Cash', b.note || '', b.urgent ? 1 : 0, orderedQtyTotal, b.channel || '', b.leadId || null]
     );
     orderId = info.insertId;
+    if (b.leadId) {
+      await conn.query("UPDATE order_leads SET status='converted', order_no=? WHERE id=?", [orderNo, b.leadId]);
+    }
     for (const it of validItems) {
       await conn.query(
         'INSERT INTO order_items (order_id, sku, color_code, width, available_qty, ordered_qty, unit, pack, cust_code, substitute, substitute_text) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
@@ -2732,8 +3091,26 @@ app.get('/api/customer-billings/documents', auth, wrap(async (req, res) => {
   res.json({ ok: true, wholesale: ws, retail: rt, credit: cr });
 }));
 app.get('/api/customer-billings', auth, wrap(async (req, res) => {
-  const [rows] = await mysqlPool.query('SELECT * FROM customer_billings ORDER BY id DESC');
+  const customer = (req.query.customer || '').toString().trim();
+  const [rows] = customer
+    ? await mysqlPool.query('SELECT * FROM customer_billings WHERE customer = ? ORDER BY id DESC', [customer])
+    : await mysqlPool.query('SELECT * FROM customer_billings ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, billings: rows });
+}));
+// ยอดคงเหลือของใบวางบิลใบหนึ่ง (เทียบยอดบิล กับ เงินที่รับแล้วซึ่งอ้างอิงเลขที่ใบวางบิลนี้ใน payments)
+// — ใช้ตอนรับเงิน เพื่อไม่ต้องนั่งเช็ค/หักลบเองว่าโอนมาไม่ครบบิล
+app.get('/api/customer-billings/balance', auth, wrap(async (req, res) => {
+  const brNo = (req.query.br_no || '').toString().trim();
+  if (!brNo) return res.status(400).json({ ok: false, message: 'ระบุเลขที่ใบวางบิล' });
+  const [[bill]] = await mysqlPool.query('SELECT * FROM customer_billings WHERE br_no = ?', [brNo]);
+  if (!bill) return res.status(404).json({ ok: false, message: 'ไม่พบใบวางบิลนี้' });
+  const [rows] = await mysqlPool.query("SELECT items_json FROM payments WHERE doc_type = 'receive'");
+  let received = 0;
+  for (const row of rows) {
+    try { (JSON.parse(row.items_json || '[]')).forEach((it) => { if ((it.invoiceRef || '') === brNo) received += Number(it.amount) || 0; }); } catch (e) {}
+  }
+  const total = Number(bill.total_amount) || 0;
+  res.json({ ok: true, br_no: brNo, total, received, remaining: total - received });
 }));
 app.post('/api/customer-billings', auth, wrap(async (req, res) => {
   const b = req.body || {};
@@ -3040,6 +3417,20 @@ app.get('/api/reports/stock-inventory/rolls', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: rows.length, rolls: rows });
 }));
 
+// ---- รายงานจุดสั่งซื้อสินค้า (reorder point) — ทุกเฉดสีในระบบ + สต็อกคงเหลือ ----
+app.get('/api/reports/reorder-point', auth, wrap(async (req, res) => {
+  const [rows] = await mysqlPool.query(`
+    SELECT f.sku AS sku, f.name AS name, s.id AS shade_id, s.color_code AS color_code, s.name AS shade,
+           COALESCE((SELECT SUM(r.current_yards) FROM fabric_rolls r WHERE r.color_id = s.id AND r.status <> 'depleted'), 0) AS yards
+    FROM fabric_shades s LEFT JOIN fabrics f ON f.id = s.fabric_id
+    ORDER BY f.sku ASC, s.id ASC
+  `);
+  res.json({ ok: true, total: rows.length, items: rows.map(r => ({
+    sku: r.sku || '-', name: r.name || '', color_code: r.color_code || '', shade: r.shade || '',
+    stock: Number(r.yards) || 0, reorder: 0, unit: 'หลา',
+  })) });
+}));
+
 // ============================================================
 //  รายงานรวม (report-*) — ดึงข้อมูลจริงจากตารางในระบบ
 //  ตารางไหนยังไม่มีเอกสาร จะได้ตารางว่าง (ไม่ใช่ข้อมูลตัวอย่าง)
@@ -3254,6 +3645,82 @@ app.get('/api/reports/summary/:type', auth, wrap(async (req, res) => {
     return res.status(500).json({ ok: false, message: 'ดึงข้อมูลรายงานไม่สำเร็จ: ' + e.message });
   }
 
+  res.json({ ok: true, type, columns, rows, total: rows.length });
+}));
+
+// ============================================================
+//  รายงานกลุ่ม "อื่นๆ" (แก้ไขราคาขาย / ปรับสต๊อก / แบ่งพับ / ประวัติบาร์โค้ด)
+//  คืนคอลัมน์+แถวแบบมีโครงสร้าง พร้อมกรองฝั่ง server (วันที่/บาร์โค้ด/รหัสสินค้า/รหัสสี/ลูกค้า/หน้ากว้าง/คำค้นหา)
+//  ⚠️ แหล่งข้อมูลจริง: ประวัติบาร์โค้ด = stock_transactions (มีจริง). ปรับสต๊อก = txn_type='adjust' (ยังไม่มีระบบบันทึก → ว่างจริง).
+//     แบ่งพับ/แก้ไขราคาขาย = ยังไม่มีตารางประวัติในระบบ → คืนคอลัมน์ถูกต้องแต่ว่าง (พร้อมต่อเมื่อทำระบบ log)
+// ============================================================
+app.get('/api/reports/other/:type', auth, wrap(async (req, res) => {
+  const type = String(req.params.type || '').trim();
+  const num = (n) => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const baht = (n) => '฿' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const fmtDate = (d) => {
+    if (!d) return '';
+    if (typeof d === 'string' && d.includes('/')) return d;
+    const dt = new Date(d); if (isNaN(dt)) return String(d);
+    return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
+  };
+  const f = (k) => (req.query[k] || '').toString().trim();
+  const fDate = f('date'), fBarcode = f('barcode'), fSku = f('sku'), fColor = f('color'), fCustomer = f('customer'), fWidth = f('width'), fQ = f('q');
+  const TXN_TH = { receive: 'รับเข้า', issue: 'เบิกออก', cut: 'ตัดผ้า', move: 'ย้ายคลัง', adjust: 'ปรับสต๊อก', return: 'รับคืน' };
+
+  let columns = [], rows = [];
+  try {
+    if (type === 'adjust' || type === 'fold') {
+      // ปรับสต๊อก: อ่านจริงจาก stock_transactions txn_type='adjust'; แบ่งพับ: ยังไม่มี txn type → ว่าง
+      if (type === 'adjust') {
+        columns = ['วันที่', 'รหัสสินค้า', 'รหัสสี', 'กลุ่มผ้า', 'เฉดสี', 'หน้ากว้าง', 'บาร์โค้ด', 'จำนวนเดิม', 'จำนวนใหม่', 'หน่วย', 'คลัง', 'หมายเหตุ'];
+        const where = ["st.txn_type = 'adjust'"]; const p = [];
+        if (fSku) { where.push('f.sku LIKE ?'); p.push('%' + fSku + '%'); }
+        if (fColor) { where.push('(s.color_code LIKE ? OR s.name LIKE ?)'); p.push('%' + fColor + '%', '%' + fColor + '%'); }
+        if (fBarcode) { where.push('rr.roll_qr_code LIKE ?'); p.push('%' + fBarcode + '%'); }
+        if (fWidth) { where.push('f.width LIKE ?'); p.push('%' + fWidth + '%'); }
+        const [r] = await mysqlPool.query(
+          `SELECT st.created_at, f.sku, f.name AS grp, f.width, s.color_code, s.name AS shade,
+                  rr.roll_qr_code, st.yards_before, st.yards_after, st.note, l.location_code
+           FROM stock_transactions st
+           LEFT JOIN fabric_rolls rr ON rr.roll_id = st.roll_id
+           LEFT JOIN fabrics f ON f.id = rr.product_id
+           LEFT JOIN fabric_shades s ON s.id = rr.color_id
+           LEFT JOIN warehouse_locations l ON l.location_id = COALESCE(st.to_location_id, st.from_location_id, rr.location_id)
+           WHERE ${where.join(' AND ')} ORDER BY st.txn_id DESC`, p);
+        rows = r.filter(x => !fDate || fmtDate(x.created_at) === fmtDate(fDate))
+          .map(x => [fmtDate(x.created_at), x.sku || '-', x.color_code || '-', x.grp || '-', x.shade || '-', x.width || '-', x.roll_qr_code || '-', num(x.yards_before), num(x.yards_after), 'หลา', x.location_code || '-', x.note || '']);
+      } else {
+        columns = ['วันที่', 'รหัสสินค้า', 'รหัสสี', 'กลุ่มผ้า', 'เฉดสี', 'หน้ากว้าง', 'บาร์โค้ดเดิม', 'จำนวนเดิม', 'จำนวนคงเหลือ', 'บาร์โค้ดใหม่', 'จำนวนใหม่', 'หน่วย', 'หมายเหตุ'];
+        rows = []; // ยังไม่มีระบบบันทึกการแบ่งพับม้วน
+      }
+
+    } else if (type === 'price') {
+      columns = ['วันที่', 'เลขที่อินวอยส์', 'ลูกค้า', 'รหัสสินค้า', 'รหัสสี', 'กลุ่มผ้า', 'เฉดสี', 'หน้ากว้าง', 'จำนวนที่ขาย', 'หน่วย', 'ราคาเดิม', 'ราคาใหม่'];
+      rows = []; // ยังไม่มีระบบบันทึกประวัติการแก้ไขราคาขาย
+
+    } else if (type === 'barcode') {
+      columns = ['วันที่', 'ประเภท', 'เลขที่อ้างอิง', 'รหัสสินค้า', 'ชื่อสินค้า', 'คลัง', 'จำนวน', 'จำนวนคงเหลือ', 'หน่วย', 'หมายเหตุ'];
+      const where = ['1=1']; const p = [];
+      if (fBarcode) { where.push('rr.roll_qr_code LIKE ?'); p.push('%' + fBarcode + '%'); }
+      if (fSku) { where.push('f.sku LIKE ?'); p.push('%' + fSku + '%'); }
+      const [r] = await mysqlPool.query(
+        `SELECT st.created_at, st.txn_type, st.ref_no, rr.roll_qr_code, f.sku, f.name,
+                st.yards_change, st.yards_after, st.note, l.location_code
+         FROM stock_transactions st
+         LEFT JOIN fabric_rolls rr ON rr.roll_id = st.roll_id
+         LEFT JOIN fabrics f ON f.id = rr.product_id
+         LEFT JOIN warehouse_locations l ON l.location_id = COALESCE(st.to_location_id, st.from_location_id, rr.location_id)
+         WHERE ${where.join(' AND ')} ORDER BY st.txn_id DESC LIMIT 1000`, p);
+      rows = r.filter(x => !fDate || fmtDate(x.created_at) === fmtDate(fDate))
+        .map(x => [fmtDate(x.created_at), TXN_TH[x.txn_type] || x.txn_type || '-', x.ref_no || '-', x.sku || '-', x.name || '-', x.location_code || '-', num(x.yards_change), num(x.yards_after), 'หลา', x.note || '']);
+
+    } else {
+      return res.status(404).json({ ok: false, message: 'ไม่รู้จักรายงานประเภทนี้: ' + type });
+    }
+  } catch (e) {
+    return res.status(500).json({ ok: false, message: 'ดึงข้อมูลรายงานไม่สำเร็จ: ' + e.message });
+  }
   res.json({ ok: true, type, columns, rows, total: rows.length });
 }));
 

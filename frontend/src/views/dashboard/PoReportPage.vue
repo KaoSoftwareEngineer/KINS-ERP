@@ -18,7 +18,7 @@
     <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่ PO/คู่ค้า/อ้างอิง" @keyup.enter="load" /></div>
     <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="load" /></div>
     <div class="rp-f"><label>สถานะ</label>
-      <select v-model="filter.status" @change="load"><option value="">ทั้งหมด</option><option value="Pending">Pending</option><option value="Approved">Approved</option></select>
+      <select v-model="filter.status" @change="load"><option value="">ทั้งหมด</option><option value="Pending">Pending</option><option value="Completed">Completed</option><option value="Canceled">Canceled</option></select>
     </div>
     <div class="rp-f-actions">
       <button class="rp-btn-search" @click="load">🔍 ค้นหา</button>
@@ -161,8 +161,7 @@ export default {
         const res = await fetch('/api/purchase-orders', { headers: { Authorization: 'Bearer ' + this.dash.token } });
         if (res.status === 401) { this.dash.sessionExpired && this.dash.sessionExpired(); return; }
         const d = await res.json();
-        this.rows = d.purchase_orders || d.rows || d || [];
-        if (Array.isArray(d)) this.rows = d;
+        this.rows = d.orders || d.purchase_orders || d.rows || (Array.isArray(d) ? d : []);
         this.selRow = null;
       } catch (e) { this.rows = []; }
     },
@@ -175,8 +174,8 @@ export default {
     },
     rowQty(r) { return this.itemsOf(r).reduce((s, it) => s + (Number(it.qty) || 0), 0); },
     typeLabel(t) { return ({ finished: 'ผ้าสำเร็จ', raw: 'ผ้าดิบ', dye: 'สั่งย้อม' })[t] || (t || '-'); },
-    statusLabel(r) { return r.approved ? 'Approved' : 'Pending'; },
-    statusClass(r) { return r.approved ? 'ok' : 'pending'; },
+    statusLabel(r) { return r.status || (r.approved ? 'Approved' : 'Pending'); },
+    statusClass(r) { const s = (r.status || (r.approved ? 'Approved' : 'Pending')).toLowerCase(); if (s.includes('complet') || s.includes('approv')) return 'ok'; if (s.includes('cancel')) return 'cancel'; return 'pending'; },
     fmt(v) { return (Number(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     fmtDate(d) { if (!d) return ''; return String(d).slice(0, 10); },
     toggleSort(k) { if (this.sort.key === k) this.sort.dir = this.sort.dir === 'asc' ? 'desc' : 'asc'; else { this.sort.key = k; this.sort.dir = 'asc'; } },
@@ -272,4 +271,5 @@ export default {
 .rp-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .rp-badge.ok { background: #dcf1e8; color: #158045; }
 .rp-badge.pending { background: #fde7cf; color: #b8791a; }
+.rp-badge.cancel { background: #fdeaea; color: #c0392b; }
 </style>

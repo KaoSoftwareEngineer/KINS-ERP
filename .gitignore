@@ -23,6 +23,9 @@ server.*.bak
 # build output
 frontend/dist/
 
+# ไฟล์อัปโหลด (สลิปโอนเงิน ฯลฯ) — เก็บในเครื่อง/เซิร์ฟเวอร์จริงเท่านั้น ไม่ขึ้น GitHub
+files/public/uploads/
+
 # OS
 Thumbs.db
 .DS_Store

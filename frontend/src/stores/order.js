@@ -21,6 +21,8 @@ export const useOrderStore = defineStore('order', {
       urgent: false,
       orderNo: 'OR2608-005',
       paymentTerm: 'Cash',
+      leadId: null,   // ถ้าแปลงมาจาก "รับออเดอร์เข้า" (order_leads) จะมี id นี้ ให้ backend ลิงก์กลับ/ปิดสถานะ lead ให้อัตโนมัติ
+      channel: '',    // ช่องทางที่ลูกค้าสั่งเข้ามา (line/whatsapp/facebook/phone/walkin/other)
     },
     oeSalespersonOptions: ['นายกิตติ มั่นคง', 'นางสาวปิยะดา สุขใจ'],
     oePaymentTermOptions: ['Cash', 'เครดิต 15 วัน', 'เครดิต 30 วัน', 'เครดิต 60 วัน'],
@@ -184,6 +186,8 @@ export const useOrderStore = defineStore('order', {
         if (data.ok) {
           this.oeForm.orderNo = data.order.order_no;
           this.oeSaved = true;
+          this.oeForm.leadId = null;
+          this.oeForm.channel = '';
           await this.loadOrders();
           ui.fbDone('บันทึกออร์เดอร์แล้ว — เพิ่มงานค้างดำเนินการ 1 รายการ');
         } else {
