@@ -848,8 +848,6 @@ data() {
         dashDemoWaveA: [60, 82, 58, 88, 55, 80, 62, 90, 60, 85, 70, 96],
         dashDemoWaveB: [46, 62, 84, 54, 86, 60, 92, 56, 84, 66, 90, 74],
         // ข้อมูลตัวอย่างรายวัน 7 วันล่าสุด (โหมดเดือน = รายวัน)
-        dashDemoDayA: [55, 78, 60, 86, 62, 80, 92],
-        dashDemoDayB: [44, 64, 82, 54, 85, 60, 88],
         dashSalesByYear: {
           2024: [
             { label: 'ม.ค.', value: 140000 }, { label: 'ก.พ.', value: 150000 }, { label: 'มี.ค.', value: 145000 },
@@ -894,8 +892,6 @@ data() {
         dashDemoWaveA: [60, 82, 58, 88, 55, 80, 62, 90, 60, 85, 70, 96],
         dashDemoWaveB: [46, 62, 84, 54, 86, 60, 92, 56, 84, 66, 90, 74],
         // ข้อมูลตัวอย่างรายวัน 7 วันล่าสุด (โหมดเดือน = รายวัน)
-        dashDemoDayA: [55, 78, 60, 86, 62, 80, 92],
-        dashDemoDayB: [44, 64, 82, 54, 85, 60, 88],
         dashSalesByYear: {
           2024: [
             { label: 'ม.ค.', value: 140000 }, { label: 'ก.พ.', value: 150000 }, { label: 'มี.ค.', value: 145000 },
@@ -1345,18 +1341,18 @@ data() {
       },
       dashTrendChartData() {
         if (this.dashTrendViewMode === 'year') return this.dashYearlyTotals;
-        if (this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayA); // โหมดเดือน = รายวัน 7 วัน
-        return this.dashSalesByYear[this.dashTrendYear] || [];
+        // โหมดวัน: ยอดตัดจ่ายจริงรายวัน 7 วันล่าสุด (จาก /api/dashboard/stats → daily)
+        return this.dashDaySeries(this.dashRealDayValues(0));
       },
       dashTrendChartData2() {
-        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายวัน) — คลื่นซ้อนแบบภาพตัวอย่าง
-        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayB);
-        return [];
+        if (this.dashTrendViewMode === 'year') return [];
+        // สัปดาห์ก่อนหน้า (7 วันก่อนช่วงล่าสุด) ไว้เทียบสัปดาห์ต่อสัปดาห์ — ข้อมูลจริงเช่นกัน
+        return this.dashDaySeries(this.dashRealDayValues(7));
       },
       dashTrendDemo() {
-        // กราฟกำลังแสดงข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริงจากระบบ) หรือไม่
+        // กราฟกำลังแสดงข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริงจากระบบ) หรือไม่ — ใช้เฉพาะโหมดปี (รายวันใช้ข้อมูลจริงเสมอ)
         if (this.dashTrendViewMode === 'year') return !this.dashHasRealTrend;
-        return !!(this.dashTrendDemoYears && this.dashTrendDemoYears[this.dashTrendYear]);
+        return false;
       },
       dashTrendScale() {
         const values = [...this.dashTrendChartData, ...this.dashTrendChartData2].map(d => d.value);
@@ -1400,10 +1396,8 @@ data() {
         });
       },
       dashTrendLinePath() {
-        // เส้นตรงต่อจุด (polyline) แบบกราฟการเงินตัวอย่าง — ไม่ปัดโค้ง
-        const pts = this.dashTrendPoints;
-        if (!pts.length) return '';
-        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
+        // เส้นโค้งนุ่ม (Catmull-Rom → cubic bezier) — ผ่านจุดข้อมูลจริงทุกจุดเป๊ะ แค่ปัดโค้งระหว่างจุด
+        return this.dashSmoothPath(this.dashTrendPoints);
       },
       dashTrendPoints2() {
         const data = this.dashTrendChartData2;
@@ -1419,9 +1413,7 @@ data() {
         });
       },
       dashTrendLinePath2() {
-        const pts = this.dashTrendPoints2;
-        if (!pts.length) return '';
-        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
+        return this.dashSmoothPath(this.dashTrendPoints2);
       },
       dashRegularPct() {
         // % ผ้าประจำ (ตัวเลขหลักในเกจ)
@@ -1505,18 +1497,18 @@ data() {
       },
       dashTrendChartData() {
         if (this.dashTrendViewMode === 'year') return this.dashYearlyTotals;
-        if (this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayA); // โหมดเดือน = รายวัน 7 วัน
-        return this.dashSalesByYear[this.dashTrendYear] || [];
+        // โหมดวัน: ยอดตัดจ่ายจริงรายวัน 7 วันล่าสุด (จาก /api/dashboard/stats → daily)
+        return this.dashDaySeries(this.dashRealDayValues(0));
       },
       dashTrendChartData2() {
-        // ซีรีส์ที่สอง (เฉพาะโหมด demo รายวัน) — คลื่นซ้อนแบบภาพตัวอย่าง
-        if (this.dashTrendViewMode === 'month' && this.dashTrendDemo) return this.dashDaySeries(this.dashDemoDayB);
-        return [];
+        if (this.dashTrendViewMode === 'year') return [];
+        // สัปดาห์ก่อนหน้า (7 วันก่อนช่วงล่าสุด) ไว้เทียบสัปดาห์ต่อสัปดาห์ — ข้อมูลจริงเช่นกัน
+        return this.dashDaySeries(this.dashRealDayValues(7));
       },
       dashTrendDemo() {
-        // กราฟกำลังแสดงข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริงจากระบบ) หรือไม่
+        // กราฟกำลังแสดงข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริงจากระบบ) หรือไม่ — ใช้เฉพาะโหมดปี (รายวันใช้ข้อมูลจริงเสมอ)
         if (this.dashTrendViewMode === 'year') return !this.dashHasRealTrend;
-        return !!(this.dashTrendDemoYears && this.dashTrendDemoYears[this.dashTrendYear]);
+        return false;
       },
       dashTrendScale() {
         const values = [...this.dashTrendChartData, ...this.dashTrendChartData2].map(d => d.value);
@@ -1560,10 +1552,8 @@ data() {
         });
       },
       dashTrendLinePath() {
-        // เส้นตรงต่อจุด (polyline) แบบกราฟการเงินตัวอย่าง — ไม่ปัดโค้ง
-        const pts = this.dashTrendPoints;
-        if (!pts.length) return '';
-        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
+        // เส้นโค้งนุ่ม (Catmull-Rom → cubic bezier) — ผ่านจุดข้อมูลจริงทุกจุดเป๊ะ แค่ปัดโค้งระหว่างจุด
+        return this.dashSmoothPath(this.dashTrendPoints);
       },
       dashTrendPoints2() {
         const data = this.dashTrendChartData2;
@@ -1579,9 +1569,7 @@ data() {
         });
       },
       dashTrendLinePath2() {
-        const pts = this.dashTrendPoints2;
-        if (!pts.length) return '';
-        return `M${pts.map(p => `${p.x},${p.y}`).join(' L')}`;
+        return this.dashSmoothPath(this.dashTrendPoints2);
       },
       dashRegularPct() {
         // % ผ้าประจำ (ตัวเลขหลักในเกจ)
@@ -1853,6 +1841,36 @@ data() {
           const d = new Date(today);
           d.setDate(today.getDate() - i);
           out.push({ label: d.getDate() + ' ' + WD[d.getDay()], value: arr[6 - i] || 0 });
+        }
+        return out;
+      },
+      // เส้นโค้งนุ่ม (Catmull-Rom → cubic bezier) ให้กราฟเส้นแนวโน้มทุกเส้น — ผ่านจุดข้อมูลจริงทุกจุดเป๊ะ
+      dashSmoothPath(pts) {
+        if (!pts || pts.length < 2) return pts && pts.length ? `M${pts[0].x},${pts[0].y}` : '';
+        const t = 0.18; // ความนุ่มของเส้นโค้ง (มาก = โค้งเยอะ)
+        let d = `M${pts[0].x},${pts[0].y}`;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] || pts[i];
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          const p3 = pts[i + 2] || p2;
+          const c1x = p1.x + (p2.x - p0.x) * t, c1y = p1.y + (p2.y - p0.y) * t;
+          const c2x = p2.x - (p3.x - p1.x) * t, c2y = p2.y - (p3.y - p1.y) * t;
+          d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+        }
+        return d;
+      },
+      // ดึงยอดตัดจ่ายจริงรายวัน 7 ค่า (arr[0]=เก่าสุด...arr[6]=ล่าสุดของช่วง) จาก dashStats.daily
+      // offsetDays=0 → 7 วันล่าสุด, offsetDays=7 → 7 วันก่อนหน้านั้น (ไม่ทับช่วงกัน)
+      dashRealDayValues(offsetDays) {
+        const daily = (this.dashStats && this.dashStats.daily) || [];
+        const map = new Map(daily.map(d => [d.date, Number(d.value) || 0]));
+        const today = new Date();
+        const out = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - offsetDays - i);
+          out.push(map.get(d.toISOString().slice(0, 10)) || 0);
         }
         return out;
       },
