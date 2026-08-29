@@ -1063,6 +1063,13 @@ data() {
             selectWeightOpt: 'เลือกน้ำหนัก',
             fabricNamePlaceholder: 'ชื่อผ้า',
             searchFabricPlaceholder: 'ค้นหาชื่อผ้า / รหัสสินค้า',
+            clickToSort: 'คลิกเพื่อเรียงลำดับ',
+            selectedCountWord: 'เลือกไว้',
+            deleteSelected: 'ลบรายการที่เลือก',
+            printBarcode: '🏷️ พิมพ์บาร์โค้ด',
+            clearSelection: '✕ ยกเลิกการเลือก',
+            fabricGroupLabel: 'กลุ่มผ้า',
+            noGroupOpt: '— ไม่ระบุกลุ่ม —',
           },
           en: {
             home: 'Home',
@@ -1192,6 +1199,13 @@ data() {
             selectWeightOpt: 'Select Weight',
             fabricNamePlaceholder: 'Fabric name',
             searchFabricPlaceholder: 'Search fabric name / product code',
+            clickToSort: 'Click to sort',
+            selectedCountWord: 'Selected',
+            deleteSelected: 'Delete Selected',
+            printBarcode: '🏷️ Print Barcode',
+            clearSelection: '✕ Clear Selection',
+            fabricGroupLabel: 'Fabric Group',
+            noGroupOpt: '— No Group —',
           }
         }
       };
