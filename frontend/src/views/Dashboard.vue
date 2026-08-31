@@ -1545,6 +1545,11 @@ data() {
             printTransferTitle: 'พิมพ์ใบย้าย',
             clickRowToViewTransferMsg: 'คลิกแถวด้านบนเพื่อดูรายการที่ย้าย',
             noItemsInTransferMsg: 'ไม่มีรายการในใบย้ายนี้',
+            // ---- รายงานการย้ายผ้าดิบ เฉพาะ ----
+            rawTransferReportTitle: 'รายงานการย้ายผ้าดิบ',
+            printRawTransferTitle: 'พิมพ์ใบย้ายผ้าดิบ',
+            lotCountLabel: 'จำนวนล็อต',
+            clickRowToViewRawTransferMsg: 'คลิกแถวด้านบนเพื่อดูรายการผ้าดิบที่ย้าย',
             // ---- ใบลดหนี้ลูกค้า/คู่ค้า เฉพาะ ----
             creditNotePartnerTitle: 'ใบลดหนี้คู่ค้า',
             creditNoteCustomerTitle: 'ใบลดหนี้ลูกค้า',
@@ -2150,6 +2155,10 @@ data() {
             printTransferTitle: 'Print Transfer',
             clickRowToViewTransferMsg: 'Click a row above to view transferred items',
             noItemsInTransferMsg: 'No items in this transfer',
+            rawTransferReportTitle: 'Raw Fabric Transfer Report',
+            printRawTransferTitle: 'Print Raw Fabric Transfer',
+            lotCountLabel: 'Lot Count',
+            clickRowToViewRawTransferMsg: 'Click a row above to view transferred raw fabric',
             creditNotePartnerTitle: 'Vendor Credit Note',
             creditNoteCustomerTitle: 'Customer Credit Note',
             creditNoteNoLabel: 'Credit Note No.',
