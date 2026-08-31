@@ -1,36 +1,36 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">📥 รับผ้าสำเร็จ</div>
+  <div class="po-titlebar">📥 {{ dash.t[dash.lang].receiveFinishedFabricTitle }}</div>
 
   <!-- ส่วนหัว -->
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.receipt_date" /></div>
-      <div class="po-field"><label>เลขที่รับสินค้า</label><input :value="form.in_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.receipt_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].receiptNoLabel }}</label><input :value="form.in_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>ประเภทการรับ</label>
+      <div class="po-field"><label>{{ dash.t[dash.lang].receiptTypeLabel }}</label>
         <select v-model="form.receipt_type"><option v-for="t in receiptTypes" :key="t" :value="t">{{ t }}</option></select>
       </div>
-      <div class="po-field"><label>คลัง</label>
+      <div class="po-field"><label>{{ dash.t[dash.lang].warehouseLabel }}</label>
         <select v-model="form.warehouse"><option v-for="w in warehouseOptions" :key="w" :value="w">{{ w }}</option></select>
       </div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เลขที่อ้างอิง PO</label>
-        <input list="gr-po-list" v-model="form.po_ref" placeholder="เลือก/พิมพ์เลขที่ PO" />
+      <div class="po-field"><label>{{ dash.t[dash.lang].poRefLabel }}</label>
+        <input list="gr-po-list" v-model="form.po_ref" :placeholder="dash.t[dash.lang].poRefPlaceholder" />
         <datalist id="gr-po-list"><option v-for="p in poOptions" :key="p" :value="p" /></datalist>
       </div>
-      <div class="po-field"><label>คู่ค้า</label>
-        <input list="gr-vendors" v-model="form.supplier" placeholder="เลือก/พิมพ์คู่ค้า" />
+      <div class="po-field"><label>{{ dash.t[dash.lang].partnerWord }}</label>
+        <input list="gr-vendors" v-model="form.supplier" :placeholder="dash.t[dash.lang].vendorPlaceholder" />
         <datalist id="gr-vendors"><option v-for="v in vendorOptions" :key="v" :value="v" /></datalist>
       </div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เลขที่บิล</label><input v-model="form.bill_no" placeholder="เลขที่บิล" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].billNoLabel }}</label><input v-model="form.bill_no" :placeholder="dash.t[dash.lang].billNoLabel" /></div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
   </div>
 
@@ -39,40 +39,40 @@
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>รหัสสินค้า</th><th>รหัสสี</th><th>ชื่อ</th><th>หน้ากว้าง</th><th style="width:70px;">พับ</th>
-          <th style="width:90px;">จำนวน</th><th style="width:100px;">ราคา/หน่วย</th><th style="width:110px;">ราคา</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th><th>{{ dash.t[dash.lang].nameLabel }}</th><th>{{ dash.t[dash.lang].widthLabel }}</th><th style="width:70px;">{{ dash.t[dash.lang].foldLabel }}</th>
+          <th style="width:90px;">{{ dash.t[dash.lang].qtyLabel }}</th><th style="width:100px;">{{ dash.t[dash.lang].pricePerUnitLabel }}</th><th style="width:110px;">{{ dash.t[dash.lang].priceLabel }}</th>
           <th style="width:150px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
-          <td><input v-model="row.sku" @blur="lookupSku(row)" placeholder="รหัส" /></td>
+          <td><input v-model="row.sku" @blur="lookupSku(row)" :placeholder="dash.t[dash.lang].skuPlaceholderShort" /></td>
           <td>
             <select v-if="row.shadeOptions && row.shadeOptions.length" v-model="row.color">
-              <option value="">— เลือกสี —</option>
+              <option value="">{{ dash.t[dash.lang].selectColorOpt }}</option>
               <option v-for="s in row.shadeOptions" :key="s" :value="s">{{ s }}</option>
             </select>
-            <input v-else v-model="row.color" placeholder="รหัสสี" />
+            <input v-else v-model="row.color" :placeholder="dash.t[dash.lang].colorCodeLabel" />
           </td>
-          <td><input v-model="row.name" class="po-ro-cell" placeholder="ชื่อ" /></td>
-          <td><input v-model="row.width" class="po-ro-cell" placeholder="หน้ากว้าง" /></td>
+          <td><input v-model="row.name" class="po-ro-cell" :placeholder="dash.t[dash.lang].nameLabel" /></td>
+          <td><input v-model="row.width" class="po-ro-cell" :placeholder="dash.t[dash.lang].widthLabel" /></td>
           <td><input :value="row.fold" readonly class="po-ro-cell po-num" /></td>
           <td><input :value="row.qty" readonly class="po-ro-cell po-num" /></td>
           <td><input type="number" v-model.number="row.unit_price" class="po-num" /></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
           <td class="po-row-actions">
-            <button class="po-ic po-fold" title="รายละเอียดพับ" @click="openFoldDrawer(idx)">
+            <button class="po-ic po-fold" :title="dash.t[dash.lang].foldDetailTitle" @click="openFoldDrawer(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
             </button>
-            <button class="po-ic po-add" title="เพิ่มแถว" @click="addRow(idx)">
+            <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             </button>
-            <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>
             </button>
-            <button class="po-ic po-copy" title="คัดลอกแถว" @click="copyRow(idx)">
+            <button class="po-ic po-copy" :title="dash.t[dash.lang].copyRowTitle" @click="copyRow(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>
           </td>
@@ -80,7 +80,7 @@
       </tbody>
       <tfoot>
         <tr class="po-foot-row">
-          <td colspan="5" class="po-foot-label">รวม</td>
+          <td colspan="5" class="po-foot-label">{{ dash.t[dash.lang].totalWord }}</td>
           <td class="po-num">{{ totalFold }}</td>
           <td class="po-num">{{ totalQty.toFixed(2) }}</td>
           <td></td>
@@ -93,8 +93,8 @@
     <!-- สรุปยอด -->
     <div class="po-summary">
       <div class="po-sum-row">
-        <label>ส่วนลด</label>
-        <select v-model="discountMode"><option value="none">None</option><option value="percent">%</option><option value="amount">บาท</option></select>
+        <label>{{ dash.t[dash.lang].discountLabel }}</label>
+        <select v-model="discountMode"><option value="none">None</option><option value="percent">%</option><option value="amount">{{ dash.t[dash.lang].bahtWord }}</option></select>
         <input type="number" v-model.number="discountValue" :disabled="discountMode==='none'" class="po-num" />
         <input :value="discountAmount.toFixed(2)" readonly class="po-num po-ro-cell" />
       </div>
@@ -103,7 +103,7 @@
         <select v-model="vatMode"><option value="none">None</option><option value="7">7%</option></select>
         <input :value="vatAmount.toFixed(2)" readonly class="po-num po-ro-cell" />
       </div>
-      <div class="po-sum-row po-sum-net"><label>ยอดสุทธิ</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
+      <div class="po-sum-row po-sum-net"><label>{{ dash.t[dash.lang].netTotalLabel }}</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
     </div>
   </div>
 
@@ -111,14 +111,14 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
+      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
       <template v-if="!saved">
-        <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
+        <button class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
       </template>
       <template v-else>
-        <button class="po-btn po-btn-receipt" @click="openReceiptPdf">🧾 ใบรับสินค้า</button>
-        <button class="po-btn po-btn-barcode" @click="printBarcodes">🏷️ บาร์โค้ด</button>
-        <button class="po-btn po-btn-new" @click="resetForm">🔄 รับใหม่</button>
+        <button class="po-btn po-btn-receipt" @click="openReceiptPdf">🧾 {{ dash.t[dash.lang].receiptPdfBtn }}</button>
+        <button class="po-btn po-btn-barcode" @click="printBarcodes">🏷️ {{ dash.t[dash.lang].barcodeBtnWord }}</button>
+        <button class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].receiveNewBtn }}</button>
       </template>
     </div>
   </div>
@@ -130,20 +130,20 @@
       <div class="fd-drawer">
         <div class="fd-head">
           <div class="fd-head-txt">
-            <span class="fd-head-title">รายละเอียดพับ</span>
+            <span class="fd-head-title">{{ dash.t[dash.lang].foldDetailTitle }}</span>
             <span v-if="foldTitle" class="fd-head-sub">{{ foldTitle }}</span>
           </div>
-          <button class="fd-x" title="ปิด" @click="closeFoldDrawer">
+          <button class="fd-x" :title="dash.t[dash.lang].close" @click="closeFoldDrawer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
         <div class="fd-body" v-if="foldRow">
-          <p class="fd-hint">ระบุจำนวนหลาต่อพับ และจำนวนพับ — ระบบจะรวมเป็นจำนวนหลาทั้งหมดให้อัตโนมัติ</p>
+          <p class="fd-hint">{{ dash.t[dash.lang].foldHint }}</p>
           <div class="fd-list">
             <div class="fd-row fd-row-head">
-              <div class="fd-c-per">จำนวน/พับ (หลา)</div>
-              <div class="fd-c-cnt">จำนวนพับ</div>
-              <div class="fd-c-sum">รวม (หลา)</div>
+              <div class="fd-c-per">{{ dash.t[dash.lang].perFoldLabel }}</div>
+              <div class="fd-c-cnt">{{ dash.t[dash.lang].foldCountLabel }}</div>
+              <div class="fd-c-sum">{{ dash.t[dash.lang].sumYardsLabel }}</div>
               <div class="fd-c-act"></div>
             </div>
             <div class="fd-row" v-for="(f, i) in foldRow.folds" :key="i">
@@ -151,7 +151,7 @@
               <div class="fd-c-cnt"><input type="number" v-model.number="f.count" class="fd-num" placeholder="0" /></div>
               <div class="fd-c-sum"><input :value="foldLine(f).toFixed(2)" readonly class="fd-num fd-ro" /></div>
               <div class="fd-c-act">
-                <button class="fd-mini fd-mini-del" title="ลบพับนี้" @click="removeFold(i)">
+                <button class="fd-mini fd-mini-del" :title="dash.t[dash.lang].removeFoldTitle" @click="removeFold(i)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg>
                 </button>
               </div>
@@ -159,17 +159,17 @@
           </div>
           <button class="fd-add-btn" @click="addFold(foldRow.folds.length - 1)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            เพิ่มพับ
+            {{ dash.t[dash.lang].addFoldBtn }}
           </button>
 
           <div class="fd-summary">
-            <div class="fd-sum-item"><span class="fd-sum-lbl">จำนวนพับรวม</span><span class="fd-sum-val">{{ foldTotalCount }}</span></div>
-            <div class="fd-sum-item fd-sum-main"><span class="fd-sum-lbl">จำนวนหลารวม</span><span class="fd-sum-val">{{ foldTotalYards.toFixed(2) }}</span></div>
+            <div class="fd-sum-item"><span class="fd-sum-lbl">{{ dash.t[dash.lang].totalFoldCountLabel }}</span><span class="fd-sum-val">{{ foldTotalCount }}</span></div>
+            <div class="fd-sum-item fd-sum-main"><span class="fd-sum-lbl">{{ dash.t[dash.lang].totalYardsLabel }}</span><span class="fd-sum-val">{{ foldTotalYards.toFixed(2) }}</span></div>
           </div>
         </div>
         <div class="fd-foot-bar">
-          <button class="po-btn" @click="closeFoldDrawer">ยกเลิก</button>
-          <button class="po-btn po-btn-save" @click="applyFolds">บันทึก</button>
+          <button class="po-btn" @click="closeFoldDrawer">{{ dash.t[dash.lang].cancelWord }}</button>
+          <button class="po-btn po-btn-save" @click="applyFolds">{{ dash.t[dash.lang].save }}</button>
         </div>
       </div>
     </div>
@@ -358,7 +358,7 @@ export default {
           this.form.in_no = d.in_no;
           this.saved = true;
           this.savedData = JSON.parse(JSON.stringify(payload));
-          this.savedMsg = 'ระบบได้ทำการเพิ่มข้อมูลเรียบร้อยแล้ว';
+          this.savedMsg = this.dash.t[this.dash.lang].savedMsgText;
           this.dash.fbDone('บันทึกแล้ว');
         } else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
