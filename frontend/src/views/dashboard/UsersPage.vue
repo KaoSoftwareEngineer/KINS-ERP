@@ -3,14 +3,14 @@
   <div class="header flex-wrap">
     <h1>{{ dash.t[dash.lang].membersList }}</h1>
     <div class="header-actions">
-      <span v-if="!dash.usCanManage" class="us-perm-note">🔒 คุณแก้ไขได้เฉพาะบัญชีของตัวเอง (จัดการบัญชีอื่นได้เฉพาะผู้บริหาร)</span>
+      <span v-if="!dash.usCanManage" class="us-perm-note">{{ dash.t[dash.lang].onlyEditOwnAccountMsg }}</span>
       <button class="btn-small fr-btn-search">{{ dash.t[dash.lang].search }}</button>
     </div>
   </div>
 
   <div class="section" style="margin-top: 12px;">
     <div class="section-header" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
-      <h2>👥 {{ dash.t[dash.lang].totalMembers }} {{ dash.members.length }} {{ dash.lang === 'th' ? 'คน' : 'People' }}</h2>
+      <h2>👥 {{ dash.t[dash.lang].totalMembers }} {{ dash.members.length }} {{ dash.t[dash.lang].peopleUnit }}</h2>
       <button class="btn-small">{{ dash.t[dash.lang].filter }}</button>
     </div>
   </div>
@@ -23,13 +23,13 @@
           <th style="width:52px;">#</th>
           <th>{{ dash.t[dash.lang].completeName }}</th>
           <th>{{ dash.t[dash.lang].email }}</th>
-          <th>เบอร์มือถือ</th>
-          <th>เพศ</th>
-          <th>อายุ</th>
-          <th style="min-width:170px;">ตำแหน่ง / บทบาท</th>
+          <th>{{ dash.t[dash.lang].phoneLabel }}</th>
+          <th>{{ dash.t[dash.lang].genderLabel }}</th>
+          <th>{{ dash.t[dash.lang].ageLabel }}</th>
+          <th style="min-width:170px;">{{ dash.t[dash.lang].positionRoleLabel }}</th>
           <th>{{ dash.t[dash.lang].status }}</th>
           <th>{{ dash.t[dash.lang].registeredDate }}</th>
-          <th style="width:90px;">จัดการ</th>
+          <th style="width:90px;">{{ dash.t[dash.lang].manageWord }}</th>
         </tr>
       </thead>
       <tbody>
@@ -38,25 +38,25 @@
           <td><strong>{{ user.name || '-' }}</strong></td>
           <td>{{ user.email }}</td>
           <td>{{ user.phone || '-' }}</td>
-          <td>{{ user.gender === 'male' ? 'ชาย' : user.gender === 'female' ? 'หญิง' : '-' }}</td>
+          <td>{{ user.gender === 'male' ? dash.t[dash.lang].maleWord : user.gender === 'female' ? dash.t[dash.lang].femaleWord : '-' }}</td>
           <td>{{ user.age || '-' }}</td>
           <td>
             <select v-if="dash.usCanManage && !isSelf(user)" class="pm-role-select" :value="user.role || ''" @change="dash.setUserRole(user, $event.target.value)">
-              <option value="">— ยังไม่กำหนด —</option>
+              <option value="">{{ dash.t[dash.lang].notSetYetPlaceholder }}</option>
               <option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option>
             </select>
             <span v-else class="us-role-text">
-              {{ user.role || '— ยังไม่กำหนด —' }}
-              <span v-if="isSelf(user)" class="us-self-tag" title="เปลี่ยนตำแหน่งของตัวเองไม่ได้ — ให้ผู้ดูแลคนอื่นเปลี่ยนให้">(คุณ)</span>
+              {{ user.role || dash.t[dash.lang].notSetYetPlaceholder }}
+              <span v-if="isSelf(user)" class="us-self-tag" :title="dash.t[dash.lang].cannotChangeOwnRoleTitle">{{ dash.t[dash.lang].youTag }}</span>
             </span>
           </td>
           <td><span class="badge success">✓ {{ dash.t[dash.lang].normal }}</span></td>
           <td>{{ user.created_at }}</td>
           <td>
             <div class="fr-action-group">
-              <button v-if="dash.usCanManage || isSelf(user)" class="fr-action-btn edit" title="แก้ไข" @click="dash.usOpenEdit(user)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-              <button v-if="dash.usCanManage && !isSelf(user)" class="fr-action-btn delete" title="ลบ" @click="dash.usDeleteUser(user)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
-              <span v-if="!dash.usCanManage && !isSelf(user)" class="us-locked" title="แก้ไขได้เฉพาะบัญชีของตัวเอง">🔒</span>
+              <button v-if="dash.usCanManage || isSelf(user)" class="fr-action-btn edit" :title="dash.t[dash.lang].edit" @click="dash.usOpenEdit(user)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+              <button v-if="dash.usCanManage && !isSelf(user)" class="fr-action-btn delete" :title="dash.t[dash.lang].delete" @click="dash.usDeleteUser(user)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+              <span v-if="!dash.usCanManage && !isSelf(user)" class="us-locked" :title="dash.t[dash.lang].onlyEditOwnAccountShortTitle">🔒</span>
             </div>
           </td>
         </tr>
@@ -69,34 +69,34 @@
   <div v-if="dash.usModalShow" class="erp-overlay" @click.self="dash.usCloseModal()">
     <div class="erp-modal" style="width: 680px;">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">👤</span> แก้ไขบัญชีผู้ใช้</span>
+        <span><span class="erp-head-ic">👤</span> {{ dash.t[dash.lang].editUserAccountTitle }}</span>
         <button class="erp-x" @click="dash.usCloseModal()">✕</button>
       </div>
       <div class="erp-modal-body">
-        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลส่วนตัว</div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].personalInfoSectionTitle }}</div>
         <div class="erp-grid">
-          <div class="erp-field erp-col-2"><label>ชื่อ - นามสกุล</label><input v-model="dash.usEditItem.name" placeholder="ชื่อ - นามสกุล" /></div>
-          <div class="erp-field"><label>อีเมล</label><input type="email" v-model="dash.usEditItem.email" placeholder="email@example.com" /></div>
-          <div class="erp-field"><label>เบอร์มือถือ</label><input v-model="dash.usEditItem.phone" placeholder="0812345678" /></div>
-          <div class="erp-field"><label>เพศ</label>
-            <select v-model="dash.usEditItem.gender"><option value="">— เลือก —</option><option value="male">ชาย</option><option value="female">หญิง</option></select>
+          <div class="erp-field erp-col-2"><label>{{ dash.t[dash.lang].fullNameLabel }}</label><input v-model="dash.usEditItem.name" :placeholder="dash.t[dash.lang].fullNameLabel" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].email }}</label><input type="email" v-model="dash.usEditItem.email" placeholder="email@example.com" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].phoneLabel }}</label><input v-model="dash.usEditItem.phone" placeholder="0812345678" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].genderLabel }}</label>
+            <select v-model="dash.usEditItem.gender"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="male">{{ dash.t[dash.lang].maleWord }}</option><option value="female">{{ dash.t[dash.lang].femaleWord }}</option></select>
           </div>
-          <div class="erp-field"><label>อายุ</label><input type="number" min="1" max="120" v-model="dash.usEditItem.age" placeholder="อายุ" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].ageLabel }}</label><input type="number" min="1" max="120" v-model="dash.usEditItem.age" :placeholder="dash.t[dash.lang].ageLabel" /></div>
         </div>
-        <div class="erp-sec-title"><span class="erp-sec-bar"></span>สิทธิ์ / ความปลอดภัย</div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].permissionSecuritySectionTitle }}</div>
         <div class="erp-grid">
-          <div class="erp-field"><label>ตำแหน่ง / บทบาท
-              <span v-if="editingSelf" class="us-hint">(เปลี่ยนตำแหน่งตัวเองไม่ได้ — ให้ผู้ดูแลคนอื่นเปลี่ยนให้)</span>
-              <span v-else-if="!dash.usCanManage" class="us-hint">(เฉพาะผู้บริหารเปลี่ยนได้)</span>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].positionRoleLabel }}
+              <span v-if="editingSelf" class="us-hint">({{ dash.t[dash.lang].cannotChangeOwnRoleTitle }})</span>
+              <span v-else-if="!dash.usCanManage" class="us-hint">{{ dash.t[dash.lang].execOnlyChangeHint }}</span>
             </label>
-            <select v-model="dash.usEditItem.role" :disabled="!dash.usCanManage || editingSelf"><option value="">— ยังไม่กำหนด —</option><option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option></select>
+            <select v-model="dash.usEditItem.role" :disabled="!dash.usCanManage || editingSelf"><option value="">{{ dash.t[dash.lang].notSetYetPlaceholder }}</option><option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option></select>
           </div>
-          <div class="erp-field"><label>รหัสผ่านใหม่ <span class="us-hint">(เว้นว่างถ้าไม่เปลี่ยน)</span></label><input type="password" v-model="dash.usEditItem.password" placeholder="••••••••" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].newPasswordLabel }} <span class="us-hint">{{ dash.t[dash.lang].leaveBlankIfNoChangeHint }}</span></label><input type="password" v-model="dash.usEditItem.password" placeholder="••••••••" /></div>
         </div>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="dash.usCloseModal()">ยกเลิก</button>
-        <button class="erp-btn erp-btn-save" @click="dash.usSaveUser()">💾 บันทึก</button>
+        <button class="erp-btn erp-btn-cancel" @click="dash.usCloseModal()">{{ dash.t[dash.lang].cancelWord }}</button>
+        <button class="erp-btn erp-btn-save" @click="dash.usSaveUser()">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>
