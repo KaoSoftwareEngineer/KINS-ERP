@@ -1431,6 +1431,19 @@ data() {
             openNewBtn: 'เปิดใหม่',
             invoiceOpenedMsg: 'เปิดอินวอยส์เรียบร้อยแล้ว',
             requireCustomerMsg: 'กรุณาระบุลูกค้า',
+            // ---- หักบัญชีลูกค้า/คู่ค้า เฉพาะ ----
+            deductPartnerAccountTitle: 'หักบัญชีคู่ค้า',
+            deductCustomerAccountTitle: 'หักบัญชีลูกค้า',
+            wholesaleDateLabel: 'วันที่ขายส่ง',
+            retailDateLabel: 'วันที่ขายปลีก',
+            balanceAmountLabel: 'ยอดเงิน',
+            deductedAlreadyLabel: 'หักไปแล้ว',
+            remainingLabel: 'คงเหลือ',
+            deductAmountLabel: 'จำนวนที่หัก',
+            deductReasonPlaceholder: 'เหตุผลการหักบัญชี',
+            deductSuccessPrefix: 'หักบัญชีเรียบร้อยแล้ว',
+            pleaseSelectWord: 'กรุณาเลือก',
+            requireDeductAmountMsg: 'กรุณากรอกจำนวนที่หัก',
           },
           en: {
             home: 'Home',
@@ -1903,6 +1916,18 @@ data() {
             openNewBtn: 'New Invoice',
             invoiceOpenedMsg: 'Invoice opened successfully',
             requireCustomerMsg: 'Please specify a customer',
+            deductPartnerAccountTitle: 'Vendor Account Deduction',
+            deductCustomerAccountTitle: 'Customer Account Deduction',
+            wholesaleDateLabel: 'Wholesale Date',
+            retailDateLabel: 'Retail Date',
+            balanceAmountLabel: 'Balance Amount',
+            deductedAlreadyLabel: 'Already Deducted',
+            remainingLabel: 'Remaining',
+            deductAmountLabel: 'Deduct Amount',
+            deductReasonPlaceholder: 'Reason for deduction',
+            deductSuccessPrefix: 'Account deducted successfully',
+            pleaseSelectWord: 'Please select',
+            requireDeductAmountMsg: 'Please enter the deduction amount',
           }
         }
       };

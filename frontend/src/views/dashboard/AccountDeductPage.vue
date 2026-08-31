@@ -1,48 +1,48 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">➖ {{ partyType === 'partner' ? 'หักบัญชีคู่ค้า' : 'หักบัญชีลูกค้า' }}</div>
+  <div class="po-titlebar">➖ {{ partyType === 'partner' ? dash.t[dash.lang].deductPartnerAccountTitle : dash.t[dash.lang].deductCustomerAccountTitle }}</div>
 
   <div class="ad-head">
     <div class="ad-left">
       <div class="ad-field"><label>{{ partyLabel }}</label>
         <select v-model="form.party" @change="search">
-          <option value="">— เลือก{{ partyLabel }} —</option>
+          <option value="">— {{ dash.t[dash.lang].pleaseSelectWord }}{{ partyLabel }} —</option>
           <option v-for="p in partyOptions" :key="p" :value="p">{{ p }}</option>
         </select>
       </div>
       <template v-if="partyType === 'customer'">
-        <div class="ad-field"><label>วันที่ขายส่ง</label>
+        <div class="ad-field"><label>{{ dash.t[dash.lang].wholesaleDateLabel }}</label>
           <div class="ad-range"><input type="date" v-model="form.ws_from" /><span>–</span><input type="date" v-model="form.ws_to" /></div>
         </div>
-        <div class="ad-field"><label>วันที่ขายปลีก</label>
+        <div class="ad-field"><label>{{ dash.t[dash.lang].retailDateLabel }}</label>
           <div class="ad-range"><input type="date" v-model="form.rt_from" /><span>–</span><input type="date" v-model="form.rt_to" /></div>
         </div>
       </template>
       <template v-else>
-        <div class="ad-field"><label>วันที่</label>
+        <div class="ad-field"><label>{{ dash.t[dash.lang].dateLabel }}</label>
           <div class="ad-range"><input type="date" v-model="form.ws_from" /><span>–</span><input type="date" v-model="form.ws_to" /></div>
         </div>
       </template>
-      <button class="ad-search" @click="search">🔍 ค้นหา</button>
+      <button class="ad-search" @click="search">🔍 {{ dash.t[dash.lang].searchWord }}</button>
     </div>
     <div class="ad-right">
-      <div class="ad-sum"><label>ยอดเงิน</label><input :value="fmt(balance.total)" readonly /></div>
-      <div class="ad-sum"><label>หักไปแล้ว</label><input :value="fmt(balance.deducted)" readonly /></div>
-      <div class="ad-sum ad-sum-remain"><label>คงเหลือ</label><input :value="fmt(balance.remaining)" readonly /></div>
+      <div class="ad-sum"><label>{{ dash.t[dash.lang].balanceAmountLabel }}</label><input :value="fmt(balance.total)" readonly /></div>
+      <div class="ad-sum"><label>{{ dash.t[dash.lang].deductedAlreadyLabel }}</label><input :value="fmt(balance.deducted)" readonly /></div>
+      <div class="ad-sum ad-sum-remain"><label>{{ dash.t[dash.lang].remainingLabel }}</label><input :value="fmt(balance.remaining)" readonly /></div>
     </div>
   </div>
 
   <div class="ad-body">
     <div class="ad-deduct-box">
-      <div class="ad-field"><label>จำนวนที่หัก</label><input type="number" v-model.number="deductAmount" placeholder="0.00" /></div>
-      <div class="ad-field"><label>หมายเหตุ</label><input v-model="deductNote" placeholder="เหตุผลการหักบัญชี" /></div>
+      <div class="ad-field"><label>{{ dash.t[dash.lang].deductAmountLabel }}</label><input type="number" v-model.number="deductAmount" placeholder="0.00" /></div>
+      <div class="ad-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><input v-model="deductNote" :placeholder="dash.t[dash.lang].deductReasonPlaceholder" /></div>
     </div>
   </div>
 
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
+      <button class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
     </div>
   </div>
 </div>
@@ -60,7 +60,7 @@ export default {
       deductAmount: null, deductNote: '', partyOptions: [], savedMsg: '',
     };
   },
-  computed: { partyLabel() { return this.partyType === 'partner' ? 'คู่ค้า' : 'ลูกค้า'; } },
+  computed: { partyLabel() { return this.partyType === 'partner' ? this.dash.t[this.dash.lang].partnerWord : this.dash.t[this.dash.lang].customerWord; } },
   watch: { partyType() { this.reset(); this.loadParties(); } },
   mounted() { this.loadParties(); },
   methods: {
@@ -79,8 +79,8 @@ export default {
       } catch (e) {}
     },
     async save() {
-      if (!this.form.party) { this.dash.fbFail('กรุณาเลือก' + this.partyLabel); return; }
-      if (!(Number(this.deductAmount) > 0)) { this.dash.fbFail('กรุณากรอกจำนวนที่หัก'); return; }
+      if (!this.form.party) { this.dash.fbFail(this.dash.t[this.dash.lang].pleaseSelectWord + this.partyLabel); return; }
+      if (!(Number(this.deductAmount) > 0)) { this.dash.fbFail(this.dash.t[this.dash.lang].requireDeductAmountMsg); return; }
       this.dash.fbLoading('กำลังบันทึก...');
       const payload = {
         doc_type: 'deduct-' + this.partyType, doc_date: new Date().toISOString().slice(0, 10), total_amount: this.deductAmount,
@@ -90,7 +90,7 @@ export default {
         const res = await fetch('/api/payments', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(payload) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.savedMsg = 'หักบัญชีเรียบร้อยแล้ว (' + d.doc_no + ')'; this.dash.fbDone('บันทึกแล้ว'); this.deductAmount = null; this.deductNote = ''; this.search(); }
+        if (d.ok) { this.savedMsg = this.dash.t[this.dash.lang].deductSuccessPrefix + ' (' + d.doc_no + ')'; this.dash.fbDone('บันทึกแล้ว'); this.deductAmount = null; this.deductNote = ''; this.search(); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
