@@ -1147,6 +1147,17 @@ data() {
             minYardsLabel: 'หลาส่งขั้นต่ำ',
             searchNamePlaceholder: 'ค้นหาชื่อ',
             genericDataWord: 'ข้อมูล',
+            // ---- ผ้าดิบ (fabric raw) เฉพาะ ----
+            rawFabricWord: 'ผ้าดิบ',
+            noImageWord: 'ไม่มีรูป',
+            editRawFabricTitle: 'แก้ไขผ้าดิบ',
+            addRawFabricTitle: 'เพิ่มผ้าดิบใหม่',
+            rawFabricInfoSection: 'ข้อมูลผ้าดิบ',
+            allowanceSection: 'ค่าเผื่อ / สถานะ',
+            rawFabricNamePlaceholder: 'ชื่อผ้าดิบ',
+            egWord: 'เช่น',
+            searchNameSkuPlaceholder: 'ค้นหาชื่อ / รหัสสินค้า',
+            noRawFabricFound: 'ไม่พบข้อมูลผ้าดิบ',
           },
           en: {
             home: 'Home',
@@ -1354,6 +1365,16 @@ data() {
             minYardsLabel: 'Min. Shipping Yards',
             searchNamePlaceholder: 'Search name',
             genericDataWord: 'Data',
+            rawFabricWord: 'Raw Fabric',
+            noImageWord: 'No Image',
+            editRawFabricTitle: 'Edit Raw Fabric',
+            addRawFabricTitle: 'Add New Raw Fabric',
+            rawFabricInfoSection: 'Raw Fabric Information',
+            allowanceSection: 'Allowance / Status',
+            rawFabricNamePlaceholder: 'Raw fabric name',
+            egWord: 'e.g.',
+            searchNameSkuPlaceholder: 'Search name / product code',
+            noRawFabricFound: 'No raw fabric data found',
           }
         }
       };

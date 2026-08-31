@@ -1,9 +1,9 @@
 <template>
 <div class="fr-page-compact">
   <div class="header flex-wrap">
-    <div><h1>🧻 ผ้าดิบ</h1></div>
+    <div><h1>🧻 {{ dash.t[dash.lang].rawFabricWord }}</h1></div>
     <div class="header-actions">
-      <button class="btn-small fr-btn-add" @click="openAdd">+ เพิ่ม ผ้าดิบ</button>
+      <button class="btn-small fr-btn-add" @click="openAdd">+ {{ dash.t[dash.lang].add }} {{ dash.t[dash.lang].rawFabricWord }}</button>
     </div>
   </div>
 
@@ -11,34 +11,34 @@
   <div class="section" style="margin-top: 12px;">
     <div class="fr-filter-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[18px] gap-y-[14px]">
       <div class="fr-field-group">
-        <label>คำค้นหา</label>
-        <input type="text" v-model="filters.search" placeholder="ค้นหาชื่อ / รหัสสินค้า" />
+        <label>{{ dash.t[dash.lang].searchInput }}</label>
+        <input type="text" v-model="filters.search" :placeholder="dash.t[dash.lang].searchNameSkuPlaceholder" />
       </div>
       <div class="fr-field-group">
-        <label>ประเภท</label>
-        <select v-model="filters.type"><option value="">ทั้งหมด</option><option v-for="o in typeOptions" :key="o" :value="o">{{ o }}</option></select>
+        <label>{{ dash.t[dash.lang].typeLabel }}</label>
+        <select v-model="filters.type"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="o in typeOptions" :key="o" :value="o">{{ o }}</option></select>
       </div>
       <div class="fr-field-group">
-        <label>หน้ากว้าง</label>
-        <select v-model="filters.width"><option value="">ทั้งหมด</option><option v-for="o in widthOptions" :key="o" :value="o">{{ o }}</option></select>
+        <label>{{ dash.t[dash.lang].widthLabel }}</label>
+        <select v-model="filters.width"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="o in widthOptions" :key="o" :value="o">{{ o }}</option></select>
       </div>
       <div class="fr-field-group">
         <label>Active</label>
-        <select v-model="filters.active"><option value="">ทั้งหมด</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        <select v-model="filters.active"><option value="">{{ dash.t[dash.lang].allWord }}</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
       </div>
       <div class="fr-field-group">
-        <label>รหัสสินค้า</label>
-        <div class="fr-sku-range"><input type="text" v-model="filters.skuFrom" placeholder="เริ่มต้น" /><span>—</span><input type="text" v-model="filters.skuTo" placeholder="สิ้นสุด" /></div>
+        <label>{{ dash.t[dash.lang].skuLabel }}</label>
+        <div class="fr-sku-range"><input type="text" v-model="filters.skuFrom" :placeholder="dash.t[dash.lang].fromWord" /><span>—</span><input type="text" v-model="filters.skuTo" :placeholder="dash.t[dash.lang].toWord" /></div>
       </div>
       <div class="fr-field-group">
-        <label>ส่วนประกอบ</label>
-        <select v-model="filters.composition"><option value="">ทั้งหมด</option><option v-for="o in compositionOptions" :key="o" :value="o">{{ o }}</option></select>
+        <label>{{ dash.t[dash.lang].compositionLabel }}</label>
+        <select v-model="filters.composition"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="o in compositionOptions" :key="o" :value="o">{{ o }}</option></select>
       </div>
       <div class="fr-field-group" style="grid-column: span 2;">
         <label>&nbsp;</label>
         <div class="fr-filter-actions">
-          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 ค้นหา</button>
-          <button class="fr-btn-util fr-btn-reset" @click="resetFilters">↺ รีเซ็ต</button>
+          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+          <button class="fr-btn-util fr-btn-reset" @click="resetFilters">↺ {{ dash.t[dash.lang].resetWord }}</button>
         </div>
       </div>
     </div>
@@ -46,9 +46,9 @@
 
   <!-- สรุป -->
   <div class="fr-summary fr-summary-row">
-    <span>พบ {{ sortedFilteredItems.length }} รายการ</span>
+    <span>{{ dash.t[dash.lang].foundItems }} {{ sortedFilteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span>
     <div class="fr-summary-actions">
-      <button v-if="selected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="bulkDelete">🗑️ ลบที่เลือก ({{ selected.length }})</button>
+      <button v-if="selected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="bulkDelete">🗑️ {{ dash.t[dash.lang].deleteSelected }} ({{ selected.length }})</button>
     </div>
   </div>
 
@@ -59,18 +59,18 @@
         <thead>
           <tr>
             <th class="fr-th-check"><input type="checkbox" :checked="allSelectedOnPage" @change="toggleSelectAll" /></th>
-            <th style="width:48px;">ที่</th>
-            <th class="fr-th-sort" @click="sortBy('type')">ประเภท <span class="fr-sort-icon">{{ sortIcon('type') }}</span></th>
-            <th class="fr-th-sort" @click="sortBy('sku')">รหัสสินค้า <span class="fr-sort-icon">{{ sortIcon('sku') }}</span></th>
-            <th class="fr-th-sort" @click="sortBy('name')">ชื่อ <span class="fr-sort-icon">{{ sortIcon('name') }}</span></th>
-            <th>โครงสร้างผ้า</th>
-            <th>ส่วนประกอบ</th>
-            <th>หน้ากว้าง</th>
-            <th>หน่วย</th>
+            <th style="width:48px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+            <th class="fr-th-sort" @click="sortBy('type')">{{ dash.t[dash.lang].typeLabel }} <span class="fr-sort-icon">{{ sortIcon('type') }}</span></th>
+            <th class="fr-th-sort" @click="sortBy('sku')">{{ dash.t[dash.lang].skuLabel }} <span class="fr-sort-icon">{{ sortIcon('sku') }}</span></th>
+            <th class="fr-th-sort" @click="sortBy('name')">{{ dash.t[dash.lang].nameLabel }} <span class="fr-sort-icon">{{ sortIcon('name') }}</span></th>
+            <th>{{ dash.t[dash.lang].structureLabel }}</th>
+            <th>{{ dash.t[dash.lang].compositionLabel }}</th>
+            <th>{{ dash.t[dash.lang].widthLabel }}</th>
+            <th>{{ dash.t[dash.lang].unitLabel }}</th>
             <th>Shrinkage (%)</th>
             <th>Allowance (%)</th>
-            <th style="width:60px;">รูป</th>
-            <th style="width:100px;">จัดการ</th>
+            <th style="width:60px;">{{ dash.t[dash.lang].imageLabel }}</th>
+            <th style="width:100px;">{{ dash.t[dash.lang].manageWord }}</th>
           </tr>
         </thead>
         <tbody>
@@ -86,16 +86,16 @@
             <td>{{ item.unit || 'หลา' }}</td>
             <td>{{ item.shrinkage != null ? item.shrinkage : '-' }}</td>
             <td>{{ item.allowance != null ? item.allowance : '-' }}</td>
-            <td><span class="fraw-img" :title="item.image_name || 'ไม่มีรูป'">🖼️</span></td>
+            <td><span class="fraw-img" :title="item.image_name || dash.t[dash.lang].noImageWord">🖼️</span></td>
             <td>
               <div class="fr-action-group">
-                <button class="fr-action-btn edit" title="แก้ไข" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-                <button class="fr-action-btn delete" title="ลบ" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                <button class="fr-action-btn edit" :title="dash.t[dash.lang].edit" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                <button class="fr-action-btn delete" :title="dash.t[dash.lang].delete" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
               </div>
             </td>
           </tr>
-          <tr v-if="loading" class="fr-empty-row"><td colspan="13" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>
-          <tr v-else-if="pagedRows.length === 0" class="fr-empty-row"><td colspan="13" style="text-align:center;padding:24px;color:#94a3b8;">ไม่พบข้อมูลผ้าดิบ</td></tr>
+          <tr v-if="loading" class="fr-empty-row"><td colspan="13" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].loadingWord }}</td></tr>
+          <tr v-else-if="pagedRows.length === 0" class="fr-empty-row"><td colspan="13" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].noRawFabricFound }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -103,42 +103,42 @@
 
   <!-- เลขหน้า -->
   <div class="xl-pagination" v-if="sortedFilteredItems.length > 0">
-    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="15">15 / หน้า</option><option :value="30">30 / หน้า</option><option :value="50">50 / หน้า</option></select>
-    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">‹ ก่อนหน้า</button>
-    <span>หน้า {{ page }} / {{ totalPages }}</span>
-    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
+    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="15">15 {{ dash.t[dash.lang].perPageWord }}</option><option :value="30">30 {{ dash.t[dash.lang].perPageWord }}</option><option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option></select>
+    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">{{ dash.t[dash.lang].prevPage }}</button>
+    <span>{{ dash.t[dash.lang].pageWord }} {{ page }} / {{ totalPages }}</span>
+    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">{{ dash.t[dash.lang].nextPage }}</button>
   </div>
 
   <!-- โมดัลเพิ่ม/แก้ไข (ERP มาตรฐานกลาง) -->
   <div class="erp-overlay" v-if="showModal" @click.self="showModal = false">
     <div class="erp-modal">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">🧻</span> {{ editingId ? 'แก้ไขผ้าดิบ' : 'เพิ่มผ้าดิบใหม่' }}</span>
+        <span><span class="erp-head-ic">🧻</span> {{ editingId ? dash.t[dash.lang].editRawFabricTitle : dash.t[dash.lang].addRawFabricTitle }}</span>
         <button class="erp-x" @click="showModal = false">✕</button>
       </div>
       <div class="erp-modal-body">
-        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลผ้าดิบ</div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].rawFabricInfoSection }}</div>
         <div class="erp-grid">
-          <div class="erp-field"><label>ประเภท</label><input type="text" v-model="form.type" placeholder="เช่น Greige" /></div>
-          <div class="erp-field"><label>รหัสสินค้า <span class="erp-req">*</span></label><input type="text" v-model="form.sku" placeholder="เช่น G001" /></div>
-          <div class="erp-field erp-col-2"><label>ชื่อ</label><input type="text" v-model="form.name" placeholder="ชื่อผ้าดิบ" /></div>
-          <div class="erp-field"><label>โครงสร้างผ้า</label><input type="text" v-model="form.structure" placeholder="เช่น Cotton 100%" /></div>
-          <div class="erp-field"><label>ส่วนประกอบ</label><input type="text" v-model="form.composition" /></div>
-          <div class="erp-field"><label>หน้ากว้าง</label><input type="text" v-model="form.width" /></div>
-          <div class="erp-field"><label>หน่วย</label><input type="text" v-model="form.unit" placeholder="หลา" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].typeLabel }}</label><input type="text" v-model="form.type" :placeholder="dash.t[dash.lang].egWord + ' Greige'" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].skuLabel }} <span class="erp-req">*</span></label><input type="text" v-model="form.sku" :placeholder="dash.t[dash.lang].egWord + ' G001'" /></div>
+          <div class="erp-field erp-col-2"><label>{{ dash.t[dash.lang].nameLabel }}</label><input type="text" v-model="form.name" :placeholder="dash.t[dash.lang].rawFabricNamePlaceholder" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].structureLabel }}</label><input type="text" v-model="form.structure" :placeholder="dash.t[dash.lang].egWord + ' Cotton 100%'" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].compositionLabel }}</label><input type="text" v-model="form.composition" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].widthLabel }}</label><input type="text" v-model="form.width" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].unitLabel }}</label><input type="text" v-model="form.unit" placeholder="หลา" /></div>
         </div>
-        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ค่าเผื่อ / สถานะ</div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].allowanceSection }}</div>
         <div class="erp-grid">
           <div class="erp-field"><label>Shrinkage (%)</label><input type="number" v-model.number="form.shrinkage" /></div>
           <div class="erp-field"><label>Allowance (%)</label><input type="number" v-model.number="form.allowance" /></div>
-          <div class="erp-field"><label>สถานะ</label>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].status }}</label>
             <select v-model="form.active"><option :value="true">Active</option><option :value="false">Inactive</option></select>
           </div>
         </div>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="showModal = false">ยกเลิก</button>
-        <button class="erp-btn erp-btn-save" @click="save">💾 บันทึก</button>
+        <button class="erp-btn erp-btn-cancel" @click="showModal = false">{{ dash.t[dash.lang].cancelWord }}</button>
+        <button class="erp-btn erp-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>
