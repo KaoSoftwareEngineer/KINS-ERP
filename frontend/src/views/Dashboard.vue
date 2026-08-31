@@ -1233,6 +1233,15 @@ data() {
             receiveDyedFabricTitle: 'รับผ้าย้อม',
             orderNoLabel: 'เลขที่ออร์เดอร์',
             selectDyeOrderOpt: '— เลือกใบสั่งย้อม —',
+            // ---- ย้ายสินค้า (goods/raw/rack transfer) เฉพาะ ----
+            moveGoodsTitle: 'ย้ายสินค้า',
+            fromWarehouseLabel: 'จากคลัง',
+            toWarehouseLabel: 'ไปยังคลัง',
+            pickPieceBtn: 'เลือกผืน',
+            noTransferItemsMsg: 'ยังไม่มีรายการ — กด "เลือกผืน" เพื่อเพิ่มสินค้าที่จะย้าย',
+            transferPdfBtn: 'ใบย้ายสินค้า',
+            transferNewBtn: 'ย้ายใหม่',
+            noProductsFound: 'ไม่พบสินค้า',
           },
           en: {
             home: 'Home',
@@ -1522,6 +1531,14 @@ data() {
             receiveDyedFabricTitle: 'Receive Dyed Fabric',
             orderNoLabel: 'Order No.',
             selectDyeOrderOpt: '— Select Dye Order —',
+            moveGoodsTitle: 'Transfer Goods',
+            fromWarehouseLabel: 'From Warehouse',
+            toWarehouseLabel: 'To Warehouse',
+            pickPieceBtn: 'Select Pieces',
+            noTransferItemsMsg: 'No items yet — click "Select Pieces" to add products to transfer',
+            transferPdfBtn: 'Transfer Slip',
+            transferNewBtn: 'New Transfer',
+            noProductsFound: 'No products found',
           }
         }
       };

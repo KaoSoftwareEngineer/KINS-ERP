@@ -1,26 +1,26 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">🔄 ย้ายสินค้า</div>
+  <div class="po-titlebar">🔄 {{ dash.t[dash.lang].moveGoodsTitle }}</div>
 
   <!-- ส่วนหัว -->
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.transfer_date" /></div>
-      <div class="po-field"><label>เลขที่ย้ายสินค้า</label><input :value="form.tr_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.transfer_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].transferNoLabel }}</label><input :value="form.tr_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>จากคลัง</label>
+      <div class="po-field"><label>{{ dash.t[dash.lang].fromWarehouseLabel }}</label>
         <select v-model="form.from_wh"><option v-for="w in warehouseOptions" :key="w" :value="w">{{ w }}</option></select>
       </div>
-      <div class="po-field"><label>ไปยังคลัง</label>
+      <div class="po-field"><label>{{ dash.t[dash.lang].toWarehouseLabel }}</label>
         <select v-model="form.to_wh"><option v-for="w in warehouseOptions" :key="w" :value="w">{{ w }}</option></select>
       </div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
     <div class="po-head-col">
-      <button class="dy-pick-btn" @click="openDrawer">☰ เลือกผืน</button>
+      <button class="dy-pick-btn" @click="openDrawer">☰ {{ dash.t[dash.lang].pickPieceBtn }}</button>
     </div>
   </div>
 
@@ -29,35 +29,35 @@
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>รหัสสินค้า</th><th>รหัสสี</th><th>กลุ่มผ้า</th><th>เฉดสี</th><th>หน้ากว้าง</th>
-          <th style="width:100px;">จำนวน</th><th style="width:90px;">หน่วย</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th><th>{{ dash.t[dash.lang].fabricGroupLabel }}</th><th>{{ dash.t[dash.lang].shadeLabel }}</th><th>{{ dash.t[dash.lang].widthLabel }}</th>
+          <th style="width:100px;">{{ dash.t[dash.lang].qtyLabel }}</th><th style="width:90px;">{{ dash.t[dash.lang].unitLabel }}</th>
           <th style="width:54px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
-          <td><input v-model="row.sku" class="po-ro-cell" placeholder="รหัส" /></td>
-          <td><input v-model="row.color" class="po-ro-cell" placeholder="รหัสสี" /></td>
-          <td><input v-model="row.group" class="po-ro-cell" placeholder="กลุ่มผ้า" /></td>
+          <td><input v-model="row.sku" class="po-ro-cell" :placeholder="dash.t[dash.lang].skuPlaceholderShort" /></td>
+          <td><input v-model="row.color" class="po-ro-cell" :placeholder="dash.t[dash.lang].colorCodeLabel" /></td>
+          <td><input v-model="row.group" class="po-ro-cell" :placeholder="dash.t[dash.lang].fabricGroupLabel" /></td>
           <td>
             <select v-if="row.shadeOptions && row.shadeOptions.length" v-model="row.shade" @change="onShade(row)">
-              <option value="">— เลือกเฉดสี —</option>
+              <option value="">{{ dash.lang === 'th' ? '— เลือกเฉดสี —' : '— Select Shade —' }}</option>
               <option v-for="s in row.shadeOptions" :key="s" :value="s">{{ s }}</option>
             </select>
-            <input v-else v-model="row.shade" placeholder="เฉดสี" />
+            <input v-else v-model="row.shade" :placeholder="dash.t[dash.lang].shadeLabel" />
           </td>
-          <td><input v-model="row.width" class="po-ro-cell" placeholder="หน้ากว้าง" /></td>
+          <td><input v-model="row.width" class="po-ro-cell" :placeholder="dash.t[dash.lang].widthLabel" /></td>
           <td><input type="number" v-model.number="row.qty" class="po-num" /></td>
           <td><input v-model="row.unit" /></td>
           <td class="po-row-actions">
-            <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="items.length === 0"><td colspan="9" class="po-empty">ยังไม่มีรายการ — กด "เลือกผืน" เพื่อเพิ่มสินค้าที่จะย้าย</td></tr>
+        <tr v-if="items.length === 0"><td colspan="9" class="po-empty">{{ dash.t[dash.lang].noTransferItemsMsg }}</td></tr>
       </tbody>
     </table>
   </div>
@@ -66,13 +66,13 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
+      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
       <template v-if="!saved">
-        <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
+        <button class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
       </template>
       <template v-else>
-        <button class="po-btn po-btn-receipt" @click="openPdf">🧾 ใบย้ายสินค้า</button>
-        <button class="po-btn po-btn-new" @click="resetForm">🔄 ย้ายใหม่</button>
+        <button class="po-btn po-btn-receipt" @click="openPdf">🧾 {{ dash.t[dash.lang].transferPdfBtn }}</button>
+        <button class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].transferNewBtn }}</button>
       </template>
     </div>
   </div>
@@ -82,23 +82,23 @@
     <div v-if="drawerOpen" class="dy-drawer-wrap">
       <div class="dy-drawer-backdrop" @click="drawerOpen = false"></div>
       <div class="dy-drawer">
-        <div class="dy-drawer-head"><span>เลือกผืน (จากคลัง {{ form.from_wh }})</span><button class="dy-x" @click="drawerOpen = false">✕</button></div>
+        <div class="dy-drawer-head"><span>{{ dash.t[dash.lang].pickPieceBtn }} ({{ dash.t[dash.lang].fromWarehouseLabel }} {{ form.from_wh }})</span><button class="dy-x" @click="drawerOpen = false">✕</button></div>
         <div class="dy-drawer-search">
-          <input v-model="drawerSearch" placeholder="ค้นหารหัส/ชื่อสินค้า" />
+          <input v-model="drawerSearch" :placeholder="dash.t[dash.lang].searchNameSkuPlaceholder" />
         </div>
         <div class="dy-drawer-list">
           <table>
-            <thead><tr><th>รหัส</th><th>ชื่อ</th><th>หน้ากว้าง</th><th></th></tr></thead>
+            <thead><tr><th>{{ dash.t[dash.lang].skuPlaceholderShort }}</th><th>{{ dash.t[dash.lang].nameLabel }}</th><th>{{ dash.t[dash.lang].widthLabel }}</th><th></th></tr></thead>
             <tbody>
               <tr v-for="f in drawerFiltered" :key="f.id">
                 <td>{{ f.sku }}</td><td>{{ f.name }}</td><td>{{ f.width }}</td>
-                <td><button class="dy-select-btn" @click="selectFabric(f)">เลือก</button></td>
+                <td><button class="dy-select-btn" @click="selectFabric(f)">{{ dash.t[dash.lang].selectWord }}</button></td>
               </tr>
-              <tr v-if="drawerFiltered.length === 0"><td colspan="4" class="dy-empty">ไม่พบสินค้า</td></tr>
+              <tr v-if="drawerFiltered.length === 0"><td colspan="4" class="dy-empty">{{ dash.t[dash.lang].noProductsFound }}</td></tr>
             </tbody>
           </table>
         </div>
-        <div class="dy-drawer-foot"><button class="po-btn" @click="drawerOpen = false">✕ ปิด</button></div>
+        <div class="dy-drawer-foot"><button class="po-btn" @click="drawerOpen = false">✕ {{ dash.t[dash.lang].close }}</button></div>
       </div>
     </div>
   </transition>
@@ -181,7 +181,7 @@ export default {
         });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.tr_no = d.tr_no; this.saved = true; this.savedMsg = 'ระบบได้ทำการย้ายสินค้าเรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.tr_no = d.tr_no; this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].savedMsgText; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
