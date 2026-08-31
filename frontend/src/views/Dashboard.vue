@@ -1663,6 +1663,8 @@ data() {
             factoryWarehousePlaceholder: 'โรงงาน/คลังในใบรับ',
             clickRowToViewReceiptsMsg: 'คลิกแถวด้านบนเพื่อดูรายการรับผ้าดิบ',
             noReceiptsForThisMsg: 'ไม่มีรายการรับสำหรับผ้าดิบนี้',
+            shelfStockReportTitle: 'รายงานสินค้าคงคลังตามชั้น',
+            nameSkuColorBarcodePlaceholder: 'ชื่อ/รหัส/สี/บาร์โค้ด',
             // ---- ใบลดหนี้ลูกค้า/คู่ค้า เฉพาะ ----
             creditNotePartnerTitle: 'ใบลดหนี้คู่ค้า',
             creditNoteCustomerTitle: 'ใบลดหนี้ลูกค้า',
@@ -2378,6 +2380,8 @@ data() {
             factoryWarehousePlaceholder: 'Factory/Warehouse on receipt',
             clickRowToViewReceiptsMsg: 'Click a row above to view raw fabric receipts',
             noReceiptsForThisMsg: 'No receipts for this raw fabric',
+            shelfStockReportTitle: 'Stock by Shelf Report',
+            nameSkuColorBarcodePlaceholder: 'Name/Code/Color/Barcode',
             creditNotePartnerTitle: 'Vendor Credit Note',
             creditNoteCustomerTitle: 'Customer Credit Note',
             creditNoteNoLabel: 'Credit Note No.',

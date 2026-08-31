@@ -1,55 +1,53 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>🗄️ รายงานสินค้าคงคลังตามชั้น</span>
+    <span>🗄️ {{ dash.t[dash.lang].shelfStockReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
 
-  <!-- ตัวกรอง -->
   <div class="rp-filter">
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="ชื่อ/รหัส/สี/บาร์โค้ด" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>รหัสสี / เฉดสี</label><input v-model="filter.color" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>บาร์โค้ด</label><input v-model="filter.barcode" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>กลุ่มผ้า</label>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].nameSkuColorBarcodePlaceholder" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].colorShadeLabel }}</label><input v-model="filter.color" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].barcodeLabel }}</label><input v-model="filter.barcode" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].fabricGroupLabel }}</label>
       <select v-model="filter.group" @change="load">
-        <option value="">ทั้งหมด</option>
+        <option value="">{{ dash.t[dash.lang].allWord }}</option>
         <option v-for="g in groupOptions" :key="g.id" :value="g.id">{{ g.name }}</option>
       </select>
     </div>
-    <div class="rp-f"><label>หน้ากว้าง</label><input v-model="filter.width" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>คลัง</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>แร็คซ์</label><input v-model="filter.rack" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].widthLabel }}</label><input v-model="filter.width" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].warehouseLabel }}</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].rackWord }}</label><input v-model="filter.rack" @keyup.enter="load" /></div>
     <div class="rp-f-actions">
-      <button class="rp-btn-search" @click="load">🔍 ค้นหา</button>
-      <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
+      <button class="rp-btn-search" @click="load">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+      <button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button>
     </div>
   </div>
 
-  <div class="rp-found">พบ {{ items.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ items.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
-  <!-- ตาราง (เลื่อนได้ + คลิกหัวคอลัมน์เพื่อเรียงลำดับ) -->
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('roll_qr_code')">บาร์โค้ด <span class="rp-sort" :class="{ on: sort.key === 'roll_qr_code' }">{{ sortIcon('roll_qr_code') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('sku')">รหัสสินค้า <span class="rp-sort" :class="{ on: sort.key === 'sku' }">{{ sortIcon('sku') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('color')">รหัสสี <span class="rp-sort" :class="{ on: sort.key === 'color' }">{{ sortIcon('color') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('shade')">เฉดสี <span class="rp-sort" :class="{ on: sort.key === 'shade' }">{{ sortIcon('shade') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('type')">ประเภท <span class="rp-sort" :class="{ on: sort.key === 'type' }">{{ sortIcon('type') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('width')">หน้ากว้าง <span class="rp-sort" :class="{ on: sort.key === 'width' }">{{ sortIcon('width') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('current_yards')">จำนวน (หลา) <span class="rp-sort" :class="{ on: sort.key === 'current_yards' }">{{ sortIcon('current_yards') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('location_code')">คลัง <span class="rp-sort" :class="{ on: sort.key === 'location_code' }">{{ sortIcon('location_code') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('rack')">แร็คซ์ <span class="rp-sort" :class="{ on: sort.key === 'rack' }">{{ sortIcon('rack') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('lot_no')">เลขที่ล็อต <span class="rp-sort" :class="{ on: sort.key === 'lot_no' }">{{ sortIcon('lot_no') }}</span></th>
-          <th>หมายเหตุ</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('roll_qr_code')">{{ dash.t[dash.lang].barcodeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'roll_qr_code' }">{{ sortIcon('roll_qr_code') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('sku')">{{ dash.t[dash.lang].skuLabel }} <span class="rp-sort" :class="{ on: sort.key === 'sku' }">{{ sortIcon('sku') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('color')">{{ dash.t[dash.lang].colorCodeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'color' }">{{ sortIcon('color') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('shade')">{{ dash.t[dash.lang].shadeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'shade' }">{{ sortIcon('shade') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('type')">{{ dash.t[dash.lang].typeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'type' }">{{ sortIcon('type') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('width')">{{ dash.t[dash.lang].widthLabel }} <span class="rp-sort" :class="{ on: sort.key === 'width' }">{{ sortIcon('width') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('current_yards')">{{ dash.t[dash.lang].stockQtyYardsLabel }} <span class="rp-sort" :class="{ on: sort.key === 'current_yards' }">{{ sortIcon('current_yards') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('location_code')">{{ dash.t[dash.lang].warehouseLabel }} <span class="rp-sort" :class="{ on: sort.key === 'location_code' }">{{ sortIcon('location_code') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('rack')">{{ dash.t[dash.lang].rackWord }} <span class="rp-sort" :class="{ on: sort.key === 'rack' }">{{ sortIcon('rack') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('lot_no')">{{ dash.t[dash.lang].lotNoLabel }} <span class="rp-sort" :class="{ on: sort.key === 'lot_no' }">{{ sortIcon('lot_no') }}</span></th>
+          <th>{{ dash.t[dash.lang].noteLabel }}</th>
           <th style="width:90px;">
-            <span class="rp-th-manage">จัดการ
-              <button class="rp-ic rp-print rp-th-print" :title="selectedRolls.length ? 'พิมพ์ที่เลือก (' + selectedRolls.length + ')' : 'พิมพ์ทั้งหมด'" @click="printSelected">
+            <span class="rp-th-manage">{{ dash.t[dash.lang].manageWord }}
+              <button class="rp-ic rp-print rp-th-print" :title="selectedRolls.length ? dash.t[dash.lang].printSelectedLabel + ' (' + selectedRolls.length + ')' : dash.t[dash.lang].printAllLabel" @click="printSelected">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
               </button>
             </span>
@@ -61,7 +59,7 @@
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">
             <span class="rp-bc">{{ row.roll_qr_code }}</span>
-            <button class="rp-ic rp-copy" title="คัดลอกบาร์โค้ด" @click="copyBarcode(row.roll_qr_code)">
+            <button class="rp-ic rp-copy" :title="dash.t[dash.lang].copyBarcodeTitle" @click="copyBarcode(row.roll_qr_code)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>
           </td>
@@ -76,20 +74,20 @@
           <td>{{ row.lot_no || '-' }}</td>
           <td>{{ row.note || '-' }}</td>
           <td class="rp-c rp-actions-cell">
-            <button class="fr-img-btn" title="ดูรูปสินค้า" @click.stop>
+            <button class="fr-img-btn" :title="dash.t[dash.lang].viewProductImageTitle" @click.stop>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
             </button>
-            <input type="checkbox" class="rp-chk" title="เลือกม้วนนี้" :checked="selectedRolls.includes(row.roll_id)" @change="toggleRoll(row.roll_id)" />
-            <button class="rp-ic rp-print" title="พิมพ์ QR ม้วน" @click="printRoll(row)">
+            <input type="checkbox" class="rp-chk" :title="dash.t[dash.lang].selectThisRollTitle" :checked="selectedRolls.includes(row.roll_id)" @change="toggleRoll(row.roll_id)" />
+            <button class="rp-ic rp-print" :title="dash.t[dash.lang].printRollQrLabel" @click="printRoll(row)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="items.length === 0"><td colspan="13" class="rp-empty">ไม่พบข้อมูล</td></tr>
+        <tr v-if="items.length === 0"><td colspan="13" class="rp-empty">{{ dash.t[dash.lang].noDataFoundMsg }}</td></tr>
       </tbody>
       <tfoot v-if="items.length">
         <tr>
-          <td colspan="7" class="rp-r rp-bold">รวม</td>
+          <td colspan="7" class="rp-r rp-bold">{{ dash.t[dash.lang].totalWord }}</td>
           <td class="rp-r rp-bold">{{ fmt(summary.yards) }}</td>
           <td colspan="5"></td>
         </tr>
