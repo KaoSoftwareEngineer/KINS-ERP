@@ -1376,6 +1376,11 @@ data() {
             selectInvoiceHintMsg: 'เลือกเลขที่ใบกำกับภาษีด้านบน เพื่อดึงรายการมาตัดสต็อก',
             cutNewBtn: 'ตัดใหม่',
             stockCutFromInvoiceMsg: 'ตัดสต็อกจากใบกำกับเรียบร้อยแล้ว',
+            // ---- ตัดสต็อก VAT (manual) เฉพาะ ----
+            vatStockCutTitle: 'ตัดสต็อก VAT',
+            wholesaleWord: 'ขายส่ง',
+            customerNamePlaceholder: 'ชื่อลูกค้า',
+            stockCutSuccessMsg: 'ตัดสต็อกเรียบร้อยแล้ว',
           },
           en: {
             home: 'Home',
@@ -1800,6 +1805,10 @@ data() {
             selectInvoiceHintMsg: 'Select an invoice number above to pull items for stock cutting',
             cutNewBtn: 'New Cut',
             stockCutFromInvoiceMsg: 'Stock cut from invoice completed',
+            vatStockCutTitle: 'VAT Stock Cut',
+            wholesaleWord: 'Wholesale',
+            customerNamePlaceholder: 'Customer name',
+            stockCutSuccessMsg: 'Stock cut completed',
           }
         }
       };

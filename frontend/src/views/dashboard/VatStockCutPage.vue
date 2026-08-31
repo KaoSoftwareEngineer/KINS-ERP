@@ -1,18 +1,18 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">✂️ ตัดสต็อก VAT</div>
+  <div class="po-titlebar">✂️ {{ dash.t[dash.lang].vatStockCutTitle }}</div>
 
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.cut_date" /></div>
-      <div class="po-field"><label>เลขที่เบิกสินค้า</label><input :value="form.vo_no" readonly class="po-ro" /></div>
-      <div class="po-field"><label>ประเภทการขาย</label>
-        <select v-model="form.sale_type"><option value="ขายส่ง">ขายส่ง</option><option value="ขายปลีก">ขายปลีก</option></select>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.cut_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].disburseNoLabel }}</label><input :value="form.vo_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].saleTypeLabel }}</label>
+        <select v-model="form.sale_type"><option value="ขายส่ง">{{ dash.t[dash.lang].wholesaleWord }}</option><option value="ขายปลีก">{{ dash.t[dash.lang].retailSaleWord }}</option></select>
       </div>
-      <div class="po-field"><label>ลูกค้า</label><input v-model="form.customer" placeholder="ชื่อลูกค้า" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].customerWord }}</label><input v-model="form.customer" :placeholder="dash.t[dash.lang].customerNamePlaceholder" /></div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
   </div>
 
@@ -20,28 +20,28 @@
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th style="text-align:left;">รายละเอียด</th><th style="width:180px;">ราคารับ</th><th style="width:150px;">จำนวนที่ตัด</th><th style="width:160px;">รวม</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th style="text-align:left;">{{ dash.t[dash.lang].detailLabel }}</th><th style="width:180px;">{{ dash.t[dash.lang].priceReceivedLabel }}</th><th style="width:150px;">{{ dash.t[dash.lang].qtyCutLabel }}</th><th style="width:160px;">{{ dash.t[dash.lang].totalWord }}</th>
           <th style="width:96px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
-          <td><input v-model="row.detail" placeholder="รายละเอียด" /></td>
+          <td><input v-model="row.detail" :placeholder="dash.t[dash.lang].detailLabel" /></td>
           <td><input type="number" list="vo-prices" v-model.number="row.price" class="po-num" placeholder="0.00" /></td>
           <td><input type="number" v-model.number="row.qty_cut" class="po-num" placeholder="0" /></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
           <td class="po-row-actions">
-            <button class="po-ic po-add" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-            <button class="po-ic po-del" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-            <button class="po-ic po-copy" @click="copyRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <button class="po-ic po-copy" :title="dash.t[dash.lang].copyRowTitle" @click="copyRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </td>
         </tr>
       </tbody>
       <tfoot>
         <tr class="po-foot-row">
-          <td colspan="3" class="po-foot-label">รวม</td>
+          <td colspan="3" class="po-foot-label">{{ dash.t[dash.lang].totalWord }}</td>
           <td class="po-num">{{ totalQty }}</td>
           <td class="po-num">{{ totalAmount.toFixed(2) }}</td>
           <td></td>
@@ -54,9 +54,9 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
-      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 ตัดใหม่</button>
+      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
+      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].cutNewBtn }}</button>
     </div>
   </div>
 </div>
@@ -110,7 +110,7 @@ export default {
         const res = await fetch('/api/vat-stock-cuts', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(payload) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.vo_no = d.vo_no; this.saved = true; this.savedMsg = 'ตัดสต็อกเรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.vo_no = d.vo_no; this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].stockCutSuccessMsg; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
