@@ -3,13 +3,13 @@
   <!-- หัวเรื่อง + แอ็กชัน -->
   <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
     <div>
-      <h1 class="text-xl font-bold flex items-center gap-2">🗄️ โซน &amp; แร็ค (ผังคลังผ้า)</h1>
-      <p class="text-xs text-[var(--muted)] mt-0.5">ผังช่องจัดเก็บ — 1 ช่องเก็บได้หลายม้วน/หลายสี · สแกนจัดเก็บและตัดหลาได้</p>
+      <h1 class="text-xl font-bold flex items-center gap-2">🗄️ {{ dash.t[dash.lang].zoneRackTitle }}</h1>
+      <p class="text-xs text-[var(--muted)] mt-0.5">{{ dash.t[dash.lang].zoneRackHint }}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
-      <button class="zr-btn-scan" @click="openScanner('putaway')">📦 สแกนจัดเก็บ</button>
-      <button class="zr-btn-cut" @click="openScanner('cut')">✂️ สแกนตัดหลา</button>
-      <button class="zr-btn-add" @click="openAdd">+ เพิ่ม QR Code ช่องสินค้า</button>
+      <button class="zr-btn-scan" @click="openScanner('putaway')">📦 {{ dash.t[dash.lang].scanPutawayBtn }}</button>
+      <button class="zr-btn-cut" @click="openScanner('cut')">✂️ {{ dash.t[dash.lang].scanCutBtn }}</button>
+      <button class="zr-btn-add" @click="openAdd">+ {{ dash.t[dash.lang].addLocationQrBtn }}</button>
     </div>
   </div>
 
@@ -18,19 +18,19 @@
     <div class="flex-1 min-w-[240px]">
       <div class="relative">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]">🔍</span>
-        <input type="text" v-model="search" placeholder="ค้นหารหัสผ้า / สี — ไฮไลต์ช่องที่มีผ้านั้น" class="zr-search" />
+        <input type="text" v-model="search" :placeholder="dash.t[dash.lang].searchLocationPlaceholder" class="zr-search" />
       </div>
     </div>
     <div class="text-xs text-[var(--muted)] flex gap-4">
-      <span>ช่องทั้งหมด <b class="text-[var(--text)]">{{ locations.length }}</b></span>
-      <span>ม้วนในคลัง <b class="text-[var(--text)]">{{ totalRolls }}</b></span>
-      <span>รวม <b class="text-[var(--text)]">{{ totalYards.toLocaleString() }}</b> หลา</span>
-      <span v-if="unassigned.length" class="text-orange-600">ยังไม่จัดเก็บ <b>{{ unassigned.length }}</b> ม้วน</span>
+      <span>{{ dash.t[dash.lang].allLocationsLabel }} <b class="text-[var(--text)]">{{ locations.length }}</b></span>
+      <span>{{ dash.t[dash.lang].rollsInStockLabel }} <b class="text-[var(--text)]">{{ totalRolls }}</b></span>
+      <span>{{ dash.t[dash.lang].totalWord }} <b class="text-[var(--text)]">{{ totalYards.toLocaleString() }}</b> {{ dash.t[dash.lang].yardsUnit }}</span>
+      <span v-if="unassigned.length" class="text-orange-600">{{ dash.t[dash.lang].unassignedLabel }} <b>{{ unassigned.length }}</b> {{ dash.t[dash.lang].rollUnit }}</span>
     </div>
   </div>
 
   <div class="zr-scroll">
-  <div v-if="loading" class="text-center text-[var(--muted)] py-10">กำลังโหลดผังคลัง...</div>
+  <div v-if="loading" class="text-center text-[var(--muted)] py-10">{{ dash.t[dash.lang].loadingMapMsg }}</div>
 
   <!-- ===== Grid ผังช่อง ===== -->
   <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-2">
@@ -39,24 +39,24 @@
       <div class="flex items-center justify-between mb-2 gap-1">
         <div class="font-bold text-sm flex items-center gap-1.5 min-w-0 truncate">📍 {{ loc.location_code }}</div>
         <div class="flex items-center gap-1 shrink-0">
-          <button class="zr-bin-btn" title="พิมพ์ QR ช่อง" @click="printLocationQR(loc)">🏷️</button>
-          <button class="zr-bin-btn" title="แก้ไขช่อง" @click="openEdit(loc)">✏️</button>
-          <button class="zr-bin-btn zr-bin-del" title="ลบช่อง" @click="deleteLoc(loc)">🗑️</button>
+          <button class="zr-bin-btn" :title="dash.t[dash.lang].printLocQrTitle" @click="printLocationQR(loc)">🏷️</button>
+          <button class="zr-bin-btn" :title="dash.t[dash.lang].editLocTitle" @click="openEdit(loc)">✏️</button>
+          <button class="zr-bin-btn zr-bin-del" :title="dash.t[dash.lang].deleteLocTitle" @click="deleteLoc(loc)">🗑️</button>
         </div>
       </div>
       <div class="flex gap-3 text-[11px] text-[var(--muted)] mb-2">
-        <span>โซน {{ loc.zone || '-' }}</span>
-        <span>แร็ค {{ loc.rack || '-' }}</span>
-        <span class="ml-auto">{{ loc.total_rolls }} ม้วน · {{ loc.total_yards.toLocaleString() }} หลา</span>
+        <span>{{ dash.t[dash.lang].zoneWord }} {{ loc.zone || '-' }}</span>
+        <span>{{ dash.t[dash.lang].rackWord }} {{ loc.rack || '-' }}</span>
+        <span class="ml-auto">{{ loc.total_rolls }} {{ dash.t[dash.lang].rollUnit }} · {{ loc.total_yards.toLocaleString() }} {{ dash.t[dash.lang].yardsUnit }}</span>
       </div>
-      <div v-if="loc.rolls.length === 0" class="text-[11px] text-[var(--muted)] italic py-2 text-center">ว่าง</div>
+      <div v-if="loc.rolls.length === 0" class="text-[11px] text-[var(--muted)] italic py-2 text-center">{{ dash.t[dash.lang].emptyWord }}</div>
       <div v-else class="zr-roll-list">
         <div v-for="r in loc.rolls" :key="r.roll_id" class="zr-roll"
              :class="{ 'zr-low': r.current_yards < LOW_YARDS, 'zr-match': search && rollMatches(r) }">
           <span class="font-semibold">{{ r.product_sku }}</span>
           <span class="text-[var(--muted)]">{{ r.color_name || '-' }}</span>
-          <span class="ml-auto tabular-nums font-semibold">{{ r.current_yards }} หลา</span>
-          <span v-if="r.current_yards < LOW_YARDS" class="zr-low-badge">ใกล้หมด</span>
+          <span class="ml-auto tabular-nums font-semibold">{{ r.current_yards }} {{ dash.t[dash.lang].yardsUnit }}</span>
+          <span v-if="r.current_yards < LOW_YARDS" class="zr-low-badge">{{ dash.t[dash.lang].lowStockBadge }}</span>
         </div>
       </div>
     </div>
@@ -68,31 +68,31 @@
   <div v-if="showAddModal" class="zr-overlay" @click.self="showAddModal = false">
     <div class="zr-modal">
       <div class="zr-modal-head">
-        <h3 class="font-bold">{{ editingId ? 'แก้ไขช่องสินค้า' : 'เพิ่มช่องสินค้า (QR Location)' }}</h3>
+        <h3 class="font-bold">{{ editingId ? dash.t[dash.lang].editLocationTitleModal : dash.t[dash.lang].addLocationTitleModal }}</h3>
         <button @click="showAddModal = false">✕</button>
       </div>
       <div class="p-4 space-y-3">
         <div class="grid grid-cols-3 gap-2">
-          <div class="zr-field"><label>โซน</label><input v-model="newLoc.zone" placeholder="A" @input="autoCode" /></div>
-          <div class="zr-field"><label>แร็ค</label><input v-model="newLoc.rack" placeholder="01" @input="autoCode" /></div>
-          <div class="zr-field"><label>บิน</label><input v-model="newLoc.bin" placeholder="01" @input="autoCode" /></div>
+          <div class="zr-field"><label>{{ dash.t[dash.lang].zoneWord }}</label><input v-model="newLoc.zone" placeholder="A" @input="autoCode" /></div>
+          <div class="zr-field"><label>{{ dash.t[dash.lang].rackWord }}</label><input v-model="newLoc.rack" placeholder="01" @input="autoCode" /></div>
+          <div class="zr-field"><label>{{ dash.t[dash.lang].binLabel }}</label><input v-model="newLoc.bin" placeholder="01" @input="autoCode" /></div>
         </div>
         <div class="zr-field">
-          <label>รหัสช่อง <span class="text-[var(--danger)]">*</span></label>
-          <input v-model="newLoc.location_code" placeholder="เช่น ZONE-A-RACK-01" />
+          <label>{{ dash.t[dash.lang].locationCodeLabel }} <span class="text-[var(--danger)]">*</span></label>
+          <input v-model="newLoc.location_code" :placeholder="dash.t[dash.lang].locationCodePlaceholder" />
         </div>
         <p v-if="addMsg" class="text-sm" :class="addErr ? 'text-[var(--danger)]' : 'text-green-600'">{{ addMsg }}</p>
 
         <div v-if="createdLoc" class="border border-[var(--field-border)] rounded-lg p-3 text-center">
-          <div class="text-xs text-[var(--muted)] mb-1">สร้างช่อง {{ createdLoc.location_code }} แล้ว</div>
+          <div class="text-xs text-[var(--muted)] mb-1">{{ dash.lang === 'th' ? 'สร้างช่อง ' + createdLoc.location_code + ' แล้ว' : 'Location ' + createdLoc.location_code + ' created' }}</div>
           <img v-if="createdQr" :src="createdQr" class="w-32 h-32 mx-auto" />
           <div class="text-xs font-mono mt-1">{{ createdLoc.location_qr }}</div>
-          <button class="zr-btn-add mt-2" @click="printLocationQR(createdLoc)">🖨️ พิมพ์ QR ช่องนี้</button>
+          <button class="zr-btn-add mt-2" @click="printLocationQR(createdLoc)">🖨️ {{ dash.t[dash.lang].printThisQrBtn }}</button>
         </div>
       </div>
       <div class="zr-modal-foot">
-        <button class="zr-btn-ghost" @click="showAddModal = false">ปิด</button>
-        <button class="zr-btn-add" @click="saveLoc">บันทึกช่อง</button>
+        <button class="zr-btn-ghost" @click="showAddModal = false">{{ dash.t[dash.lang].close }}</button>
+        <button class="zr-btn-add" @click="saveLoc">{{ dash.t[dash.lang].saveLocationBtn }}</button>
       </div>
     </div>
   </div>
@@ -101,20 +101,20 @@
   <div v-if="showScanner" class="zr-overlay" @click.self="showScanner = false">
     <div class="zr-modal">
       <div class="zr-modal-head">
-        <h3 class="font-bold">{{ scanMode === 'putaway' ? '📦 สแกนจัดเก็บ (Putaway)' : '✂️ สแกนตัดหลา (Deduction)' }}</h3>
+        <h3 class="font-bold">{{ scanMode === 'putaway' ? dash.t[dash.lang].putawayModalTitle : dash.t[dash.lang].cutModalTitle }}</h3>
         <button @click="showScanner = false">✕</button>
       </div>
 
       <!-- Putaway -->
       <div v-if="scanMode === 'putaway'" class="p-4 space-y-3">
         <div class="zr-field">
-          <label>1) สแกน QR ช่องสินค้า</label>
-          <input ref="paLoc" v-model="pa.locQr" placeholder="สแกน/พิมพ์ QR ช่อง แล้ว Enter" @keyup.enter="focusPaRoll" />
-          <span v-if="pa.locQr" class="text-[11px] text-green-600">ช่อง: {{ pa.locQr }}</span>
+          <label>{{ dash.t[dash.lang].scanLocStep1Label }}</label>
+          <input ref="paLoc" v-model="pa.locQr" :placeholder="dash.t[dash.lang].scanLocPlaceholder" @keyup.enter="focusPaRoll" />
+          <span v-if="pa.locQr" class="text-[11px] text-green-600">{{ dash.t[dash.lang].locWord }}: {{ pa.locQr }}</span>
         </div>
         <div class="zr-field">
-          <label>2) สแกน QR ไม้ผ้า</label>
-          <input ref="paRoll" v-model="pa.rollQr" placeholder="สแกน/พิมพ์ QR ไม้ผ้า แล้ว Enter" @keyup.enter="doPutaway" />
+          <label>{{ dash.t[dash.lang].scanRollStep2Label }}</label>
+          <input ref="paRoll" v-model="pa.rollQr" :placeholder="dash.t[dash.lang].scanRollPlaceholder" @keyup.enter="doPutaway" />
         </div>
         <p v-if="pa.msg" class="text-sm" :class="pa.err ? 'text-[var(--danger)]' : 'text-green-600'">{{ pa.msg }}</p>
         <div v-if="pa.log.length" class="text-[11px] text-[var(--muted)] max-h-32 overflow-y-auto border-t border-[var(--field-border)] pt-2 space-y-0.5">
@@ -125,25 +125,25 @@
       <!-- Cut -->
       <div v-else class="p-4 space-y-3">
         <div class="zr-field">
-          <label>1) สแกน QR ไม้ผ้า</label>
-          <input ref="cutRollInput" v-model="cut.rollQr" placeholder="สแกน/พิมพ์ QR ไม้ผ้า แล้ว Enter" @keyup.enter="lookupCutRoll" />
+          <label>{{ dash.t[dash.lang].scanRollStep1Label }}</label>
+          <input ref="cutRollInput" v-model="cut.rollQr" :placeholder="dash.t[dash.lang].scanRollPlaceholder" @keyup.enter="lookupCutRoll" />
         </div>
         <div v-if="cut.roll" class="border border-[var(--field-border)] rounded-lg p-3 text-sm bg-[var(--field)]">
           <div><b>{{ cut.roll.product_sku }}</b> — {{ cut.roll.product_name }}</div>
-          <div class="text-[var(--muted)] text-xs">สี {{ cut.roll.color_name || '-' }} · LOT {{ cut.roll.lot_no || '-' }} · ช่อง {{ cut.roll.location_code || '-' }}</div>
-          <div class="mt-1">คงเหลือปัจจุบัน: <b class="tabular-nums" :class="cut.roll.current_yards < LOW_YARDS ? 'text-orange-600' : ''">{{ cut.roll.current_yards }}</b> หลา</div>
+          <div class="text-[var(--muted)] text-xs">{{ dash.t[dash.lang].colorCodeLabel }} {{ cut.roll.color_name || '-' }} · LOT {{ cut.roll.lot_no || '-' }} · {{ dash.t[dash.lang].locWord }} {{ cut.roll.location_code || '-' }}</div>
+          <div class="mt-1">{{ dash.t[dash.lang].currentRemainingLabel }}: <b class="tabular-nums" :class="cut.roll.current_yards < LOW_YARDS ? 'text-orange-600' : ''">{{ cut.roll.current_yards }}</b> {{ dash.t[dash.lang].yardsUnit }}</div>
         </div>
         <div class="zr-field" v-if="cut.roll">
-          <label>2) จำนวนหลาที่ตัดออก</label>
+          <label>{{ dash.t[dash.lang].yardsCutStep2Label }}</label>
           <input ref="cutYardsInput" type="number" min="0" step="0.01" v-model.number="cut.yards" placeholder="0" @keyup.enter="doCut" />
         </div>
         <p v-if="cut.msg" class="text-sm" :class="cut.err ? 'text-[var(--danger)]' : 'text-green-600'">{{ cut.msg }}</p>
       </div>
 
       <div class="zr-modal-foot">
-        <button class="zr-btn-ghost" @click="showScanner = false">ปิด</button>
-        <button v-if="scanMode === 'putaway'" class="zr-btn-scan" @click="doPutaway">จัดเก็บ</button>
-        <button v-else class="zr-btn-cut" :disabled="!cut.roll" @click="doCut">ตัดหลา</button>
+        <button class="zr-btn-ghost" @click="showScanner = false">{{ dash.t[dash.lang].close }}</button>
+        <button v-if="scanMode === 'putaway'" class="zr-btn-scan" @click="doPutaway">{{ dash.t[dash.lang].putawayBtn }}</button>
+        <button v-else class="zr-btn-cut" :disabled="!cut.roll" @click="doCut">{{ dash.t[dash.lang].cutBtn }}</button>
       </div>
     </div>
   </div>
@@ -224,7 +224,7 @@ export default {
     },
     async saveLoc() {
       const code = (this.newLoc.location_code || '').trim();
-      if (!code) { this.addMsg = '⚠️ กรุณากรอกรหัสช่อง'; this.addErr = true; return; }
+      if (!code) { this.addMsg = this.dash.t[this.dash.lang].requiredLocationCodeMsg; this.addErr = true; return; }
       try {
         const url = this.editingId ? '/api/warehouse-locations/' + this.editingId : '/api/warehouse-locations';
         const res = await fetch(url, {
@@ -243,7 +243,7 @@ export default {
             this.createdQr = await QRCode.toDataURL(data.location.location_qr, { width: 160, margin: 1 });
           }
         } else { this.addMsg = '⚠️ ' + data.message; this.addErr = true; }
-      } catch (e) { this.addMsg = '⚠️ บันทึกไม่สำเร็จ'; this.addErr = true; }
+      } catch (e) { this.addMsg = '⚠️ ' + this.dash.t[this.dash.lang].saveFailedWord; this.addErr = true; }
     },
     async deleteLoc(loc) {
       if (loc.total_rolls > 0) { this.dash.fbFail(`ช่อง ${loc.location_code} มีผ้าอยู่ ${loc.total_rolls} ม้วน — ต้องย้ายผ้าออกก่อนจึงจะลบได้`); return; }
@@ -288,7 +288,7 @@ export default {
     },
     async doPutaway() {
       const locQr = this.pa.locQr.trim(), rollQr = this.pa.rollQr.trim();
-      if (!locQr || !rollQr) { this.pa.msg = '⚠️ ต้องสแกนทั้ง QR ช่อง และ QR ไม้ผ้า'; this.pa.err = true; return; }
+      if (!locQr || !rollQr) { this.pa.msg = this.dash.t[this.dash.lang].requiredBothQrMsg; this.pa.err = true; return; }
       try {
         const res = await fetch('/api/fabric-rolls/putaway', {
           method: 'POST', headers: this.authHeaders(true),
@@ -320,7 +320,7 @@ export default {
     async doCut() {
       if (!this.cut.roll) { this.lookupCutRoll(); return; }
       const yards = Number(this.cut.yards);
-      if (!(yards > 0)) { this.cut.msg = '⚠️ กรอกจำนวนหลาที่ตัด (> 0)'; this.cut.err = true; return; }
+      if (!(yards > 0)) { this.cut.msg = this.dash.t[this.dash.lang].requiredCutYardsMsg; this.cut.err = true; return; }
       try {
         const res = await fetch('/api/fabric-rolls/cut', {
           method: 'POST', headers: this.authHeaders(true),
