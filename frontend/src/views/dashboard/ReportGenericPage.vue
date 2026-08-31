@@ -15,8 +15,8 @@
       <h2>{{ dash.t[dash.lang].totalItems }} {{ dash.genCurrentTable.rows.length }} {{ dash.t[dash.lang].itemsUnit }}</h2>
       <div class="fr-summary-actions">
         <button class="btn-small">{{ dash.t[dash.lang].filter }}</button>
-        <button v-if="dash.genSelected.length > 0" class="btn-small" @click="dash.genExportExcel(true)">⬇️ ส่งออกที่เลือก</button>
-        <button class="btn-small" @click="dash.genExportExcel(false)">⬇️ ส่งออก Excel</button>
+        <button v-if="dash.genSelected.length > 0" class="btn-small" @click="dash.genExportExcel(true)">⬇️ {{ dash.t[dash.lang].exportSelectedBtn }}</button>
+        <button class="btn-small" @click="dash.genExportExcel(false)">⬇️ {{ dash.t[dash.lang].exportExcelPlain }}</button>
       </div>
     </div>
     <div class="overflow-x-auto table-scroll-y">
@@ -39,13 +39,13 @@
     </div>
     <div class="xl-pagination" v-if="dash.genCurrentTable.rows.length > 0">
       <select v-model.number="dash.genPageSize" class="fr-page-size-select">
-        <option :value="10">10 / หน้า</option>
-        <option :value="20">20 / หน้า</option>
-        <option :value="50">50 / หน้า</option>
+        <option :value="10">10 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="20">20 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option>
       </select>
-      <button class="fr-btn-util" :disabled="dash.genPage === 1" @click="dash.genPrevPage">‹ ก่อนหน้า</button>
-      <span>หน้า {{ dash.genPage }} / {{ dash.genTotalPages }}</span>
-      <button class="fr-btn-util" :disabled="dash.genPage === dash.genTotalPages" @click="dash.genNextPage">ถัดไป ›</button>
+      <button class="fr-btn-util" :disabled="dash.genPage === 1" @click="dash.genPrevPage">{{ dash.t[dash.lang].prevPage }}</button>
+      <span>{{ dash.t[dash.lang].pageWord }} {{ dash.genPage }} / {{ dash.genTotalPages }}</span>
+      <button class="fr-btn-util" :disabled="dash.genPage === dash.genTotalPages" @click="dash.genNextPage">{{ dash.t[dash.lang].nextPage }}</button>
     </div>
   </div>
 </div>
