@@ -3,56 +3,56 @@
   <!-- หัวเรื่อง -->
   <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
     <div>
-      <h1 class="text-xl font-bold flex items-center gap-2">📥 รับผ้าสำเร็จเข้าคลัง</h1>
-      <p class="text-xs text-[var(--muted)] mt-0.5">สร้างเอกสารรับผ้า → ระบบจะออกม้วนผ้าแยกรายไม้ พร้อม QR Code สำหรับติดสติ๊กเกอร์</p>
+      <h1 class="text-xl font-bold flex items-center gap-2">📥 {{ dash.t[dash.lang].receiveFinishedToWarehouseTitle }}</h1>
+      <p class="text-xs text-[var(--muted)] mt-0.5">{{ dash.t[dash.lang].receiveHintText }}</p>
     </div>
     <div class="flex items-center gap-2">
-      <button class="grp-btn-ghost" @click="resetForm">ล้างฟอร์ม</button>
+      <button class="grp-btn-ghost" @click="resetForm">{{ dash.t[dash.lang].clearFormBtn }}</button>
       <button class="grp-btn-primary" :disabled="saving" @click="save">
-        {{ saving ? 'กำลังบันทึก...' : '💾 บันทึกรับเข้า' }}
+        {{ saving ? dash.t[dash.lang].savingWord : '💾 ' + dash.t[dash.lang].saveReceiveBtn }}
       </button>
     </div>
   </div>
 
   <!-- ===== ส่วนหัวเอกสาร ===== -->
   <div class="grp-card mb-4">
-    <div class="grp-card-title">ข้อมูลเอกสาร</div>
+    <div class="grp-card-title">{{ dash.t[dash.lang].documentInfoSection }}</div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3">
       <div class="grp-field">
-        <label>วันที่รับ <span class="text-[var(--danger)]">*</span></label>
+        <label>{{ dash.t[dash.lang].receiveDateLabel }} <span class="text-[var(--danger)]">*</span></label>
         <input type="date" v-model="form.receipt_date" />
       </div>
       <div class="grp-field">
-        <label>ประเภทการรับ</label>
+        <label>{{ dash.t[dash.lang].receiptTypeLabel }}</label>
         <select v-model="form.receipt_type">
           <option v-for="t in receiptTypes" :key="t" :value="t">{{ t }}</option>
         </select>
       </div>
       <div class="grp-field">
-        <label>เลขที่ PO</label>
-        <input type="text" v-model="form.po_no" placeholder="เลขที่ใบสั่งซื้อ" />
+        <label>{{ dash.t[dash.lang].poNoShortLabel }}</label>
+        <input type="text" v-model="form.po_no" :placeholder="dash.t[dash.lang].poNoPlaceholder" />
       </div>
       <div class="grp-field">
-        <label>เลือกคลัง</label>
-        <input type="text" v-model="form.warehouse" placeholder="เช่น คลังหลัก" list="grp-warehouses" />
+        <label>{{ dash.t[dash.lang].selectWarehouseLabel }}</label>
+        <input type="text" v-model="form.warehouse" :placeholder="dash.t[dash.lang].warehouseExamplePlaceholder" list="grp-warehouses" />
         <datalist id="grp-warehouses">
           <option v-for="w in warehouseNames" :key="w" :value="w" />
         </datalist>
       </div>
       <div class="grp-field">
-        <label>คู่ค้า / ผู้ส่ง</label>
-        <input type="text" v-model="form.supplier_name" placeholder="ชื่อคู่ค้า / ซัพพลายเออร์" list="grp-suppliers" />
+        <label>{{ dash.t[dash.lang].partnerSenderLabel }}</label>
+        <input type="text" v-model="form.supplier_name" :placeholder="dash.t[dash.lang].partnerNamePlaceholder" list="grp-suppliers" />
         <datalist id="grp-suppliers">
           <option v-for="s in supplierOptions" :key="s" :value="s" />
         </datalist>
       </div>
       <div class="grp-field">
-        <label>เลขที่บิล</label>
-        <input type="text" v-model="form.bill_no" placeholder="เลขที่บิล / ใบส่งของ" />
+        <label>{{ dash.t[dash.lang].billNoLabel }}</label>
+        <input type="text" v-model="form.bill_no" :placeholder="dash.t[dash.lang].billLotPlaceholder" />
       </div>
       <div class="grp-field sm:col-span-2 lg:col-span-3">
-        <label>หมายเหตุ</label>
-        <input type="text" v-model="form.note" placeholder="หมายเหตุเพิ่มเติม" />
+        <label>{{ dash.t[dash.lang].remarkLabel }}</label>
+        <input type="text" v-model="form.note" :placeholder="dash.t[dash.lang].additionalRemarkPlaceholder" />
       </div>
     </div>
   </div>
@@ -60,21 +60,21 @@
   <!-- ===== ตารางรายการรับ ===== -->
   <div class="grp-card mb-4">
     <div class="flex items-center justify-between mb-3">
-      <div class="grp-card-title mb-0">รายการผ้าที่รับ</div>
-      <button class="grp-btn-add" @click="addRow">+ เพิ่มรายการ</button>
+      <div class="grp-card-title mb-0">{{ dash.t[dash.lang].receivedItemsSection }}</div>
+      <button class="grp-btn-add" @click="addRow">+ {{ dash.t[dash.lang].addItemBtn }}</button>
     </div>
     <div class="overflow-x-auto">
       <table class="grp-table">
         <thead>
           <tr>
             <th style="width:34px">#</th>
-            <th style="min-width:220px">ผ้า (Master) <span class="text-[var(--danger)]">*</span></th>
-            <th style="min-width:150px">รหัสสี</th>
+            <th style="min-width:220px">{{ dash.t[dash.lang].masterFabricLabel }} <span class="text-[var(--danger)]">*</span></th>
+            <th style="min-width:150px">{{ dash.t[dash.lang].colorCodeLabel }}</th>
             <th style="min-width:110px">LOT</th>
-            <th style="width:120px">จำนวนม้วน <span class="text-[var(--danger)]">*</span></th>
-            <th style="width:130px">หลา/ม้วน <span class="text-[var(--danger)]">*</span></th>
-            <th style="width:110px">รวมหลา</th>
-            <th style="min-width:150px">ช่องจัดเก็บ</th>
+            <th style="width:120px">{{ dash.t[dash.lang].rollCountLabel }} <span class="text-[var(--danger)]">*</span></th>
+            <th style="width:130px">{{ dash.t[dash.lang].yardsPerRollLabel }} <span class="text-[var(--danger)]">*</span></th>
+            <th style="width:110px">{{ dash.t[dash.lang].totalYardsShortLabel }}</th>
+            <th style="min-width:150px">{{ dash.t[dash.lang].storageLocLabel }}</th>
             <th style="width:44px"></th>
           </tr>
         </thead>
@@ -83,13 +83,13 @@
             <td class="text-center text-[var(--muted)]">{{ idx + 1 }}</td>
             <td>
               <select v-model.number="row.product_id" @change="onProductChange(row)">
-                <option :value="0">— เลือกผ้า —</option>
+                <option :value="0">{{ dash.t[dash.lang].selectFabricOpt }}</option>
                 <option v-for="p in products" :key="p.id" :value="p.id">{{ p.sku }} — {{ p.name || p.type }}</option>
               </select>
             </td>
             <td>
               <select v-model.number="row.color_id" :disabled="!row._shades || row._shades.length === 0">
-                <option :value="null">— ไม่ระบุ —</option>
+                <option :value="null">{{ dash.t[dash.lang].notSpecifiedOpt }}</option>
                 <option v-for="s in row._shades" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
             </td>
@@ -99,22 +99,22 @@
             <td class="text-right font-semibold tabular-nums">{{ (Number(row.roll_count) * Number(row.yards_per_roll) || 0).toLocaleString() }}</td>
             <td>
               <select v-model.number="row.location_id">
-                <option :value="null">— ไม่ระบุ —</option>
+                <option :value="null">{{ dash.t[dash.lang].notSpecifiedOpt }}</option>
                 <option v-for="l in locations" :key="l.location_id" :value="l.location_id">{{ l.location_code }}</option>
               </select>
             </td>
             <td class="text-center">
-              <button class="grp-row-del" title="ลบแถว" @click="removeRow(idx)">✕</button>
+              <button class="grp-row-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)">✕</button>
             </td>
           </tr>
           <tr v-if="items.length === 0">
-            <td colspan="9" class="text-center text-[var(--muted)] py-6">ยังไม่มีรายการ — กด "เพิ่มรายการ"</td>
+            <td colspan="9" class="text-center text-[var(--muted)] py-6">{{ dash.t[dash.lang].noItemsAddPrompt }}</td>
           </tr>
         </tbody>
         <tfoot v-if="items.length > 0">
           <tr>
-            <td colspan="4" class="text-right font-semibold">รวม</td>
-            <td class="text-center font-bold tabular-nums">{{ totalRolls }} ม้วน</td>
+            <td colspan="4" class="text-right font-semibold">{{ dash.t[dash.lang].totalWord }}</td>
+            <td class="text-center font-bold tabular-nums">{{ totalRolls }} {{ dash.t[dash.lang].rollUnit }}</td>
             <td></td>
             <td class="text-right font-bold tabular-nums">{{ totalYards.toLocaleString() }}</td>
             <td colspan="2"></td>
@@ -130,16 +130,16 @@
   <div v-if="savedRolls.length > 0" class="grp-card">
     <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
       <div>
-        <div class="grp-card-title mb-0">✅ ออกม้วนผ้าแล้ว {{ savedRolls.length }} ไม้ (เอกสาร {{ savedGrNo }})</div>
-        <p class="text-xs text-[var(--muted)] mt-0.5">พิมพ์สติ๊กเกอร์ QR ติดที่ไม้ผ้าแต่ละม้วน</p>
+        <div class="grp-card-title mb-0">✅ {{ dash.t[dash.lang].rollsIssuedPrefix }} {{ savedRolls.length }} {{ dash.t[dash.lang].rollsIssuedUnit }} ({{ dash.t[dash.lang].documentWord }} {{ savedGrNo }})</div>
+        <p class="text-xs text-[var(--muted)] mt-0.5">{{ dash.t[dash.lang].printStickerHint }}</p>
       </div>
-      <button class="grp-btn-primary" @click="printStickers">🏷️ พิมพ์สติ๊กเกอร์ QR ({{ savedRolls.length }})</button>
+      <button class="grp-btn-primary" @click="printStickers">🏷️ {{ dash.t[dash.lang].printQrStickerBtn }} ({{ savedRolls.length }})</button>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       <div v-for="roll in savedRolls" :key="roll.roll_id" class="grp-sticker">
         <img v-if="qrMap[roll.roll_qr_code]" :src="qrMap[roll.roll_qr_code]" alt="QR" class="w-full aspect-square object-contain" />
         <div class="text-[11px] font-bold mt-1 truncate">{{ roll.product_sku }}</div>
-        <div class="text-[10px] text-[var(--muted)] truncate">{{ roll.color_name || '-' }} · {{ roll.initial_yards }} หลา</div>
+        <div class="text-[10px] text-[var(--muted)] truncate">{{ roll.color_name || '-' }} · {{ roll.initial_yards }} {{ dash.t[dash.lang].yardsUnit }}</div>
         <div class="text-[10px] font-mono">{{ roll.roll_qr_code }}</div>
       </div>
     </div>
@@ -248,7 +248,7 @@ export default {
     async save() {
       const validItems = this.items.filter(r => Number(r.product_id) && Number(r.roll_count) > 0 && Number(r.yards_per_roll) > 0);
       if (validItems.length === 0) {
-        this.message = '⚠️ กรุณากรอกอย่างน้อย 1 รายการ (เลือกผ้า, จำนวนม้วน, หลาต่อม้วน)';
+        this.message = this.dash.t[this.dash.lang].validationOneItemMsg;
         this.messageError = true;
         return;
       }
