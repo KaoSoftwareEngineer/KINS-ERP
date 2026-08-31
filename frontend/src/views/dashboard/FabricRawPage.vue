@@ -83,7 +83,7 @@
             <td>{{ item.structure || '-' }}</td>
             <td>{{ item.composition || '-' }}</td>
             <td>{{ item.width || '-' }}</td>
-            <td>{{ item.unit || 'หลา' }}</td>
+            <td>{{ item.unit || dash.t[dash.lang].yardsUnit }}</td>
             <td>{{ item.shrinkage != null ? item.shrinkage : '-' }}</td>
             <td>{{ item.allowance != null ? item.allowance : '-' }}</td>
             <td><span class="fraw-img" :title="item.image_name || dash.t[dash.lang].noImageWord">🖼️</span></td>
@@ -125,7 +125,7 @@
           <div class="erp-field"><label>{{ dash.t[dash.lang].structureLabel }}</label><input type="text" v-model="form.structure" :placeholder="dash.t[dash.lang].egWord + ' Cotton 100%'" /></div>
           <div class="erp-field"><label>{{ dash.t[dash.lang].compositionLabel }}</label><input type="text" v-model="form.composition" /></div>
           <div class="erp-field"><label>{{ dash.t[dash.lang].widthLabel }}</label><input type="text" v-model="form.width" /></div>
-          <div class="erp-field"><label>{{ dash.t[dash.lang].unitLabel }}</label><input type="text" v-model="form.unit" placeholder="หลา" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].unitLabel }}</label><input type="text" v-model="form.unit" :placeholder="dash.t[dash.lang].yardsUnit" /></div>
         </div>
         <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].allowanceSection }}</div>
         <div class="erp-grid">

@@ -36,7 +36,7 @@
       <div class="dy-fld"><label>{{ dash.t[dash.lang].lotNoLabel }}</label><input v-model="raw.lot" /></div>
       <div class="dy-fld"><label>{{ dash.t[dash.lang].stockQtyLabel }}</label><span class="dy-val">{{ raw.stock || '-' }}</span></div>
       <div class="dy-fld"><label>{{ dash.t[dash.lang].neededQtyLabel }}</label><input v-model.number="raw.needed" /></div>
-      <div class="dy-fld dy-fld-sm"><label>{{ dash.t[dash.lang].unitLabel }}</label><span class="dy-val">{{ raw.unit || 'หลา' }}</span></div>
+      <div class="dy-fld dy-fld-sm"><label>{{ dash.t[dash.lang].unitLabel }}</label><span class="dy-val">{{ raw.unit || dash.t[dash.lang].yardsUnit }}</span></div>
     </div>
   </div>
 
