@@ -1,50 +1,50 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>📥 รายงานการรับสินค้า</span>
+    <span>📥 {{ dash.t[dash.lang].goodsReceiptReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
 
   <!-- ตัวกรอง -->
   <div class="rp-filter">
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่รับ/คู่ค้า/รหัส" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>ประเภทการรับ</label>
-      <select v-model="filter.receiptType" @change="load"><option value="">ทั้งหมด</option><option value="Purchase">Purchase</option><option value="Dye">Dye</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchReceiveVendorSkuPlaceholder" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].receiptTypeLabel }}</label>
+      <select v-model="filter.receiptType" @change="load"><option value="">{{ dash.t[dash.lang].allWord }}</option><option value="Purchase">Purchase</option><option value="Dye">Dye</option></select>
     </div>
-    <div class="rp-f"><label>ประเภทสินค้า</label>
-      <select v-model="filter.productType" @change="load"><option value="">ทั้งหมด</option><option value="ผ้าสำเร็จ">ผ้าสำเร็จ</option><option value="ผ้าดิบ">ผ้าดิบ</option><option value="ผ้าย้อม">ผ้าย้อม</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].productTypeLabel }}</label>
+      <select v-model="filter.productType" @change="load"><option value="">{{ dash.t[dash.lang].allWord }}</option><option value="ผ้าสำเร็จ">{{ dash.t[dash.lang].finishedFabricWord }}</option><option value="ผ้าดิบ">{{ dash.t[dash.lang].rawFabricWord }}</option><option value="ผ้าย้อม">{{ dash.t[dash.lang].dyedFabricWord }}</option></select>
     </div>
-    <div class="rp-f"><label>คู่ค้า / โรงงาน</label><input v-model="filter.party" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>คลัง</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].vendorFactoryLabel }}</label><input v-model="filter.party" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].warehouseLabel }}</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
     <div class="rp-f-actions">
-      <button class="rp-btn-search" @click="load">🔍 ค้นหา</button>
-      <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
+      <button class="rp-btn-search" @click="load">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+      <button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button>
     </div>
   </div>
 
-  <div class="rp-found">พบ {{ items.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ items.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <!-- ตารางใบรับ -->
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('in_no')">เลขที่รับสินค้า <span class="rp-sort" :class="{ on: sort.key === 'in_no' }">{{ sortIcon('in_no') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('receipt_date')">วันที่ <span class="rp-sort" :class="{ on: sort.key === 'receipt_date' }">{{ sortIcon('receipt_date') }}</span></th>
-          <th>ประเภทการรับ</th>
-          <th class="rp-sortable" @click="toggleSort('product_type')">ประเภทสินค้า <span class="rp-sort" :class="{ on: sort.key === 'product_type' }">{{ sortIcon('product_type') }}</span></th>
-          <th>เลขที่อ้างอิง</th>
-          <th class="rp-sortable" @click="toggleSort('party')">คู่ค้า <span class="rp-sort" :class="{ on: sort.key === 'party' }">{{ sortIcon('party') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('folds')">พับรวม <span class="rp-sort" :class="{ on: sort.key === 'folds' }">{{ sortIcon('folds') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('qty')">จำนวนรวม <span class="rp-sort" :class="{ on: sort.key === 'qty' }">{{ sortIcon('qty') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('amount')">ยอดรวม <span class="rp-sort" :class="{ on: sort.key === 'amount' }">{{ sortIcon('amount') }}</span></th>
-          <th>สถานะชำระเงิน</th>
-          <th>สถานะ</th>
-          <th>สถานที่จัดส่ง</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('in_no')">{{ dash.t[dash.lang].receiptNoLabel }} <span class="rp-sort" :class="{ on: sort.key === 'in_no' }">{{ sortIcon('in_no') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('receipt_date')">{{ dash.t[dash.lang].dateLabel }} <span class="rp-sort" :class="{ on: sort.key === 'receipt_date' }">{{ sortIcon('receipt_date') }}</span></th>
+          <th>{{ dash.t[dash.lang].receiptTypeLabel }}</th>
+          <th class="rp-sortable" @click="toggleSort('product_type')">{{ dash.t[dash.lang].productTypeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'product_type' }">{{ sortIcon('product_type') }}</span></th>
+          <th>{{ dash.t[dash.lang].refNoLabel }}</th>
+          <th class="rp-sortable" @click="toggleSort('party')">{{ dash.t[dash.lang].partnerWord }} <span class="rp-sort" :class="{ on: sort.key === 'party' }">{{ sortIcon('party') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('folds')">{{ dash.t[dash.lang].totalFoldLabel }} <span class="rp-sort" :class="{ on: sort.key === 'folds' }">{{ sortIcon('folds') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('qty')">{{ dash.t[dash.lang].totalQtyLabel }} <span class="rp-sort" :class="{ on: sort.key === 'qty' }">{{ sortIcon('qty') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('amount')">{{ dash.t[dash.lang].totalAmountLabel }} <span class="rp-sort" :class="{ on: sort.key === 'amount' }">{{ sortIcon('amount') }}</span></th>
+          <th>{{ dash.t[dash.lang].payStatusLabel }}</th>
+          <th>{{ dash.t[dash.lang].status }}</th>
+          <th>{{ dash.t[dash.lang].deliveryLocLabel }}</th>
           <th style="width:44px;"></th>
         </tr>
       </thead>
@@ -64,16 +64,16 @@
           <td class="rp-c">{{ row.status }}</td>
           <td>{{ row.warehouse || '-' }}</td>
           <td class="rp-c">
-            <button class="rp-ic rp-print" title="พิมพ์ใบรับ" @click.stop="printReceipt(row)">
+            <button class="rp-ic rp-print" :title="dash.t[dash.lang].printReceiptTitle" @click.stop="printReceipt(row)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="items.length === 0"><td colspan="14" class="rp-empty">ไม่พบข้อมูล</td></tr>
+        <tr v-if="items.length === 0"><td colspan="14" class="rp-empty">{{ dash.t[dash.lang].noDataFoundMsg }}</td></tr>
       </tbody>
       <tfoot v-if="items.length">
         <tr>
-          <td colspan="7" class="rp-r rp-bold">รวม</td>
+          <td colspan="7" class="rp-r rp-bold">{{ dash.t[dash.lang].totalWord }}</td>
           <td class="rp-r rp-bold">{{ summary.folds.toLocaleString() }}</td>
           <td class="rp-r rp-bold">{{ fmt(summary.qty) }}</td>
           <td class="rp-r rp-bold">{{ Number(summary.amount) ? fmt(summary.amount) : '-' }}</td>
@@ -88,10 +88,10 @@
     <table class="rp-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>รหัสสินค้า</th><th>รหัสสี</th><th>ประเภท</th><th>ชื่อ</th><th>หน้ากว้าง</th>
-          <th class="rp-r">พับ</th><th class="rp-r">จำนวน</th><th>หน่วย</th>
-          <th class="rp-r">ราคา/หน่วย</th><th class="rp-r">ราคา</th><th class="rp-r">ต้นทุน/หน่วย</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th><th>{{ dash.t[dash.lang].typeLabel }}</th><th>{{ dash.t[dash.lang].nameLabel }}</th><th>{{ dash.t[dash.lang].widthLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].foldLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].qtyLabel }}</th><th>{{ dash.t[dash.lang].unitLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].pricePerUnitLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].priceLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].costPerUnitLabel }}</th>
         </tr>
       </thead>
       <tbody>
@@ -104,15 +104,15 @@
           <td>{{ it.width || '-' }}</td>
           <td class="rp-r">{{ Number(it.fold) || 0 }}</td>
           <td class="rp-r rp-bold">{{ fmt(it.qty) }}</td>
-          <td>{{ it.unit || 'หลา' }}</td>
+          <td>{{ it.unit || dash.t[dash.lang].yardsUnit }}</td>
           <td class="rp-r">{{ it.unit_price !== '' ? fmt(it.unit_price) : '-' }}</td>
           <td class="rp-r">{{ it.amount !== '' ? fmt(it.amount) : '-' }}</td>
           <td class="rp-r">{{ it.cost !== '' ? fmt(it.cost) : '-' }}</td>
         </tr>
-        <tr v-if="selItems.length === 0"><td colspan="12" class="rp-empty">{{ selRow === null ? 'คลิกแถวด้านบนเพื่อดูรายการสินค้าในใบรับ' : 'ไม่มีรายการสินค้าในใบรับนี้' }}</td></tr>
+        <tr v-if="selItems.length === 0"><td colspan="12" class="rp-empty">{{ selRow === null ? dash.t[dash.lang].clickRowToViewProductMsg : dash.t[dash.lang].noItemsInReceiptGoodsMsg }}</td></tr>
       </tbody>
       <tfoot v-if="selItems.length">
-        <tr><td colspan="6" class="rp-r rp-bold">รวม</td><td class="rp-r rp-bold">{{ selFolds.toLocaleString() }}</td><td class="rp-r rp-bold">{{ fmt(selQty) }}</td><td colspan="4"></td></tr>
+        <tr><td colspan="6" class="rp-r rp-bold">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r rp-bold">{{ selFolds.toLocaleString() }}</td><td class="rp-r rp-bold">{{ fmt(selQty) }}</td><td colspan="4"></td></tr>
       </tfoot>
     </table>
   </div>
