@@ -1,49 +1,47 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>📦 รายงานสินค้าคงคลัง</span>
+    <span>📦 {{ dash.t[dash.lang].stockInventoryReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
 
-  <!-- ตัวกรอง (แถวเดียว) -->
   <div class="rp-filter">
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="ชื่อ/รหัส/สี" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>รหัสสี / เฉดสี</label><input v-model="filter.color" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>กลุ่มผ้า</label>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].nameSkuColorPlaceholder" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].colorShadeLabel }}</label><input v-model="filter.color" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].fabricGroupLabel }}</label>
       <select v-model="filter.group" @change="load">
-        <option value="">ทั้งหมด</option>
+        <option value="">{{ dash.t[dash.lang].allWord }}</option>
         <option v-for="g in groupOptions" :key="g.id" :value="g.id">{{ g.name }}</option>
       </select>
     </div>
-    <div class="rp-f"><label>หน้ากว้าง</label><input v-model="filter.width" @keyup.enter="load" /></div>
-    <div class="rp-f"><label>คลัง</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].widthLabel }}</label><input v-model="filter.width" @keyup.enter="load" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].warehouseLabel }}</label><input v-model="filter.warehouse" @keyup.enter="load" /></div>
     <div class="rp-f-actions">
-      <button class="rp-btn-search" @click="load">🔍 ค้นหา</button>
-      <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
+      <button class="rp-btn-search" @click="load">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+      <button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button>
     </div>
   </div>
 
-  <div class="rp-found">พบ {{ items.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ items.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
-  <!-- ตารางกลุ่ม (เลื่อนได้ + คลิกหัวคอลัมน์เพื่อเรียงลำดับ) -->
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('sku')">รหัสสินค้า <span class="rp-sort" :class="{ on: sort.key === 'sku' }">{{ sortIcon('sku') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('color')">รหัสสี <span class="rp-sort" :class="{ on: sort.key === 'color' }">{{ sortIcon('color') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('shade')">เฉดสี <span class="rp-sort" :class="{ on: sort.key === 'shade' }">{{ sortIcon('shade') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('type')">ประเภท <span class="rp-sort" :class="{ on: sort.key === 'type' }">{{ sortIcon('type') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('width')">หน้ากว้าง <span class="rp-sort" :class="{ on: sort.key === 'width' }">{{ sortIcon('width') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('folds')">พับรวม <span class="rp-sort" :class="{ on: sort.key === 'folds' }">{{ sortIcon('folds') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('total_yards')">จำนวนรวม (หลา) <span class="rp-sort" :class="{ on: sort.key === 'total_yards' }">{{ sortIcon('total_yards') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('wip_production')">ระหว่างผลิต <span class="rp-sort" :class="{ on: sort.key === 'wip_production' }">{{ sortIcon('wip_production') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('wip_factory')">ที่โรงงาน <span class="rp-sort" :class="{ on: sort.key === 'wip_factory' }">{{ sortIcon('wip_factory') }}</span></th>
-          <th class="rp-r rp-sortable" @click="toggleSort('wip_weaving')">ระหว่างทอ <span class="rp-sort" :class="{ on: sort.key === 'wip_weaving' }">{{ sortIcon('wip_weaving') }}</span></th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('sku')">{{ dash.t[dash.lang].skuLabel }} <span class="rp-sort" :class="{ on: sort.key === 'sku' }">{{ sortIcon('sku') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('color')">{{ dash.t[dash.lang].colorCodeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'color' }">{{ sortIcon('color') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('shade')">{{ dash.t[dash.lang].shadeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'shade' }">{{ sortIcon('shade') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('type')">{{ dash.t[dash.lang].typeLabel }} <span class="rp-sort" :class="{ on: sort.key === 'type' }">{{ sortIcon('type') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('width')">{{ dash.t[dash.lang].widthLabel }} <span class="rp-sort" :class="{ on: sort.key === 'width' }">{{ sortIcon('width') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('folds')">{{ dash.t[dash.lang].totalFoldsLabel }} <span class="rp-sort" :class="{ on: sort.key === 'folds' }">{{ sortIcon('folds') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('total_yards')">{{ dash.t[dash.lang].totalYardsLabel }} <span class="rp-sort" :class="{ on: sort.key === 'total_yards' }">{{ sortIcon('total_yards') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('wip_production')">{{ dash.t[dash.lang].wipProductionLabel }} <span class="rp-sort" :class="{ on: sort.key === 'wip_production' }">{{ sortIcon('wip_production') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('wip_factory')">{{ dash.t[dash.lang].wipFactoryLabel }} <span class="rp-sort" :class="{ on: sort.key === 'wip_factory' }">{{ sortIcon('wip_factory') }}</span></th>
+          <th class="rp-r rp-sortable" @click="toggleSort('wip_weaving')">{{ dash.t[dash.lang].wipWeavingLabel }} <span class="rp-sort" :class="{ on: sort.key === 'wip_weaving' }">{{ sortIcon('wip_weaving') }}</span></th>
           <th style="width:44px;"></th>
         </tr>
       </thead>
@@ -61,16 +59,16 @@
           <td class="rp-r" :class="{ 'rp-muted': !Number(row.wip_factory) }">{{ Number(row.wip_factory) ? fmt(row.wip_factory) : '-' }}</td>
           <td class="rp-r" :class="{ 'rp-muted': !Number(row.wip_weaving) }">{{ Number(row.wip_weaving) ? fmt(row.wip_weaving) : '-' }}</td>
           <td class="rp-c">
-            <button class="fr-img-btn" title="ดูรูปสินค้า" @click.stop>
+            <button class="fr-img-btn" :title="dash.t[dash.lang].viewProductImageTitle" @click.stop>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="items.length === 0"><td colspan="12" class="rp-empty">ไม่พบข้อมูล</td></tr>
+        <tr v-if="items.length === 0"><td colspan="12" class="rp-empty">{{ dash.t[dash.lang].noDataFoundMsg }}</td></tr>
       </tbody>
       <tfoot v-if="items.length">
         <tr>
-          <td colspan="6" class="rp-r rp-bold">รวม</td>
+          <td colspan="6" class="rp-r rp-bold">{{ dash.t[dash.lang].totalWord }}</td>
           <td class="rp-r rp-bold">{{ summary.folds.toLocaleString() }}</td>
           <td class="rp-r rp-bold">{{ fmt(summary.yards) }}</td>
           <td class="rp-r">{{ fmt(summary.production) }}</td>
@@ -82,21 +80,20 @@
     </table>
   </div>
 
-  <!-- ตารางม้วน (เมื่อเลือกแถว) -->
   <div class="rp-table-wrap rp-rolls">
     <table class="rp-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th><th>บาร์โค้ด</th><th>เลขที่รับสินค้า</th><th>วันที่รับ</th>
-          <th class="rp-r">จำนวนรับ (หลา)</th><th class="rp-r">จำนวนสต็อก (หลา)</th>
-          <th>คลัง</th><th>แร็คซ์</th><th>เลขที่ล็อต</th><th>หมายเหตุ</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th><th>{{ dash.t[dash.lang].barcodeLabel }}</th><th>{{ dash.t[dash.lang].receiptNoLabel }}</th><th>{{ dash.t[dash.lang].receivedDateLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].receivedQtyYardsLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].stockQtyYardsLabel }}</th>
+          <th>{{ dash.t[dash.lang].warehouseLabel }}</th><th>{{ dash.t[dash.lang].rackWord }}</th><th>{{ dash.t[dash.lang].lotNoLabel }}</th><th>{{ dash.t[dash.lang].noteLabel }}</th>
           <th style="width:190px;">
-            <span class="rp-th-manage">จัดการ
-              <input type="checkbox" class="rp-chk" title="เลือกทั้งหมด" :checked="allRollsChecked" @change="toggleAllRolls" :disabled="rolls.length === 0" />
-              <select class="rp-copies rp-th-copies" title="จำนวนสำเนาที่จะพิมพ์ (ทุกม้วน)" v-model.number="globalCopies" @change="applyGlobalCopies">
+            <span class="rp-th-manage">{{ dash.t[dash.lang].manageWord }}
+              <input type="checkbox" class="rp-chk" :title="dash.t[dash.lang].selectAllTitle" :checked="allRollsChecked" @change="toggleAllRolls" :disabled="rolls.length === 0" />
+              <select class="rp-copies rp-th-copies" :title="dash.t[dash.lang].printCopiesAllTitle" v-model.number="globalCopies" @change="applyGlobalCopies">
                 <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
               </select>
-              <button class="rp-ic rp-print rp-th-print" :title="selectedRolls.length ? 'พิมพ์ที่เลือก (' + selectedRolls.length + ')' : 'พิมพ์ทั้งหมด'" @click="printAllRolls">
+              <button class="rp-ic rp-print rp-th-print" :title="selectedRolls.length ? dash.t[dash.lang].printSelectedLabel + ' (' + selectedRolls.length + ')' : dash.t[dash.lang].printAllLabel" @click="printAllRolls">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
               </button>
             </span>
@@ -108,7 +105,7 @@
           <td class="rp-c">{{ i + 1 }}</td>
           <td class="rp-mono">
             <span class="rp-bc">{{ r.roll_qr_code }}</span>
-            <button class="rp-ic rp-copy" title="คัดลอกบาร์โค้ด" @click="copyBarcode(r.roll_qr_code)">
+            <button class="rp-ic rp-copy" :title="dash.t[dash.lang].copyBarcodeTitle" @click="copyBarcode(r.roll_qr_code)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>
           </td>
@@ -121,41 +118,40 @@
           <td>{{ r.lot_no || '-' }}</td>
           <td>{{ r.note || '-' }}</td>
           <td class="rp-c rp-actions-cell">
-            <button class="fr-action-btn edit" title="ปรับปรุงสต็อก" @click="openAdjust(r)"></button>
-            <input type="checkbox" class="rp-chk" title="เลือกม้วนนี้" :checked="selectedRolls.includes(r.roll_id)" @change="toggleRoll(r.roll_id)" />
-            <select class="rp-copies" title="จำนวนสำเนา" :value="copiesOf(r.roll_id)" @change="setCopies(r.roll_id, $event.target.value)">
+            <button class="fr-action-btn edit" :title="dash.t[dash.lang].adjustStockTitle" @click="openAdjust(r)"></button>
+            <input type="checkbox" class="rp-chk" :title="dash.t[dash.lang].selectThisRollTitle" :checked="selectedRolls.includes(r.roll_id)" @change="toggleRoll(r.roll_id)" />
+            <select class="rp-copies" :title="dash.t[dash.lang].copiesTitle" :value="copiesOf(r.roll_id)" @change="setCopies(r.roll_id, $event.target.value)">
               <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
             </select>
-            <button class="rp-ic rp-print" :title="'พิมพ์ QR ม้วน' + (copiesOf(r.roll_id) > 1 ? ' (' + copiesOf(r.roll_id) + ' สำเนา)' : '')" @click="printRoll(r)">
+            <button class="rp-ic rp-print" :title="dash.t[dash.lang].printRollQrLabel + (copiesOf(r.roll_id) > 1 ? ' (' + copiesOf(r.roll_id) + ' ' + dash.t[dash.lang].copiesUnit + ')' : '')" @click="printRoll(r)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="rolls.length === 0"><td colspan="11" class="rp-empty">{{ sel === null ? 'คลิกแถวด้านบนเพื่อดูม้วนผ้า' : 'ไม่มีม้วนผ้า' }}</td></tr>
+        <tr v-if="rolls.length === 0"><td colspan="11" class="rp-empty">{{ sel === null ? dash.t[dash.lang].clickRowToViewRollsMsg : dash.t[dash.lang].noRollsMsg }}</td></tr>
       </tbody>
       <tfoot v-if="rolls.length">
-        <tr><td colspan="4" class="rp-r rp-bold">รวม</td><td class="rp-r rp-bold">{{ fmt(rollsTotal) }}</td><td colspan="6"></td></tr>
+        <tr><td colspan="4" class="rp-r rp-bold">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r rp-bold">{{ fmt(rollsTotal) }}</td><td colspan="6"></td></tr>
       </tfoot>
     </table>
   </div>
 
-  <!-- Drawer ปรับปรุงสต็อก -->
   <transition name="rp-slide">
     <div v-if="adjustOpen" class="rp-drawer-wrap">
       <div class="rp-backdrop" @click="adjustOpen = false"></div>
       <div class="rp-drawer">
-        <div class="rp-drawer-head"><span>ปรับปรุงสต็อก</span><button class="rp-x" @click="adjustOpen = false">✕</button></div>
+        <div class="rp-drawer-head"><span>{{ dash.t[dash.lang].adjustStockTitle }}</span><button class="rp-x" @click="adjustOpen = false">✕</button></div>
         <div class="rp-drawer-body" v-if="adjustRoll">
-          <div class="rp-fld"><label>บาร์โค้ด</label><input :value="adjustRoll.roll_qr_code" readonly /></div>
-          <div class="rp-fld"><label>คลัง</label><input :value="adjustRoll.location_code || '-'" readonly /></div>
-          <div class="rp-fld"><label>เลขที่ล็อต</label><input v-model="adjustForm.lot_no" placeholder="เลขที่ล็อต" /></div>
-          <div class="rp-fld"><label>จำนวนเดิม</label><input :value="fmt(adjustRoll.current_yards)" readonly /></div>
-          <div class="rp-fld"><label>จำนวนใหม่</label><input type="number" step="0.01" v-model.number="adjustForm.new_yards" placeholder="0.00" /></div>
-          <div class="rp-fld"><label>หมายเหตุ</label><input v-model="adjustForm.note" placeholder="เหตุผลการปรับปรุง" /></div>
+          <div class="rp-fld"><label>{{ dash.t[dash.lang].barcodeLabel }}</label><input :value="adjustRoll.roll_qr_code" readonly /></div>
+          <div class="rp-fld"><label>{{ dash.t[dash.lang].warehouseLabel }}</label><input :value="adjustRoll.location_code || '-'" readonly /></div>
+          <div class="rp-fld"><label>{{ dash.t[dash.lang].lotNoLabel }}</label><input v-model="adjustForm.lot_no" :placeholder="dash.t[dash.lang].lotNoLabel" /></div>
+          <div class="rp-fld"><label>{{ dash.t[dash.lang].oldQtyLabel }}</label><input :value="fmt(adjustRoll.current_yards)" readonly /></div>
+          <div class="rp-fld"><label>{{ dash.t[dash.lang].newQtyLabel }}</label><input type="number" step="0.01" v-model.number="adjustForm.new_yards" placeholder="0.00" /></div>
+          <div class="rp-fld"><label>{{ dash.t[dash.lang].noteLabel }}</label><input v-model="adjustForm.note" :placeholder="dash.t[dash.lang].adjustReasonPlaceholder" /></div>
         </div>
         <div class="rp-drawer-foot">
-          <button class="rp-btn-reset" @click="adjustOpen = false">ยกเลิก</button>
-          <button class="rp-btn-save" @click="saveAdjust">💾 บันทึก</button>
+          <button class="rp-btn-reset" @click="adjustOpen = false">{{ dash.t[dash.lang].cancelWord }}</button>
+          <button class="rp-btn-save" @click="saveAdjust">💾 {{ dash.t[dash.lang].save }}</button>
         </div>
       </div>
     </div>
