@@ -1474,6 +1474,12 @@ data() {
             // ---- ReportViewPage (รายงานทั่วไป) เฉพาะ ----
             refreshWord: 'รีเฟรช',
             noReportDataMsg: 'ยังไม่มีข้อมูลสำหรับรายงานนี้ (ข้อมูลจะแสดงเมื่อมีเอกสารในระบบ)',
+            // ---- รายงานวางบิลลูกค้า เฉพาะ ----
+            billingReportTitle: 'รายงานวางบิลลูกค้า',
+            searchBillCustomerPlaceholder: 'เลขที่วางบิล/ลูกค้า',
+            noBillingDataMsg: '— ไม่มีข้อมูลวางบิล —',
+            billAmountLabel: 'ยอดบิล',
+            selectBillAboveMsg: '— เลือกใบวางบิลด้านบนเพื่อดูรายการ —',
             // ---- ใบลดหนี้ลูกค้า/คู่ค้า เฉพาะ ----
             creditNotePartnerTitle: 'ใบลดหนี้คู่ค้า',
             creditNoteCustomerTitle: 'ใบลดหนี้ลูกค้า',
@@ -2015,6 +2021,11 @@ data() {
             creditNoteWord: 'Credit Note',
             refreshWord: 'Refresh',
             noReportDataMsg: 'No data for this report yet (will show once documents exist)',
+            billingReportTitle: 'Customer Billing Report',
+            searchBillCustomerPlaceholder: 'Billing no./customer',
+            noBillingDataMsg: '— No billing data —',
+            billAmountLabel: 'Bill Amount',
+            selectBillAboveMsg: '— Select a bill above to view items —',
             creditNotePartnerTitle: 'Vendor Credit Note',
             creditNoteCustomerTitle: 'Customer Credit Note',
             creditNoteNoLabel: 'Credit Note No.',

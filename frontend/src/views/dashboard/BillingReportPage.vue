@@ -1,31 +1,31 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>📃 รายงานวางบิลลูกค้า</span>
+    <span>📃 {{ dash.t[dash.lang].billingReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
-    <div class="rp-f"><label>ลูกค้า</label><input v-model="filter.customer" placeholder="ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่วางบิล/ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button><button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].customerWord }}</label><input v-model="filter.customer" :placeholder="dash.t[dash.lang].customerWord" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchBillCustomerPlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button><button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button></div>
   </div>
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" style="min-width:700px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('br_no')">เลขที่วางบิล <span class="rp-sort" :class="{ on: sort.key==='br_no' }">{{ sortIcon('br_no') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('bill_date')">วันที่ <span class="rp-sort" :class="{ on: sort.key==='bill_date' }">{{ sortIcon('bill_date') }}</span></th>
-          <th>วันที่ครบกำหนด</th><th>ลูกค้า</th><th class="rp-r">ยอดรวม</th><th style="width:60px;"></th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('br_no')">{{ dash.t[dash.lang].billingNoLabel }} <span class="rp-sort" :class="{ on: sort.key==='br_no' }">{{ sortIcon('br_no') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('bill_date')">{{ dash.t[dash.lang].dateLabel }} <span class="rp-sort" :class="{ on: sort.key==='bill_date' }">{{ sortIcon('bill_date') }}</span></th>
+          <th>{{ dash.t[dash.lang].dueDateLabel }}</th><th>{{ dash.t[dash.lang].customerWord }}</th><th class="rp-r">{{ dash.t[dash.lang].totalAmountLabel }}</th><th style="width:60px;"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="7" class="rp-empty">— ไม่มีข้อมูลวางบิล —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="7" class="rp-empty">{{ dash.t[dash.lang].noBillingDataMsg }}</td></tr>
         <tr v-for="(row, idx) in filtered" :key="row.id" :class="{ 'is-sel': selRow === row }" @click="selRow = row">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">{{ row.br_no }}</td>
@@ -33,10 +33,10 @@
           <td class="rp-c">{{ fmtDate(row.due_date) || '-' }}</td>
           <td>{{ row.customer || '-' }}</td>
           <td class="rp-r" :class="{ 'rp-loss': Number(row.total_amount) < 0 }">{{ fmt(row.total_amount) }}</td>
-          <td><button class="rp-ic" title="ดูรายละเอียด" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
+          <td><button class="rp-ic" :title="dash.t[dash.lang].viewDetails" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
         </tr>
       </tbody>
-      <tfoot v-if="filtered.length"><tr><td colspan="5" class="rp-r">รวม</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td></td></tr></tfoot>
+      <tfoot v-if="filtered.length"><tr><td colspan="5" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td></td></tr></tfoot>
     </table>
   </div>
 
@@ -44,23 +44,23 @@
     <table class="rp-table" style="min-width:800px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>วันที่</th><th>เลขที่บิล</th><th>ประเภท</th><th>วันที่ครบกำหนด</th><th class="rp-r">ยอดบิล</th><th class="rp-r">ยอดคงเหลือ</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].dateLabel }}</th><th>{{ dash.t[dash.lang].billNoLabel }}</th><th>{{ dash.t[dash.lang].typeLabel }}</th><th>{{ dash.t[dash.lang].dueDateLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].billAmountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].remainingLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!selItems.length"><td colspan="7" class="rp-empty">— เลือกใบวางบิลด้านบนเพื่อดูรายการ —</td></tr>
+        <tr v-if="!selItems.length"><td colspan="7" class="rp-empty">{{ dash.t[dash.lang].selectBillAboveMsg }}</td></tr>
         <tr v-for="(it, i) in selItems" :key="i">
           <td class="rp-c">{{ i + 1 }}</td>
           <td class="rp-c">{{ fmtDate(it.doc_date) || '-' }}</td>
           <td class="rp-mono">{{ it.inv_no || '-' }}</td>
-          <td>{{ it.typeLabel || (it.type === 'retail' ? 'ขายปลีก' : it.type === 'wholesale' ? 'ขายส่ง' : it.type) || '-' }}</td>
+          <td>{{ it.typeLabel || (it.type === 'retail' ? dash.t[dash.lang].retailSaleWord : it.type === 'wholesale' ? dash.t[dash.lang].wholesaleWord : it.type) || '-' }}</td>
           <td class="rp-c">{{ fmtDate(it.due_date) || '-' }}</td>
           <td class="rp-r">{{ fmt(it.total) }}</td>
           <td class="rp-r">{{ it.remaining != null ? fmt(it.remaining) : fmt(it.total) }}</td>
         </tr>
       </tbody>
-      <tfoot v-if="selItems.length"><tr><td colspan="5" class="rp-r">รวม</td><td class="rp-r">{{ fmt(selTotal) }}</td><td class="rp-r rp-muted">-</td></tr></tfoot>
+      <tfoot v-if="selItems.length"><tr><td colspan="5" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(selTotal) }}</td><td class="rp-r rp-muted">-</td></tr></tfoot>
     </table>
   </div>
 </div>
