@@ -3,32 +3,32 @@
   <div class="rp-titlebar">
     <span>📊 {{ title }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
-    <div class="rp-f"><label>ลูกค้า</label><input v-model="filter.customer" placeholder="ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>พนักงานขาย</label>
-      <select v-model="filter.salesperson" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="s in salespersonOptions" :key="s" :value="s">{{ s }}</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].customerWord }}</label><input v-model="filter.customer" :placeholder="dash.t[dash.lang].customerWord" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].salespersonLabel }}</label>
+      <select v-model="filter.salesperson" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="s in salespersonOptions" :key="s" :value="s">{{ s }}</option></select>
     </div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่อินวอยส์/ออร์เดอร์/ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button><button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchInvOrderCustomerPlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button><button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button></div>
   </div>
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" style="min-width:1200px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>เลขที่อินวอยส์</th><th>วันที่</th><th>เลขที่ออร์เดอร์</th><th>ลูกค้า</th><th>เงื่อนไขบัญชี</th><th>วันที่ครบกำหนด</th><th>พนักงานขาย</th><th>สถานะชำระเงิน</th>
-          <th class="rp-r">ราคารวม</th><th class="rp-r">ต้นทุนรวม</th><th class="rp-r">กำไร/ขาดทุน</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].invoiceNoLabel }}</th><th>{{ dash.t[dash.lang].dateLabel }}</th><th>{{ dash.t[dash.lang].orderNoLabel }}</th><th>{{ dash.t[dash.lang].customerWord }}</th><th>{{ dash.t[dash.lang].accountTermsLabel }}</th><th>{{ dash.t[dash.lang].dueDateLabel }}</th><th>{{ dash.t[dash.lang].salespersonLabel }}</th><th>{{ dash.t[dash.lang].payStatusLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].totalPriceLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].totalCostLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].profitLossLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">— ไม่มีข้อมูล —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">{{ dash.t[dash.lang].noDataGenericMsg }}</td></tr>
         <tr v-for="(row, idx) in filtered" :key="row.id" :class="{ 'is-sel': selRow === row }" @click="selRow = row">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">{{ row.inv_no }}</td>
@@ -38,14 +38,14 @@
           <td>{{ row.account_term || '-' }}</td>
           <td class="rp-c">{{ fmtDate(row.due_date) || '-' }}</td>
           <td>{{ row.salesperson || '-' }}</td>
-          <td>{{ row.pay_status || 'ยังไม่ชำระ' }}</td>
+          <td>{{ row.pay_status || dash.t[dash.lang].notPaidWord }}</td>
           <td class="rp-r rp-price">{{ fmt(row._price) }}</td>
           <td class="rp-r">{{ row._cost ? fmt(row._cost) : '-' }}</td>
           <td class="rp-r" :class="row._profit < 0 ? 'rp-loss' : 'rp-profit'">{{ fmt(row._profit) }}</td>
         </tr>
       </tbody>
       <tfoot v-if="filtered.length">
-        <tr><td colspan="9" class="rp-r">รวม</td><td class="rp-r rp-price">{{ fmt(sumPrice) }}</td><td class="rp-r rp-loss">{{ fmt(sumCost) }}</td><td class="rp-r" :class="sumProfit < 0 ? 'rp-loss' : 'rp-profit'">{{ fmt(sumProfit) }}</td></tr>
+        <tr><td colspan="9" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r rp-price">{{ fmt(sumPrice) }}</td><td class="rp-r rp-loss">{{ fmt(sumCost) }}</td><td class="rp-r" :class="sumProfit < 0 ? 'rp-loss' : 'rp-profit'">{{ fmt(sumProfit) }}</td></tr>
       </tfoot>
     </table>
   </div>
@@ -54,13 +54,13 @@
     <table class="rp-table" style="min-width:1250px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>รหัสสินค้า</th><th>รหัสสี</th><th>หน้ากว้าง</th><th class="rp-r">จำนวนที่เบิก</th><th class="rp-r">จำนวนที่ขาย</th><th>หน่วย</th>
-          <th class="rp-r">ราคา/หน่วย</th><th class="rp-r">ราคา</th><th class="rp-r">ต้นทุนรวม</th><th class="rp-r">กำไร/ขาดทุน</th><th>บาร์โค้ด</th><th class="rp-r">จำนวนที่ตัด</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th><th>{{ dash.t[dash.lang].widthLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].withdrawnQtyLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].soldQtyLabel }}</th><th>{{ dash.t[dash.lang].unitLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].pricePerUnitLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].priceLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].totalCostLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].profitLossLabel }}</th><th>{{ dash.t[dash.lang].barcodeLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].cutQtyLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!selItems.length"><td colspan="13" class="rp-empty">— เลือกอินวอยส์ด้านบนเพื่อดูรายการ —</td></tr>
+        <tr v-if="!selItems.length"><td colspan="13" class="rp-empty">{{ dash.t[dash.lang].selectInvoiceItemsMsg }}</td></tr>
         <tr v-for="(it, i) in selItems" :key="i">
           <td class="rp-c">{{ i + 1 }}</td>
           <td class="rp-mono">{{ it.sku || '-' }}</td>
@@ -68,7 +68,7 @@
           <td class="rp-c">{{ it.width || '-' }}</td>
           <td class="rp-r">{{ fmt(itQty(it)) }}</td>
           <td class="rp-r">{{ fmt(itQty(it)) }}</td>
-          <td class="rp-c">{{ it.unit || 'หลา' }}</td>
+          <td class="rp-c">{{ it.unit || dash.t[dash.lang].yardsUnit }}</td>
           <td class="rp-r">{{ it.unit_price != null ? fmt(it.unit_price) : '-' }}</td>
           <td class="rp-r">{{ it.amount != null ? fmt(it.amount) : '-' }}</td>
           <td class="rp-r">{{ it.cost != null ? fmt(it.cost) : '-' }}</td>
@@ -78,7 +78,7 @@
         </tr>
       </tbody>
       <tfoot v-if="selItems.length">
-        <tr><td colspan="4" class="rp-r">รวม</td><td class="rp-r">{{ fmt(selQty) }}</td><td class="rp-r">{{ fmt(selQty) }}</td><td colspan="2"></td><td class="rp-r rp-price">{{ fmt(selPrice) }}</td><td class="rp-r">{{ selCost ? fmt(selCost) : '-' }}</td><td class="rp-r" :class="(selPrice-selCost) < 0 ? 'rp-loss' : 'rp-profit'">{{ fmt(selPrice - selCost) }}</td><td colspan="2"></td></tr>
+        <tr><td colspan="4" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(selQty) }}</td><td class="rp-r">{{ fmt(selQty) }}</td><td colspan="2"></td><td class="rp-r rp-price">{{ fmt(selPrice) }}</td><td class="rp-r">{{ selCost ? fmt(selCost) : '-' }}</td><td class="rp-r" :class="(selPrice-selCost) < 0 ? 'rp-loss' : 'rp-profit'">{{ fmt(selPrice - selCost) }}</td><td colspan="2"></td></tr>
       </tfoot>
     </table>
   </div>
@@ -92,7 +92,7 @@ export default {
   props: { mode: { type: String, default: 'wholesale' } },
   data() { return { rows: [], selRow: null, filter: { date: '', customer: '', salesperson: '', q: '', sku: '' }, sort: { key: 'inv_no', dir: 'desc' } }; },
   computed: {
-    title() { return this.mode === 'retail' ? 'รายงานกำไร & ขาดทุนขายปลีก' : 'รายงานกำไร & ขาดทุนขายส่ง'; },
+    title() { const t = this.dash.t[this.dash.lang]; return this.mode === 'retail' ? t.profitLossRetailTitle : t.profitLossWholesaleTitle; },
     salespersonOptions() { return [...new Set(this.rows.map(r => r.salesperson).filter(Boolean))]; },
     filtered() {
       let list = this.rows.slice();

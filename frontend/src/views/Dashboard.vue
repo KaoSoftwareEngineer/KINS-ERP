@@ -1606,6 +1606,13 @@ data() {
             selectInvoiceItemsMsg: '— เลือกอินวอยส์ด้านบนเพื่อดูรายการ —',
             notPaidWord: 'ยังไม่ชำระ',
             canceledWord: 'ยกเลิก',
+            // ---- รายงานกำไร & ขาดทุน เฉพาะ ----
+            profitLossWholesaleTitle: 'รายงานกำไร & ขาดทุนขายส่ง',
+            profitLossRetailTitle: 'รายงานกำไร & ขาดทุนขายปลีก',
+            noDataGenericMsg: '— ไม่มีข้อมูล —',
+            totalPriceLabel: 'ราคารวม',
+            totalCostLabel: 'ต้นทุนรวม',
+            profitLossLabel: 'กำไร/ขาดทุน',
             // ---- ใบลดหนี้ลูกค้า/คู่ค้า เฉพาะ ----
             creditNotePartnerTitle: 'ใบลดหนี้คู่ค้า',
             creditNoteCustomerTitle: 'ใบลดหนี้ลูกค้า',
