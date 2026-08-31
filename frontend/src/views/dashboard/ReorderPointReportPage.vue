@@ -1,36 +1,36 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>📦 รายงานจุดสั่งซื้อสินค้า</span>
+    <span>📦 {{ dash.t[dash.lang].reorderPointReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
   <div class="rp-filter">
-    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" placeholder="รหัสสินค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>รหัสสี</label><input v-model="filter.color" placeholder="รหัสสี" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f" style="max-width:150px"><label>ระยะเวลา</label>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" :placeholder="dash.t[dash.lang].skuLabel" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].colorCodeLabel }}</label><input v-model="filter.color" :placeholder="dash.t[dash.lang].colorCodeLabel" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f" style="max-width:150px"><label>{{ dash.t[dash.lang].periodLabel }}</label>
       <select v-model="filter.period"><option>180 Days</option><option>90 Days</option><option>30 Days</option></select>
     </div>
     <div class="rp-f rp-f-checks">
-      <label class="rp-check"><input type="checkbox" v-model="filter.noAlert" @change="applyFilter" /> ไม่ต้องแจ้งเตือน</label>
-      <label class="rp-check"><input type="checkbox" v-model="filter.belowReorder" @change="applyFilter" /> ต่ำกว่า Re-order Point</label>
+      <label class="rp-check"><input type="checkbox" v-model="filter.noAlert" @change="applyFilter" /> {{ dash.t[dash.lang].noAlertLabel }}</label>
+      <label class="rp-check"><input type="checkbox" v-model="filter.belowReorder" @change="applyFilter" /> {{ dash.t[dash.lang].belowReorderPointLabel }}</label>
     </div>
-    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button><button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button></div>
+    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button><button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button></div>
   </div>
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <div class="rp-table-wrap rp-tall">
     <table class="rp-table" style="min-width:900px">
       <thead>
         <tr>
-          <th style="width:50px;">ที่</th>
-          <th>รหัสสินค้า</th><th>ชื่อ</th><th>รหัสสี</th>
-          <th class="rp-r">จำนวนสต็อก</th><th class="rp-r">Re-order</th><th>หน่วย</th><th>ไม่ต้องแจ้งเตือน</th>
+          <th style="width:50px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].nameLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].stockQtyLabel }}</th><th class="rp-r">Re-order</th><th>{{ dash.t[dash.lang].unitLabel }}</th><th>{{ dash.t[dash.lang].noAlertLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="8" class="rp-empty">— ไม่มีข้อมูล —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="8" class="rp-empty">{{ dash.t[dash.lang].noDataGenericMsg }}</td></tr>
         <tr v-for="(r, idx) in paged" :key="idx" :class="{ 'is-low': r.stock < r.reorder }">
           <td class="rp-c">{{ (page - 1) * pageSize + idx + 1 }}</td>
           <td>{{ r.sku }}</td>
@@ -38,16 +38,16 @@
           <td class="rp-color">{{ r.shade || r.color_code || '-' }}</td>
           <td class="rp-r">{{ fmt(r.stock) }}</td>
           <td class="rp-r">{{ fmt(r.reorder) }}</td>
-          <td class="rp-c">{{ r.unit || 'หลา' }}</td>
+          <td class="rp-c">{{ r.unit || dash.t[dash.lang].yardsUnit }}</td>
           <td class="rp-c"><input type="checkbox" v-model="r.noAlert" /></td>
         </tr>
       </tbody>
     </table>
   </div>
   <div class="rp-pager" v-if="filtered.length > pageSize">
-    <button class="rp-pg" :disabled="page === 1" @click="page--">‹ ก่อนหน้า</button>
-    <span>หน้า {{ page }} / {{ totalPages }}</span>
-    <button class="rp-pg" :disabled="page === totalPages" @click="page++">ถัดไป ›</button>
+    <button class="rp-pg" :disabled="page === 1" @click="page--">{{ dash.t[dash.lang].prevPage }}</button>
+    <span>{{ dash.t[dash.lang].pageWord }} {{ page }} / {{ totalPages }}</span>
+    <button class="rp-pg" :disabled="page === totalPages" @click="page++">{{ dash.t[dash.lang].nextPage }}</button>
   </div>
 </div>
 </template>
