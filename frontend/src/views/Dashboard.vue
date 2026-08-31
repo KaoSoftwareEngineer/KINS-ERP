@@ -1206,6 +1206,17 @@ data() {
             urgentWord: 'ด่วน',
             sampleFirstWord: 'ตัวอย่างก่อน',
             perCustomerSpecWord: 'ตามสเปกลูกค้า',
+            // ---- รับสินค้า (goods receive) เฉพาะ — reuse ได้ทั้งผ้าสำเร็จ/ดิบ/ย้อม ----
+            receiveRawFabricTitle: 'รับผ้าดิบ',
+            receiptNoLabel: 'เลขที่รับสินค้า',
+            receiptTypeLabel: 'ประเภทการรับ',
+            factoryPlaceholder: 'เลือก/พิมพ์โรงงาน',
+            poRefLabel: 'เลขที่อ้างอิง PO',
+            poRefPlaceholder: 'เลือก/พิมพ์เลขที่ PO',
+            billNoLabel: 'เลขที่บิล',
+            copyRowTitle: 'คัดลอกแถว',
+            receiveNewBtn: 'รับใหม่',
+            receiptPdfBtn: 'ใบรับสินค้า',
           },
           en: {
             home: 'Home',
@@ -1469,6 +1480,16 @@ data() {
             urgentWord: 'Urgent',
             sampleFirstWord: 'Sample First',
             perCustomerSpecWord: 'Per Customer Spec',
+            receiveRawFabricTitle: 'Receive Raw Fabric',
+            receiptNoLabel: 'Receipt No.',
+            receiptTypeLabel: 'Receipt Type',
+            factoryPlaceholder: 'Select/type factory',
+            poRefLabel: 'PO Reference No.',
+            poRefPlaceholder: 'Select/type PO number',
+            billNoLabel: 'Bill No.',
+            copyRowTitle: 'Copy Row',
+            receiveNewBtn: 'New Receipt',
+            receiptPdfBtn: 'Goods Receipt',
           }
         }
       };
