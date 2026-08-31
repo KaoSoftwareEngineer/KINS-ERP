@@ -1415,6 +1415,15 @@ data() {
             // ---- รายงานสินค้า VAT คงคลัง เฉพาะ ----
             vatStockReportTitle: 'รายงานสินค้า VAT คงคลัง',
             totalValueLabel: 'มูลค่ารวม',
+            // ---- รับคืนอินวอยส์ เฉพาะ ----
+            invoiceReturnTitle: 'รับคืนอินวอยส์',
+            shipperLabel: 'พนักงานส่งของ',
+            paymentTypeLabel: 'ประเภทการชำระเงิน',
+            chequeWord: 'เช็ค',
+            transferWord: 'โอน',
+            creditWord: 'เครดิต',
+            returnNewBtn: 'รับคืนใหม่',
+            invoiceReturnSuccessMsg: 'รับคืนอินวอยส์เรียบร้อยแล้ว',
           },
           en: {
             home: 'Home',
@@ -1873,6 +1882,14 @@ data() {
             noItemsInReceiptMsg: 'No items in this receipt',
             vatStockReportTitle: 'VAT Stock Report',
             totalValueLabel: 'Total Value',
+            invoiceReturnTitle: 'Invoice Return',
+            shipperLabel: 'Shipper',
+            paymentTypeLabel: 'Payment Type',
+            chequeWord: 'Cheque',
+            transferWord: 'Transfer',
+            creditWord: 'Credit',
+            returnNewBtn: 'New Return',
+            invoiceReturnSuccessMsg: 'Invoice return completed',
           }
         }
       };

@@ -1,25 +1,25 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">↩️ รับคืนอินวอยส์</div>
+  <div class="po-titlebar">↩️ {{ dash.t[dash.lang].invoiceReturnTitle }}</div>
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.ret_date" /></div>
-      <div class="po-field"><label>เลขที่บิล</label><input :value="form.ivr_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.ret_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].billNoLabel }}</label><input :value="form.ivr_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>พนักงานส่งของ</label><select v-model="form.shipper"><option value="">— เลือก —</option><option v-for="s in shippers" :key="s" :value="s">{{ s }}</option></select></div>
-      <div class="po-field"><label>ประเภทการชำระเงิน</label><select v-model="form.payment_type"><option value="">— เลือก —</option><option>เงินสด</option><option>เช็ค</option><option>โอน</option><option>เครดิต</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].shipperLabel }}</label><select v-model="form.shipper"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option v-for="s in shippers" :key="s" :value="s">{{ s }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].paymentTypeLabel }}</label><select v-model="form.payment_type"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].cashOptionWord }}</option><option>{{ dash.t[dash.lang].chequeWord }}</option><option>{{ dash.t[dash.lang].transferWord }}</option><option>{{ dash.t[dash.lang].creditWord }}</option></select></div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
   </div>
   <div class="po-body"></div>
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
-      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 รับคืนใหม่</button>
+      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
+      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].returnNewBtn }}</button>
     </div>
   </div>
 </div>
@@ -42,7 +42,7 @@ export default {
         const res = await fetch('/api/invoice-returns', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify({ ...this.form, items: [] }) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.ivr_no = d.ivr_no; this.saved = true; this.savedMsg = 'รับคืนอินวอยส์เรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.ivr_no = d.ivr_no; this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].invoiceReturnSuccessMsg; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
