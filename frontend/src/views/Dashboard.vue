@@ -1364,6 +1364,18 @@ data() {
             salePriceLabel: 'ราคาขาย',
             newInvoiceBtn: 'ออกใบใหม่',
             invoiceIssuedMsg: 'ออกใบกำกับภาษีเรียบร้อยแล้ว',
+            // ---- ตัดสต็อก VAT จากใบกำกับภาษี เฉพาะ ----
+            vatInvoiceCutTitle: 'ตัดสต็อก VAT จากใบกำกับภาษี',
+            disburseNoLabel: 'เลขที่เบิกสินค้า',
+            selectInvoiceOpt: '— เลือกใบกำกับภาษี —',
+            invoiceRefNoLabel: 'เลขที่อินวอยส์',
+            saleTypeLabel: 'ประเภทการขาย',
+            domesticSaleWord: 'ขายในประเทศ',
+            exportSaleWord: 'ส่งออก',
+            retailSaleWord: 'ขายปลีก',
+            selectInvoiceHintMsg: 'เลือกเลขที่ใบกำกับภาษีด้านบน เพื่อดึงรายการมาตัดสต็อก',
+            cutNewBtn: 'ตัดใหม่',
+            stockCutFromInvoiceMsg: 'ตัดสต็อกจากใบกำกับเรียบร้อยแล้ว',
           },
           en: {
             home: 'Home',
@@ -1777,6 +1789,17 @@ data() {
             salePriceLabel: 'Sale Price',
             newInvoiceBtn: 'New Invoice',
             invoiceIssuedMsg: 'Invoice issued successfully',
+            vatInvoiceCutTitle: 'VAT Stock Cut from Invoice',
+            disburseNoLabel: 'Disbursement No.',
+            selectInvoiceOpt: '— Select Invoice —',
+            invoiceRefNoLabel: 'Invoice Ref No.',
+            saleTypeLabel: 'Sale Type',
+            domesticSaleWord: 'Domestic Sale',
+            exportSaleWord: 'Export',
+            retailSaleWord: 'Retail Sale',
+            selectInvoiceHintMsg: 'Select an invoice number above to pull items for stock cutting',
+            cutNewBtn: 'New Cut',
+            stockCutFromInvoiceMsg: 'Stock cut from invoice completed',
           }
         }
       };

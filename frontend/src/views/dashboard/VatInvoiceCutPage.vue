@@ -1,29 +1,29 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">✂️ ตัดสต็อก VAT จากใบกำกับภาษี</div>
+  <div class="po-titlebar">✂️ {{ dash.t[dash.lang].vatInvoiceCutTitle }}</div>
 
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.cut_date" /></div>
-      <div class="po-field"><label>เลขที่เบิกสินค้า</label><input :value="form.vo_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.cut_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].disburseNoLabel }}</label><input :value="form.vo_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เลขที่ใบกำกับภาษี</label>
+      <div class="po-field"><label>{{ dash.t[dash.lang].invoiceNoLabel }}</label>
         <select v-model="form.invoice_ref" @change="selectInvoice">
-          <option value="">— เลือกใบกำกับภาษี —</option>
+          <option value="">{{ dash.t[dash.lang].selectInvoiceOpt }}</option>
           <option v-for="iv in invoices" :key="iv.id" :value="iv.vt_no">{{ iv.vt_no }}</option>
         </select>
       </div>
-      <div class="po-field"><label>ลูกค้า</label><input :value="form.customer" readonly class="po-ro" placeholder="—" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].customerWord }}</label><input :value="form.customer" readonly class="po-ro" placeholder="—" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เลขที่อินวอยส์</label><input :value="form.invoice_ref" readonly class="po-ro" placeholder="—" /></div>
-      <div class="po-field"><label>ประเภทการขาย</label>
-        <select v-model="form.sale_type"><option value="">— เลือก —</option><option>ขายในประเทศ</option><option>ส่งออก</option><option>ขายปลีก</option></select>
+      <div class="po-field"><label>{{ dash.t[dash.lang].invoiceRefNoLabel }}</label><input :value="form.invoice_ref" readonly class="po-ro" placeholder="—" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].saleTypeLabel }}</label>
+        <select v-model="form.sale_type"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].domesticSaleWord }}</option><option>{{ dash.t[dash.lang].exportSaleWord }}</option><option>{{ dash.t[dash.lang].retailSaleWord }}</option></select>
       </div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
   </div>
 
@@ -31,9 +31,9 @@
     <table class="po-item-table" v-if="items.length">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th style="text-align:left;">รายละเอียด</th><th style="width:130px;">ราคาขาย</th><th style="width:120px;">จำนวนที่ตัด</th>
-          <th style="width:150px;">รวม</th><th style="width:130px;">กลุ่มสินค้า VAT</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th style="text-align:left;">{{ dash.t[dash.lang].detailLabel }}</th><th style="width:130px;">{{ dash.t[dash.lang].salePriceLabel }}</th><th style="width:120px;">{{ dash.t[dash.lang].qtyCutLabel }}</th>
+          <th style="width:150px;">{{ dash.t[dash.lang].totalWord }}</th><th style="width:130px;">{{ dash.t[dash.lang].vatProductGroupLabel }}</th>
         </tr>
       </thead>
       <tbody>
@@ -48,22 +48,22 @@
       </tbody>
       <tfoot>
         <tr class="po-foot-row">
-          <td colspan="3" class="po-foot-label">รวม</td>
+          <td colspan="3" class="po-foot-label">{{ dash.t[dash.lang].totalWord }}</td>
           <td class="po-num">{{ totalQty }}</td>
           <td class="po-num">{{ totalAmount.toFixed(2) }}</td>
           <td></td>
         </tr>
       </tfoot>
     </table>
-    <div v-else class="po-empty">เลือกเลขที่ใบกำกับภาษีด้านบน เพื่อดึงรายการมาตัดสต็อก</div>
+    <div v-else class="po-empty">{{ dash.t[dash.lang].selectInvoiceHintMsg }}</div>
   </div>
 
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
-      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 ตัดใหม่</button>
+      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
+      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].cutNewBtn }}</button>
     </div>
   </div>
 </div>
@@ -117,7 +117,7 @@ export default {
         const res = await fetch('/api/vat-stock-cuts', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(payload) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.vo_no = d.vo_no; this.saved = true; this.savedMsg = 'ตัดสต็อกจากใบกำกับเรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.vo_no = d.vo_no; this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].stockCutFromInvoiceMsg; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
