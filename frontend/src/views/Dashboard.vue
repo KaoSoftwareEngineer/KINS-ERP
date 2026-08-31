@@ -1412,6 +1412,9 @@ data() {
             noVatReceiptDataMsg: 'ยังไม่มีข้อมูล (จะแสดงเมื่อมีใบรับสินค้า VAT ในระบบ)',
             clickRowToViewPriceMsg: 'คลิกแถวด้านบนเพื่อดูรายการราคา',
             noItemsInReceiptMsg: 'ไม่มีรายการในใบรับนี้',
+            // ---- รายงานสินค้า VAT คงคลัง เฉพาะ ----
+            vatStockReportTitle: 'รายงานสินค้า VAT คงคลัง',
+            totalValueLabel: 'มูลค่ารวม',
           },
           en: {
             home: 'Home',
@@ -1868,6 +1871,8 @@ data() {
             noVatReceiptDataMsg: 'No data yet (will show once VAT receipts occur)',
             clickRowToViewPriceMsg: 'Click a row above to view prices',
             noItemsInReceiptMsg: 'No items in this receipt',
+            vatStockReportTitle: 'VAT Stock Report',
+            totalValueLabel: 'Total Value',
           }
         }
       };
