@@ -1,32 +1,32 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">🧾 ใบกำกับภาษี</div>
+  <div class="po-titlebar">🧾 {{ dash.t[dash.lang].vatInvoiceTitle }}</div>
 
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.invoice_date" /></div>
-      <div class="po-field"><label>เลขที่ใบกำกับภาษี</label><input :value="form.vt_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.invoice_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].invoiceNoLabel }}</label><input :value="form.vt_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>ลูกค้า</label>
-        <input list="vt-customers" v-model="form.customer" placeholder="เลือก/พิมพ์ลูกค้า" />
+      <div class="po-field"><label>{{ dash.t[dash.lang].customerWord }}</label>
+        <input list="vt-customers" v-model="form.customer" :placeholder="dash.t[dash.lang].customerPlaceholder" />
         <datalist id="vt-customers"><option v-for="c in customerOptions" :key="c" :value="c" /></datalist>
       </div>
-      <div class="po-field"><label>พนักงานขาย</label>
-        <input list="vt-sales" v-model="form.salesperson" placeholder="พนักงานขาย" />
+      <div class="po-field"><label>{{ dash.t[dash.lang].salespersonLabel }}</label>
+        <input list="vt-sales" v-model="form.salesperson" :placeholder="dash.t[dash.lang].salespersonLabel" />
         <datalist id="vt-sales"><option v-for="s in salesOptions" :key="s" :value="s" /></datalist>
       </div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เงื่อนไขบัญชี</label>
-        <select v-model="form.account_term"><option value="">— เลือก —</option><option>เงินสด</option><option>เครดิต 30 วัน</option><option>เครดิต 60 วัน</option></select>
+      <div class="po-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
+        <select v-model="form.account_term"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].cashOptionWord }}</option><option>{{ dash.t[dash.lang].credit30Word }}</option><option>{{ dash.t[dash.lang].credit60Word }}</option></select>
       </div>
-      <div class="po-field"><label>ที่อยู่ในการออกบิล</label>
-        <select v-model="form.bill_address"><option value="">— เลือก —</option><option>สำนักงานใหญ่</option><option>สาขา</option></select>
+      <div class="po-field"><label>{{ dash.t[dash.lang].billAddressLabel }}</label>
+        <select v-model="form.bill_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].headOfficeWord }}</option><option>{{ dash.t[dash.lang].branchWord }}</option></select>
       </div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
   </div>
 
@@ -34,24 +34,24 @@
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th style="text-align:left;">รายละเอียด</th><th style="width:130px;">ราคารับ</th><th style="width:120px;">จำนวนที่ตัด</th>
-          <th style="width:130px;">ราคาขาย</th><th style="width:150px;">รวม</th><th style="width:130px;">กลุ่มสินค้า VAT</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th style="text-align:left;">{{ dash.t[dash.lang].detailLabel }}</th><th style="width:130px;">{{ dash.t[dash.lang].priceReceivedLabel }}</th><th style="width:120px;">{{ dash.t[dash.lang].qtyCutLabel }}</th>
+          <th style="width:130px;">{{ dash.t[dash.lang].salePriceLabel }}</th><th style="width:150px;">{{ dash.t[dash.lang].totalWord }}</th><th style="width:130px;">{{ dash.t[dash.lang].vatProductGroupLabel }}</th>
           <th style="width:96px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
-          <td><input v-model="row.detail" placeholder="รายละเอียด" /></td>
+          <td><input v-model="row.detail" :placeholder="dash.t[dash.lang].detailLabel" /></td>
           <td><input type="number" list="vt-prices" v-model.number="row.price" class="po-num" placeholder="0.00" /></td>
           <td><input type="number" v-model.number="row.qty_cut" class="po-num" placeholder="0" /></td>
           <td><input type="number" v-model.number="row.sale_price" class="po-num" placeholder="0.00" /></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
           <td><input :value="groupFor(row.sale_price)" readonly class="po-ro-cell" style="text-align:center" /></td>
           <td class="po-row-actions">
-            <button class="po-ic po-add" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-            <button class="po-ic po-del" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
           </td>
         </tr>
       </tbody>
@@ -59,10 +59,10 @@
     <datalist id="vt-prices"><option v-for="p in priceOptions" :key="p" :value="p" /></datalist>
 
     <div class="po-summary">
-      <div class="po-sum-row"><label>รวม</label><input :value="subtotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
+      <div class="po-sum-row"><label>{{ dash.t[dash.lang].totalWord }}</label><input :value="subtotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
       <div class="po-sum-row">
-        <label>ส่วนลด</label>
-        <select v-model="discountMode"><option value="none">None</option><option value="percent">%</option><option value="amount">บาท</option></select>
+        <label>{{ dash.t[dash.lang].discountLabel }}</label>
+        <select v-model="discountMode"><option value="none">None</option><option value="percent">%</option><option value="amount">{{ dash.t[dash.lang].bahtWord }}</option></select>
         <input type="number" v-model.number="discountValue" :disabled="discountMode==='none'" class="po-num" />
         <input :value="discountAmount.toFixed(2)" readonly class="po-num po-ro-cell" />
       </div>
@@ -70,16 +70,16 @@
         <label>VAT</label><select v-model="vatMode"><option value="none">None</option><option value="7">7%</option></select>
         <input :value="vatAmount.toFixed(2)" readonly class="po-num po-ro-cell" />
       </div>
-      <div class="po-sum-row po-sum-net"><label>ยอดสุทธิ</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
+      <div class="po-sum-row po-sum-net"><label>{{ dash.t[dash.lang].netTotalLabel }}</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
     </div>
   </div>
 
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
-      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 ออกใบใหม่</button>
+      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
+      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].newInvoiceBtn }}</button>
     </div>
   </div>
 </div>
@@ -151,7 +151,7 @@ export default {
         const res = await fetch('/api/vat-invoices', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(payload) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.vt_no = d.vt_no; this.saved = true; this.savedMsg = 'ออกใบกำกับภาษีเรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.vt_no = d.vt_no; this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].invoiceIssuedMsg; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },

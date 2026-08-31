@@ -1352,6 +1352,18 @@ data() {
             meterWord: 'เมตร',
             kgWord: 'กก.',
             pieceWord: 'ชิ้น',
+            // ---- ใบกำกับภาษี VAT เฉพาะ ----
+            vatInvoiceTitle: 'ใบกำกับภาษี',
+            invoiceNoLabel: 'เลขที่ใบกำกับภาษี',
+            customerPlaceholder: 'เลือก/พิมพ์ลูกค้า',
+            billAddressLabel: 'ที่อยู่ในการออกบิล',
+            headOfficeWord: 'สำนักงานใหญ่',
+            branchWord: 'สาขา',
+            detailLabel: 'รายละเอียด',
+            qtyCutLabel: 'จำนวนที่ตัด',
+            salePriceLabel: 'ราคาขาย',
+            newInvoiceBtn: 'ออกใบใหม่',
+            invoiceIssuedMsg: 'ออกใบกำกับภาษีเรียบร้อยแล้ว',
           },
           en: {
             home: 'Home',
@@ -1754,6 +1766,17 @@ data() {
             meterWord: 'Meter',
             kgWord: 'kg.',
             pieceWord: 'pcs.',
+            vatInvoiceTitle: 'VAT Invoice',
+            invoiceNoLabel: 'Invoice No.',
+            customerPlaceholder: 'Select/type customer',
+            billAddressLabel: 'Billing Address',
+            headOfficeWord: 'Head Office',
+            branchWord: 'Branch',
+            detailLabel: 'Detail',
+            qtyCutLabel: 'Cut Qty',
+            salePriceLabel: 'Sale Price',
+            newInvoiceBtn: 'New Invoice',
+            invoiceIssuedMsg: 'Invoice issued successfully',
           }
         }
       };
