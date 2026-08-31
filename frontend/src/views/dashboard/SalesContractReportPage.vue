@@ -1,42 +1,42 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>📜 รายงานใบสัญญาขาย</span>
+    <span>📜 {{ dash.t[dash.lang].salesContractReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
 
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
-    <div class="rp-f"><label>ลูกค้า</label><input v-model="filter.customer" placeholder="ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>สกุลเงิน</label>
-      <select v-model="filter.currency" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="c in currencyOptions" :key="c" :value="c">{{ c }}</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].customerWord }}</label><input v-model="filter.customer" :placeholder="dash.t[dash.lang].customerWord" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].currencyLabel }}</label>
+      <select v-model="filter.currency" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="c in currencyOptions" :key="c" :value="c">{{ c }}</option></select>
     </div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่สัญญา/ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchContractCustomerPlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" @keyup.enter="applyFilter" /></div>
     <div class="rp-f-actions">
-      <button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button>
-      <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
+      <button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+      <button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button>
     </div>
   </div>
 
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <!-- ตารางสัญญาขาย -->
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" style="min-width:1050px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('sc_no')">เลขที่สัญญา <span class="rp-sort" :class="{ on: sort.key==='sc_no' }">{{ sortIcon('sc_no') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('contract_date')">วันที่ <span class="rp-sort" :class="{ on: sort.key==='contract_date' }">{{ sortIcon('contract_date') }}</span></th>
-          <th>ลูกค้า</th><th>เงื่อนไขบัญชี</th><th>วันที่จัดส่ง</th>
-          <th class="rp-r">จำนวนรวม</th><th>หน่วย</th><th class="rp-r">ยอดรวม</th><th class="rp-r">มัดจำ</th><th>สกุลเงิน</th><th style="width:60px;"></th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('sc_no')">{{ dash.t[dash.lang].contractNoLabel }} <span class="rp-sort" :class="{ on: sort.key==='sc_no' }">{{ sortIcon('sc_no') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('contract_date')">{{ dash.t[dash.lang].dateLabel }} <span class="rp-sort" :class="{ on: sort.key==='contract_date' }">{{ sortIcon('contract_date') }}</span></th>
+          <th>{{ dash.t[dash.lang].customerWord }}</th><th>{{ dash.t[dash.lang].accountTermsLabel }}</th><th>{{ dash.t[dash.lang].shipDateLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].totalQtyLabel }}</th><th>{{ dash.t[dash.lang].unitLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].totalAmountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].depositLabel }}</th><th>{{ dash.t[dash.lang].currencyLabel }}</th><th style="width:60px;"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">— ไม่มีข้อมูลสัญญาขาย —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">{{ dash.t[dash.lang].noContractDataMsg }}</td></tr>
         <tr v-for="(row, idx) in filtered" :key="row.sc_id" :class="{ 'is-sel': selRow === row }" @click="select(row)">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">{{ row.sc_no }}</td>
@@ -45,15 +45,15 @@
           <td>{{ row.payment_term || '-' }}</td>
           <td class="rp-c">{{ fmtDate(row.shipment_date) || '-' }}</td>
           <td class="rp-r">{{ fmt(row.total_qty) }}</td>
-          <td class="rp-c">{{ row.unit || 'หลา' }}</td>
+          <td class="rp-c">{{ row.unit || dash.t[dash.lang].yardsUnit }}</td>
           <td class="rp-r">{{ fmt(row.net_total) }}</td>
           <td class="rp-r">{{ Number(row.deposit) ? fmt(row.deposit) : '-' }}</td>
           <td class="rp-c">{{ row.currency || 'THB' }}</td>
-          <td><button class="rp-ic" title="ดูรายละเอียด" @click.stop="select(row)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
+          <td><button class="rp-ic" :title="dash.t[dash.lang].viewDetails" @click.stop="select(row)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
         </tr>
       </tbody>
       <tfoot v-if="filtered.length">
-        <tr><td colspan="6" class="rp-r">รวม</td><td class="rp-r">{{ fmt(sumQty) }}</td><td></td><td class="rp-r">{{ fmt(sumAmount) }}</td><td class="rp-r">{{ fmt(sumDeposit) }}</td><td colspan="2"></td></tr>
+        <tr><td colspan="6" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(sumQty) }}</td><td></td><td class="rp-r">{{ fmt(sumAmount) }}</td><td class="rp-r">{{ fmt(sumDeposit) }}</td><td colspan="2"></td></tr>
       </tfoot>
     </table>
   </div>
@@ -63,22 +63,22 @@
     <table class="rp-table" style="min-width:1050px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>รหัสสินค้า</th><th>รหัสสี</th><th>คำอธิบาย</th>
-          <th class="rp-r">จำนวน</th><th>หน่วย</th><th class="rp-r">ราคา/หน่วย</th><th class="rp-r">ราคา</th>
-          <th>หน้ากว้าง</th><th>ความยาว</th><th>หมายเหตุ</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th><th>{{ dash.t[dash.lang].descriptionLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].qtyLabel }}</th><th>{{ dash.t[dash.lang].unitLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].pricePerUnitLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].priceLabel }}</th>
+          <th>{{ dash.t[dash.lang].widthLabel }}</th><th>{{ dash.t[dash.lang].lengthLabel }}</th><th>{{ dash.t[dash.lang].noteLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="loadingItems"><td colspan="11" class="rp-empty">กำลังโหลด...</td></tr>
-        <tr v-else-if="!selItems.length"><td colspan="11" class="rp-empty">— เลือกสัญญาด้านบนเพื่อดูรายการ —</td></tr>
+        <tr v-if="loadingItems"><td colspan="11" class="rp-empty">{{ dash.t[dash.lang].loadingWord }}</td></tr>
+        <tr v-else-if="!selItems.length"><td colspan="11" class="rp-empty">{{ dash.t[dash.lang].selectContractAboveMsg }}</td></tr>
         <tr v-for="(it, i) in selItems" :key="i">
           <td class="rp-c">{{ i + 1 }}</td>
           <td class="rp-mono">{{ it.sku || '-' }}</td>
           <td>{{ it.color_code || '-' }}</td>
           <td>{{ it.description || '-' }}</td>
           <td class="rp-r">{{ fmt(it.qty) }}</td>
-          <td class="rp-c">{{ selRow && selRow.unit || 'หลา' }}</td>
+          <td class="rp-c">{{ selRow && selRow.unit || dash.t[dash.lang].yardsUnit }}</td>
           <td class="rp-r">{{ fmt(it.unit_price) }}</td>
           <td class="rp-r">{{ fmt(it.amount) }}</td>
           <td class="rp-c">{{ it.width || '-' }}</td>
@@ -87,7 +87,7 @@
         </tr>
       </tbody>
       <tfoot v-if="selItems.length">
-        <tr><td colspan="4" class="rp-r">รวม</td><td class="rp-r">{{ fmt(selItemsQty) }}</td><td colspan="2"></td><td class="rp-r">{{ fmt(selItemsAmount) }}</td><td colspan="3"></td></tr>
+        <tr><td colspan="4" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(selItemsQty) }}</td><td colspan="2"></td><td class="rp-r">{{ fmt(selItemsAmount) }}</td><td colspan="3"></td></tr>
       </tfoot>
     </table>
   </div>
