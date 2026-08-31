@@ -1550,6 +1550,10 @@ data() {
             printRawTransferTitle: 'พิมพ์ใบย้ายผ้าดิบ',
             lotCountLabel: 'จำนวนล็อต',
             clickRowToViewRawTransferMsg: 'คลิกแถวด้านบนเพื่อดูรายการผ้าดิบที่ย้าย',
+            // ---- รายงานการย้ายชั้นสินค้า เฉพาะ ----
+            rackTransferReportTitle: 'รายงานการย้ายชั้นสินค้า',
+            printRackTransferTitle: 'พิมพ์ใบย้ายชั้น',
+            clickRowToViewRackTransferMsg: 'คลิกแถวด้านบนเพื่อดูม้วนที่ย้ายเข้าแร็ค',
             // ---- ใบลดหนี้ลูกค้า/คู่ค้า เฉพาะ ----
             creditNotePartnerTitle: 'ใบลดหนี้คู่ค้า',
             creditNoteCustomerTitle: 'ใบลดหนี้ลูกค้า',
@@ -2159,6 +2163,9 @@ data() {
             printRawTransferTitle: 'Print Raw Fabric Transfer',
             lotCountLabel: 'Lot Count',
             clickRowToViewRawTransferMsg: 'Click a row above to view transferred raw fabric',
+            rackTransferReportTitle: 'Rack Transfer Report',
+            printRackTransferTitle: 'Print Rack Transfer',
+            clickRowToViewRackTransferMsg: 'Click a row above to view rolls moved into rack',
             creditNotePartnerTitle: 'Vendor Credit Note',
             creditNoteCustomerTitle: 'Customer Credit Note',
             creditNoteNoLabel: 'Credit Note No.',
