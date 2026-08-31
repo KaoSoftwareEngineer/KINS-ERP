@@ -1336,6 +1336,16 @@ data() {
             requiredBothQrMsg: '⚠️ ต้องสแกนทั้ง QR ช่อง และ QR ไม้ผ้า',
             requiredCutYardsMsg: '⚠️ กรอกจำนวนหลาที่ตัด (> 0)',
             exportSelectedBtn: 'ส่งออกที่เลือก',
+            // ---- กลุ่มสินค้า VAT เฉพาะ ----
+            vatProductGroupTitle: 'กลุ่มสินค้า VAT — ตามช่วงราคาขาย',
+            vatProductGroupHint: 'กำหนดกลุ่มสินค้า VAT ตามช่วงราคาขาย (บาท) — ระบบจะจัดสินค้าเข้ากลุ่มอัตโนมัติตามราคา',
+            priceFromLabel: 'ราคาขาย (ตั้งแต่)',
+            toShortWord: 'ถึง',
+            vatProductGroupLabel: 'กลุ่มสินค้า VAT',
+            groupNamePlaceholder: 'ชื่อกลุ่ม เช่น A / B / ผ้า',
+            noGroupsYetMsg: 'ยังไม่มีกลุ่ม — กด "เพิ่มกลุ่ม" เพื่อเริ่มกำหนด',
+            addGroupBtn: 'เพิ่มกลุ่ม',
+            savedSuccessMsg: 'บันทึกเรียบร้อยแล้ว',
           },
           en: {
             home: 'Home',
@@ -1724,6 +1734,15 @@ data() {
             requiredBothQrMsg: '⚠️ Must scan both location QR and roll QR',
             requiredCutYardsMsg: '⚠️ Enter yards to cut (> 0)',
             exportSelectedBtn: 'Export Selected',
+            vatProductGroupTitle: 'VAT Product Group — by Sale Price Range',
+            vatProductGroupHint: 'Define VAT product groups by sale price range (THB) — the system will auto-assign products by price',
+            priceFromLabel: 'Sale Price (From)',
+            toShortWord: 'To',
+            vatProductGroupLabel: 'VAT Product Group',
+            groupNamePlaceholder: 'Group name e.g. A / B / Fabric',
+            noGroupsYetMsg: 'No groups yet — click "Add Group" to start',
+            addGroupBtn: 'Add Group',
+            savedSuccessMsg: 'Saved successfully',
           }
         }
       };

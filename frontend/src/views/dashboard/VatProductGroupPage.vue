@@ -1,17 +1,17 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">🧾 กลุ่มสินค้า VAT — ตามช่วงราคาขาย</div>
+  <div class="po-titlebar">🧾 {{ dash.t[dash.lang].vatProductGroupTitle }}</div>
 
   <div class="po-items">
-    <p class="vpg-hint">กำหนดกลุ่มสินค้า VAT ตามช่วงราคาขาย (บาท) — ระบบจะจัดสินค้าเข้ากลุ่มอัตโนมัติตามราคา</p>
+    <p class="vpg-hint">{{ dash.t[dash.lang].vatProductGroupHint }}</p>
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:50px;">ที่</th>
-          <th style="width:180px;text-align:right;">ราคาขาย (ตั้งแต่)</th>
+          <th style="width:50px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th style="width:180px;text-align:right;">{{ dash.t[dash.lang].priceFromLabel }}</th>
           <th style="width:40px;"></th>
-          <th style="width:180px;text-align:right;">ถึง</th>
-          <th style="text-align:left;">กลุ่มสินค้า VAT</th>
+          <th style="width:180px;text-align:right;">{{ dash.t[dash.lang].toShortWord }}</th>
+          <th style="text-align:left;">{{ dash.t[dash.lang].vatProductGroupLabel }}</th>
           <th style="width:96px;"></th>
         </tr>
       </thead>
@@ -21,29 +21,29 @@
           <td><input type="number" step="0.01" v-model.number="row.price_from" class="po-num" placeholder="0.00" /></td>
           <td class="vpg-dash">–</td>
           <td><input type="number" step="0.01" v-model.number="row.price_to" class="po-num" placeholder="0.00" /></td>
-          <td><input v-model="row.group_name" placeholder="ชื่อกลุ่ม เช่น A / B / ผ้า" /></td>
+          <td><input v-model="row.group_name" :placeholder="dash.t[dash.lang].groupNamePlaceholder" /></td>
           <td class="po-row-actions">
-            <button class="po-ic po-add" title="เพิ่มแถว" @click="addRow(idx)">
+            <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             </button>
-            <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="items.length === 0"><td colspan="6" class="po-empty">ยังไม่มีกลุ่ม — กด "เพิ่มกลุ่ม" เพื่อเริ่มกำหนด</td></tr>
+        <tr v-if="items.length === 0"><td colspan="6" class="po-empty">{{ dash.t[dash.lang].noGroupsYetMsg }}</td></tr>
       </tbody>
     </table>
     <button class="vpg-add-btn" @click="addRow(items.length - 1)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      เพิ่มกลุ่ม
+      {{ dash.t[dash.lang].addGroupBtn }}
     </button>
   </div>
 
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
+      <button class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
     </div>
   </div>
 </div>
@@ -92,7 +92,7 @@ export default {
         });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.savedMsg = 'บันทึกเรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.savedMsg = this.dash.t[this.dash.lang].savedSuccessMsg; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
