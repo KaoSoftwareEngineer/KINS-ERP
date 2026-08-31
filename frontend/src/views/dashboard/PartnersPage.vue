@@ -1,9 +1,9 @@
 <template>
 <div class="fr-page-compact">
   <div class="header flex-wrap">
-    <div><h1>🤝 คู่ค้า</h1></div>
+    <div><h1>🤝 {{ dash.pageTitle('partners') }}</h1></div>
     <div class="header-actions">
-      <button class="btn-small fr-btn-add" @click="openAdd">+ เพิ่ม คู่ค้า</button>
+      <button class="btn-small fr-btn-add" @click="openAdd">+ {{ dash.t[dash.lang].add }} {{ dash.t[dash.lang].partnerWord }}</button>
     </div>
   </div>
 
@@ -11,22 +11,22 @@
   <div class="section" style="margin-top: 12px;">
     <div class="fr-filter-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[18px] gap-y-[14px]">
       <div class="fr-field-group">
-        <label>คำค้นหา</label>
-        <input type="text" v-model="filters.search" placeholder="ค้นหาชื่อบริษัท / ผู้ประสานงาน" />
+        <label>{{ dash.t[dash.lang].searchInput }}</label>
+        <input type="text" v-model="filters.search" :placeholder="dash.t[dash.lang].searchPartnerPlaceholder" />
       </div>
       <div class="fr-field-group">
-        <label>กลุ่มคู่ค้า</label>
-        <select v-model="filters.pgroup"><option value="">ทั้งหมด</option><option v-for="o in groupOptions" :key="o" :value="o">{{ o }}</option></select>
+        <label>{{ dash.t[dash.lang].partnerGroupLabel }}</label>
+        <select v-model="filters.pgroup"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="o in groupOptions" :key="o" :value="o">{{ o }}</option></select>
       </div>
       <div class="fr-field-group">
-        <label>เงื่อนไขบัญชี</label>
-        <select v-model="filters.account_term"><option value="">ทั้งหมด</option><option v-for="o in termOptions" :key="o" :value="o">{{ o }}</option></select>
+        <label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
+        <select v-model="filters.account_term"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="o in termOptions" :key="o" :value="o">{{ o }}</option></select>
       </div>
       <div class="fr-field-group">
         <label>&nbsp;</label>
         <div class="fr-filter-actions">
-          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 ค้นหา</button>
-          <button class="fr-btn-util fr-btn-reset" @click="resetFilters">↺ รีเซ็ต</button>
+          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+          <button class="fr-btn-util fr-btn-reset" @click="resetFilters">↺ {{ dash.t[dash.lang].resetWord }}</button>
         </div>
       </div>
     </div>
@@ -34,9 +34,9 @@
 
   <!-- สรุป -->
   <div class="fr-summary fr-summary-row">
-    <span>พบ {{ sortedFilteredItems.length }} รายการ</span>
+    <span>{{ dash.t[dash.lang].foundItems }} {{ sortedFilteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span>
     <div class="fr-summary-actions">
-      <button v-if="selected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="bulkDelete">🗑️ ลบที่เลือก ({{ selected.length }})</button>
+      <button v-if="selected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="bulkDelete">🗑️ {{ dash.t[dash.lang].deleteSelected }} ({{ selected.length }})</button>
     </div>
   </div>
 
@@ -47,17 +47,17 @@
         <thead>
           <tr>
             <th class="fr-th-check"><input type="checkbox" :checked="allSelectedOnPage" @change="toggleSelectAll" /></th>
-            <th style="width:44px;">ที่</th>
-            <th class="fr-th-sort" @click="sortBy('name')">ชื่อบริษัท <span class="fr-sort-icon">{{ sortIcon('name') }}</span></th>
-            <th>ชื่อที่ออกเช็ค</th>
-            <th>ผู้ประสานงาน</th>
-            <th>ที่อยู่</th>
-            <th>ประเทศ</th>
-            <th>เบอร์โทร</th>
-            <th>อีเมล</th>
-            <th>กลุ่มคู่ค้า</th>
-            <th>เงื่อนไขบัญชี</th>
-            <th style="width:96px;">จัดการ</th>
+            <th style="width:44px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+            <th class="fr-th-sort" @click="sortBy('name')">{{ dash.t[dash.lang].companyNameLabel }} <span class="fr-sort-icon">{{ sortIcon('name') }}</span></th>
+            <th>{{ dash.t[dash.lang].checkNameLabel }}</th>
+            <th>{{ dash.t[dash.lang].coordinatorLabel }}</th>
+            <th>{{ dash.t[dash.lang].addressLabel }}</th>
+            <th>{{ dash.t[dash.lang].countryLabel }}</th>
+            <th>{{ dash.t[dash.lang].phoneLabel }}</th>
+            <th>{{ dash.t[dash.lang].email }}</th>
+            <th>{{ dash.t[dash.lang].partnerGroupLabel }}</th>
+            <th>{{ dash.t[dash.lang].accountTermsLabel }}</th>
+            <th style="width:96px;">{{ dash.t[dash.lang].manageWord }}</th>
           </tr>
         </thead>
         <tbody>
@@ -75,13 +75,13 @@
             <td>{{ item.account_term || '' }}</td>
             <td>
               <div class="fr-action-group">
-                <button class="fr-action-btn edit" title="แก้ไข" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-                <button class="fr-action-btn delete" title="ลบ" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                <button class="fr-action-btn edit" :title="dash.t[dash.lang].edit" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                <button class="fr-action-btn delete" :title="dash.t[dash.lang].delete" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
               </div>
             </td>
           </tr>
-          <tr v-if="loading" class="fr-empty-row"><td colspan="12" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>
-          <tr v-else-if="pagedRows.length === 0" class="fr-empty-row"><td colspan="12" style="text-align:center;padding:24px;color:#94a3b8;">ไม่พบข้อมูลคู่ค้า</td></tr>
+          <tr v-if="loading" class="fr-empty-row"><td colspan="12" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].loadingWord }}</td></tr>
+          <tr v-else-if="pagedRows.length === 0" class="fr-empty-row"><td colspan="12" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].noPartnersFound }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -89,41 +89,41 @@
 
   <!-- เลขหน้า -->
   <div class="xl-pagination" v-if="sortedFilteredItems.length > 0">
-    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="15">15 / หน้า</option><option :value="30">30 / หน้า</option><option :value="50">50 / หน้า</option></select>
-    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">‹ ก่อนหน้า</button>
-    <span>หน้า {{ page }} / {{ totalPages }}</span>
-    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
+    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="15">15 {{ dash.t[dash.lang].perPageWord }}</option><option :value="30">30 {{ dash.t[dash.lang].perPageWord }}</option><option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option></select>
+    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">{{ dash.t[dash.lang].prevPage }}</button>
+    <span>{{ dash.t[dash.lang].pageWord }} {{ page }} / {{ totalPages }}</span>
+    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">{{ dash.t[dash.lang].nextPage }}</button>
   </div>
 
   <!-- โมดัลเพิ่ม/แก้ไข (เลย์เอาต์ ERP 2 คอลัมน์) -->
   <div class="ptn-overlay" v-if="showModal" @click.self="showModal = false">
     <div class="ptn-modal">
       <div class="ptn-modal-head">
-        <span><span class="ptn-head-ic">🤝</span> {{ editingId ? 'แก้ไขข้อมูลคู่ค้า' : 'เพิ่มคู่ค้าใหม่' }}</span>
+        <span><span class="ptn-head-ic">🤝</span> {{ editingId ? dash.t[dash.lang].editPartnerTitle : dash.t[dash.lang].addPartnerTitle }}</span>
         <button class="ptn-x" @click="showModal = false">✕</button>
       </div>
       <div class="ptn-modal-body">
         <!-- ข้อมูลบริษัท -->
-        <div class="ptn-sec-title"><span class="ptn-sec-bar"></span>ข้อมูลบริษัท</div>
+        <div class="ptn-sec-title"><span class="ptn-sec-bar"></span>{{ dash.t[dash.lang].companyInfoSection }}</div>
         <div class="ptn-grid">
           <div class="ptn-field ptn-col-2">
-            <label>ชื่อบริษัท <span class="ptn-req">*</span></label>
-            <input type="text" v-model="form.name" placeholder="กรอกชื่อบริษัท" :class="{ 'ptn-err': triedSave && !form.name.trim() }" />
+            <label>{{ dash.t[dash.lang].companyNameLabel }} <span class="ptn-req">*</span></label>
+            <input type="text" v-model="form.name" :placeholder="dash.t[dash.lang].companyNamePlaceholder" :class="{ 'ptn-err': triedSave && !form.name.trim() }" />
           </div>
-          <div class="ptn-field"><label>ชื่อที่ออกเช็ค</label><input type="text" v-model="form.check_name" placeholder="ชื่อสำหรับออกเช็ค" /></div>
-          <div class="ptn-field"><label>กลุ่มคู่ค้า</label>
-            <select v-model="form.pgroup"><option value="">— เลือกกลุ่ม —</option><option v-for="g in groupChoices" :key="g" :value="g">{{ g }}</option></select>
+          <div class="ptn-field"><label>{{ dash.t[dash.lang].checkNameLabel }}</label><input type="text" v-model="form.check_name" :placeholder="dash.t[dash.lang].checkNamePlaceholder" /></div>
+          <div class="ptn-field"><label>{{ dash.t[dash.lang].partnerGroupLabel }}</label>
+            <select v-model="form.pgroup"><option value="">{{ dash.t[dash.lang].selectGroupOpt }}</option><option v-for="g in groupChoices" :key="g" :value="g">{{ g }}</option></select>
           </div>
-          <div class="ptn-field"><label>เงื่อนไขบัญชี</label>
-            <select v-model="form.account_term"><option value="">— เลือกเงื่อนไข —</option><option v-for="t in termChoices" :key="t" :value="t">{{ t }}</option></select>
+          <div class="ptn-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
+            <select v-model="form.account_term"><option value="">{{ dash.t[dash.lang].selectTermOpt }}</option><option v-for="t in termChoices" :key="t" :value="t">{{ t }}</option></select>
           </div>
-          <div class="ptn-field"><label>ประเทศ</label>
+          <div class="ptn-field"><label>{{ dash.t[dash.lang].countryLabel }}</label>
             <select v-model="form.country">
-              <option value="">— เลือกประเทศ —</option>
-              <optgroup label="พบบ่อย">
+              <option value="">{{ dash.t[dash.lang].selectCountryOpt }}</option>
+              <optgroup :label="dash.t[dash.lang].commonCountriesLabel">
                 <option v-for="c in commonCountries" :key="'c-'+c" :value="c">{{ c }}</option>
               </optgroup>
-              <optgroup label="ทั้งหมด (A–Z)">
+              <optgroup :label="dash.t[dash.lang].allCountriesLabel">
                 <option v-for="c in allCountries" :key="'a-'+c" :value="c">{{ c }}</option>
               </optgroup>
             </select>
@@ -131,18 +131,18 @@
         </div>
 
         <!-- ข้อมูลติดต่อ -->
-        <div class="ptn-sec-title"><span class="ptn-sec-bar"></span>ข้อมูลติดต่อ</div>
+        <div class="ptn-sec-title"><span class="ptn-sec-bar"></span>{{ dash.t[dash.lang].contactInfoSection }}</div>
         <div class="ptn-grid">
-          <div class="ptn-field"><label>ผู้ประสานงาน</label><input type="text" v-model="form.contact" placeholder="ชื่อผู้ติดต่อ" /></div>
-          <div class="ptn-field"><label>เบอร์โทร</label><input type="tel" v-model="form.phone" placeholder="0xxxxxxxxx" /></div>
-          <div class="ptn-field"><label>อีเมล</label><input type="email" v-model="form.email" placeholder="email@example.com" /></div>
+          <div class="ptn-field"><label>{{ dash.t[dash.lang].coordinatorLabel }}</label><input type="text" v-model="form.contact" :placeholder="dash.t[dash.lang].contactNamePlaceholder" /></div>
+          <div class="ptn-field"><label>{{ dash.t[dash.lang].phoneLabel }}</label><input type="tel" v-model="form.phone" placeholder="0xxxxxxxxx" /></div>
+          <div class="ptn-field"><label>{{ dash.t[dash.lang].email }}</label><input type="email" v-model="form.email" placeholder="email@example.com" /></div>
           <div class="ptn-field"><!-- ช่องว่างสมดุลกริด --></div>
-          <div class="ptn-field ptn-col-2"><label>ที่อยู่</label><textarea v-model="form.address" rows="2" placeholder="ที่อยู่บริษัท / คู่ค้า"></textarea></div>
+          <div class="ptn-field ptn-col-2"><label>{{ dash.t[dash.lang].addressLabel }}</label><textarea v-model="form.address" rows="2" :placeholder="dash.t[dash.lang].addressCompanyPlaceholder"></textarea></div>
         </div>
       </div>
       <div class="ptn-modal-foot">
-        <button class="ptn-btn ptn-btn-cancel" @click="showModal = false">ยกเลิก</button>
-        <button class="ptn-btn ptn-btn-save" @click="save">💾 บันทึก</button>
+        <button class="ptn-btn ptn-btn-cancel" @click="showModal = false">{{ dash.t[dash.lang].cancelWord }}</button>
+        <button class="ptn-btn ptn-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>
