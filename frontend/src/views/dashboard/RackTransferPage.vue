@@ -1,26 +1,26 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">📦 ย้ายชั้นสินค้า — เก็บเข้าแร็ค</div>
+  <div class="po-titlebar">📦 {{ dash.t[dash.lang].moveRackTitle }}</div>
 
   <!-- ส่วนสแกน -->
   <div class="rt-scan">
     <div class="rt-scan-grid">
-      <div class="rt-field"><label>วันที่</label><input type="date" v-model="form.transfer_date" /></div>
-      <div class="rt-field"><label>เลขที่ย้ายสินค้า</label><input :value="form.tk_no" readonly class="rt-ro" /></div>
+      <div class="rt-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.transfer_date" /></div>
+      <div class="rt-field"><label>{{ dash.t[dash.lang].transferNoLabel }}</label><input :value="form.tk_no" readonly class="rt-ro" /></div>
       <div class="rt-field rt-field-rack">
-        <label>แร็คปลายทาง</label>
-        <input ref="rackInput" v-model="form.location_code" placeholder="สแกน / พิมพ์รหัสแร็ค (เช่น ZONE-A-RACK-01)"
+        <label>{{ dash.t[dash.lang].destRackLabel }}</label>
+        <input ref="rackInput" v-model="form.location_code" :placeholder="dash.t[dash.lang].scanRackPlaceholder"
                @keyup.enter="focusBarcode" @blur="checkRack" />
         <span v-if="rackStatus" class="rt-rack-status" :class="rackOk ? 'ok' : 'bad'">{{ rackStatus }}</span>
       </div>
       <div class="rt-field rt-field-barcode">
-        <label>บาร์โค้ด (สแกนม้วนผ้า)</label>
-        <input ref="barcodeInput" v-model="barcode" placeholder="สแกน QR ม้วนผ้า แล้วกด Enter"
+        <label>{{ dash.t[dash.lang].barcodeScanLabel }}</label>
+        <input ref="barcodeInput" v-model="barcode" :placeholder="dash.t[dash.lang].scanBarcodeEnterPlaceholder"
                :disabled="!rackOk" @keyup.enter="scanRoll" />
       </div>
     </div>
     <div class="rt-field rt-field-remark">
-      <label>หมายเหตุ</label><input v-model="form.remark" placeholder="หมายเหตุ (ถ้ามี)" />
+      <label>{{ dash.t[dash.lang].remarkLabel }}</label><input v-model="form.remark" :placeholder="dash.t[dash.lang].remarkOptionalPlaceholder" />
     </div>
   </div>
 
@@ -29,11 +29,11 @@
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:44px;">ที่</th>
-          <th style="text-align:left;">รหัสสินค้า</th>
-          <th style="width:150px;">บาร์โค้ด</th>
-          <th style="width:150px;">จากช่อง</th>
-          <th style="width:130px;text-align:right;">จำนวน</th>
+          <th style="width:44px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th style="text-align:left;">{{ dash.t[dash.lang].skuLabel }}</th>
+          <th style="width:150px;">{{ dash.lang === 'th' ? 'บาร์โค้ด' : 'Barcode' }}</th>
+          <th style="width:150px;">{{ dash.t[dash.lang].fromLocLabel }}</th>
+          <th style="width:130px;text-align:right;">{{ dash.t[dash.lang].qtyLabel }}</th>
           <th style="width:54px;"></th>
         </tr>
       </thead>
@@ -44,21 +44,21 @@
           <td class="rt-code">{{ row.roll_qr }}</td>
           <td class="rt-from">
             <span v-if="row.from_loc" class="rt-from-tag">{{ row.from_loc }}</span>
-            <span v-else class="rt-from-new">ยังไม่เคยเก็บ</span>
+            <span v-else class="rt-from-new">{{ dash.t[dash.lang].notStoredYetWord }}</span>
           </td>
-          <td class="po-num">{{ Number(row.yards).toFixed(2) }} หลา</td>
+          <td class="po-num">{{ Number(row.yards).toFixed(2) }} {{ dash.t[dash.lang].yardsUnit }}</td>
           <td class="po-row-actions">
-            <button class="po-ic po-del" title="เอาออก" @click="removeRow(idx)">
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeWord" @click="removeRow(idx)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
             </button>
           </td>
         </tr>
-        <tr v-if="items.length === 0"><td colspan="6" class="po-empty">ยังไม่มีม้วนผ้า — เลือกแร็คปลายทาง แล้วสแกน QR ม้วนผ้า</td></tr>
+        <tr v-if="items.length === 0"><td colspan="6" class="po-empty">{{ dash.t[dash.lang].noRollsScannedMsg }}</td></tr>
       </tbody>
       <tfoot v-if="items.length">
         <tr class="po-foot-row">
-          <td colspan="4" class="po-foot-label">รวม {{ items.length }} ม้วน</td>
-          <td class="po-num">{{ totalYards.toFixed(2) }} หลา</td>
+          <td colspan="4" class="po-foot-label">{{ dash.t[dash.lang].totalWord }} {{ items.length }} {{ dash.t[dash.lang].rollUnit }}</td>
+          <td class="po-num">{{ totalYards.toFixed(2) }} {{ dash.t[dash.lang].yardsUnit }}</td>
           <td></td>
         </tr>
       </tfoot>
@@ -69,7 +69,7 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-save" :disabled="!rackOk || items.length === 0" @click="save">💾 บันทึกเก็บเข้าแร็ค</button>
+      <button class="po-btn po-btn-save" :disabled="!rackOk || items.length === 0" @click="save">💾 {{ dash.t[dash.lang].putawaySaveBtn }}</button>
     </div>
   </div>
 </div>
@@ -112,9 +112,10 @@ export default {
         const res = await fetch('/api/warehouse-locations', { headers: this.authHeaders() });
         const d = await res.json();
         const found = (d.locations || []).find(l => l.location_code === code || l.location_qr === code);
-        if (found) { this.rackOk = true; this.rackStatus = `✓ แร็ค ${found.location_code} (โซน ${found.zone || '-'} แร็ค ${found.rack || '-'})`; this.form.location_code = found.location_code; }
-        else { this.rackOk = false; this.rackStatus = '✕ ไม่พบแร็คนี้ในระบบ — สร้างที่หน้าโซน & แร็คก่อน'; }
-      } catch (e) { this.rackOk = false; this.rackStatus = '✕ ตรวจสอบแร็คไม่สำเร็จ'; }
+        const t = this.dash.t[this.dash.lang];
+        if (found) { this.rackOk = true; this.rackStatus = `✓ ${t.rackWord} ${found.location_code} (${t.zoneWord} ${found.zone || '-'} ${t.rackWord} ${found.rack || '-'})`; this.form.location_code = found.location_code; }
+        else { this.rackOk = false; this.rackStatus = '✕ ' + t.rackNotFoundStatus; }
+      } catch (e) { this.rackOk = false; this.rackStatus = '✕ ' + this.dash.t[this.dash.lang].rackCheckFailStatus; }
     },
     focusBarcode() {
       this.checkRack().then(() => {
