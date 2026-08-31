@@ -1,9 +1,9 @@
 <template>
 <div class="fr-page-compact">
   <div class="header flex-wrap">
-    <div><h1>📝 ข้อมูลหมายเหตุ</h1></div>
+    <div><h1>📝 {{ dash.t[dash.lang].noteDataTitle }}</h1></div>
     <div class="header-actions">
-      <button class="btn-small fr-btn-add" @click="openAdd">+ เพิ่ม ข้อมูลหมายเหตุ</button>
+      <button class="btn-small fr-btn-add" @click="openAdd">+ {{ dash.t[dash.lang].add }} {{ dash.t[dash.lang].noteDataTitle }}</button>
     </div>
   </div>
 
@@ -11,24 +11,24 @@
   <div class="section" style="margin-top: 12px;">
     <div class="fr-filter-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[18px] gap-y-[14px]">
       <div class="fr-field-group">
-        <label>คำค้นหา</label>
-        <input type="text" v-model="search" placeholder="ค้นหาหมายเหตุ" @keyup.enter="page = 1" />
+        <label>{{ dash.t[dash.lang].searchInput }}</label>
+        <input type="text" v-model="search" :placeholder="dash.t[dash.lang].searchNotePlaceholder" @keyup.enter="page = 1" />
       </div>
       <div class="fr-field-group">
-        <label>ประเภท</label>
-        <select v-model="filterType"><option value="">ทั้งหมด</option><option v-for="t in typeOptions" :key="t" :value="t">{{ t }}</option></select>
+        <label>{{ dash.t[dash.lang].typeLabel }}</label>
+        <select v-model="filterType"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="t in typeOptions" :key="t" :value="t">{{ t }}</option></select>
       </div>
       <div class="fr-field-group">
         <label>&nbsp;</label>
         <div class="fr-filter-actions">
-          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 ค้นหา</button>
-          <button class="fr-btn-util fr-btn-reset" @click="search = ''; filterType = ''; page = 1">↺ รีเซ็ต</button>
+          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+          <button class="fr-btn-util fr-btn-reset" @click="search = ''; filterType = ''; page = 1">↺ {{ dash.t[dash.lang].resetWord }}</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="fr-summary fr-summary-row"><span>พบ {{ filteredItems.length }} รายการ</span></div>
+  <div class="fr-summary fr-summary-row"><span>{{ dash.t[dash.lang].foundItems }} {{ filteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span></div>
 
   <!-- ตาราง -->
   <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
@@ -36,10 +36,10 @@
       <table class="fr-table">
         <thead>
           <tr>
-            <th style="width:60px;">ที่</th>
-            <th style="width:200px;">ประเภท</th>
-            <th>หมายเหตุ</th>
-            <th style="width:100px;">จัดการ</th>
+            <th style="width:60px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+            <th style="width:200px;">{{ dash.t[dash.lang].typeLabel }}</th>
+            <th>{{ dash.t[dash.lang].noteLabel }}</th>
+            <th style="width:100px;">{{ dash.t[dash.lang].manageWord }}</th>
           </tr>
         </thead>
         <tbody>
@@ -49,43 +49,43 @@
             <td class="fr-td-wrap">{{ item.description }}</td>
             <td>
               <div class="fr-action-group">
-                <button class="fr-action-btn edit" title="แก้ไข" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-                <button class="fr-action-btn delete" title="ลบ" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                <button class="fr-action-btn edit" :title="dash.t[dash.lang].edit" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                <button class="fr-action-btn delete" :title="dash.t[dash.lang].delete" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
               </div>
             </td>
           </tr>
-          <tr v-if="loading"><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>
-          <tr v-else-if="pagedRows.length === 0"><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;">ไม่พบข้อมูลหมายเหตุ</td></tr>
+          <tr v-if="loading"><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].loadingWord }}</td></tr>
+          <tr v-else-if="pagedRows.length === 0"><td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].noNotesFound }}</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <div class="xl-pagination" v-if="filteredItems.length > 0">
-    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="20">20 / หน้า</option><option :value="50">50 / หน้า</option></select>
-    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">‹ ก่อนหน้า</button>
-    <span>หน้า {{ page }} / {{ totalPages }}</span>
-    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
+    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="20">20 {{ dash.t[dash.lang].perPageWord }}</option><option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option></select>
+    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">{{ dash.t[dash.lang].prevPage }}</button>
+    <span>{{ dash.t[dash.lang].pageWord }} {{ page }} / {{ totalPages }}</span>
+    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">{{ dash.t[dash.lang].nextPage }}</button>
   </div>
 
   <!-- โมดัลเพิ่ม/แก้ไข (ERP มาตรฐานกลาง) -->
   <div class="erp-overlay" v-if="showModal" @click.self="showModal = false">
     <div class="erp-modal" style="width: 520px;">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">📝</span> {{ editingId ? 'แก้ไข' : 'เพิ่ม' }} ข้อมูลหมายเหตุ</span>
+        <span><span class="erp-head-ic">📝</span> {{ editingId ? dash.t[dash.lang].edit : dash.t[dash.lang].add }} {{ dash.t[dash.lang].noteDataTitle }}</span>
         <button class="erp-x" @click="showModal = false">✕</button>
       </div>
       <div class="erp-modal-body">
         <div class="erp-grid" style="grid-template-columns: 1fr;">
-          <div class="erp-field"><label>ประเภท <span class="erp-req">*</span></label>
-            <select v-model="form.note_type"><option value="">— เลือกประเภท —</option><option v-for="t in typeChoices" :key="t" :value="t">{{ t }}</option></select>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].typeLabel }} <span class="erp-req">*</span></label>
+            <select v-model="form.note_type"><option value="">{{ dash.t[dash.lang].selectTypeOpt }}</option><option v-for="t in typeChoices" :key="t" :value="t">{{ t }}</option></select>
           </div>
-          <div class="erp-field"><label>หมายเหตุ <span class="erp-req">*</span></label><input type="text" v-model="form.description" placeholder="ข้อความหมายเหตุ" @keyup.enter="save" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].noteLabel }} <span class="erp-req">*</span></label><input type="text" v-model="form.description" :placeholder="dash.t[dash.lang].notePlaceholder" @keyup.enter="save" /></div>
         </div>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="showModal = false">ยกเลิก</button>
-        <button class="erp-btn erp-btn-save" @click="save">💾 บันทึก</button>
+        <button class="erp-btn erp-btn-cancel" @click="showModal = false">{{ dash.t[dash.lang].cancelWord }}</button>
+        <button class="erp-btn erp-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>

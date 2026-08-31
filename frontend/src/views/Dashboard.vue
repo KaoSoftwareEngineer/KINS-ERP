@@ -1137,6 +1137,12 @@ data() {
             mobilePhoneLabel: 'เบอร์มือถือ',
             ageLabel: 'อายุ',
             noEmployeesFound: 'ไม่พบข้อมูลพนักงาน',
+            // ---- หมายเหตุ (note info) เฉพาะ ----
+            noteDataTitle: 'ข้อมูลหมายเหตุ',
+            searchNotePlaceholder: 'ค้นหาหมายเหตุ',
+            noteLabel: 'หมายเหตุ',
+            notePlaceholder: 'ข้อความหมายเหตุ',
+            noNotesFound: 'ไม่พบข้อมูลหมายเหตุ',
           },
           en: {
             home: 'Home',
@@ -1336,6 +1342,11 @@ data() {
             mobilePhoneLabel: 'Mobile Phone',
             ageLabel: 'Age',
             noEmployeesFound: 'No employee data found',
+            noteDataTitle: 'Note Information',
+            searchNotePlaceholder: 'Search notes',
+            noteLabel: 'Note',
+            notePlaceholder: 'Note text',
+            noNotesFound: 'No note data found',
           }
         }
       };
