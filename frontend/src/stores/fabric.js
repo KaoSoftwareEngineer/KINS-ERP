@@ -119,7 +119,6 @@ export const useFabricStore = defineStore('fabric', {
 
     // ---- กลุ่มผ้าประจำ (frg*) ----
     frgApiBase: (state) => state.frgKind === 'irregular' ? '/api/fabric-irregular-group' : '/api/fabric-regular-group',
-    frgPageTitle: (state) => state.frgKind === 'irregular' ? 'กลุ่มผ้าไม่ประจำ' : 'กลุ่มผ้าประจำ',
     frgFilteredItems() {
       const q = (this.frgFilters.search || '').trim().toLowerCase();
       let list = this.frgItems;

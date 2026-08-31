@@ -1,9 +1,9 @@
 <template>
 <div class="fr-page-compact">
   <div class="header flex-wrap">
-    <div><h1>🏷️ {{ fabricStore.frgPageTitle }}</h1></div>
+    <div><h1>🏷️ {{ frgTitle }}</h1></div>
     <div class="header-actions">
-      <button class="btn-small fr-btn-add" @click="fabricStore.frgOpenAdd()">+ เพิ่ม{{ fabricStore.frgPageTitle }}</button>
+      <button class="btn-small fr-btn-add" @click="fabricStore.frgOpenAdd()">{{ dash.lang === 'th' ? '+ เพิ่ม' + frgTitle : '+ Add ' + frgTitle }}</button>
     </div>
   </div>
 
@@ -11,22 +11,22 @@
   <div class="section" style="margin-top: 12px;">
     <div class="fr-filter-grid">
       <div class="fr-field-group">
-        <label>คำค้นหา</label>
-        <input type="text" v-model="fabricStore.frgFilters.search" placeholder="ค้นหาชื่อกลุ่มผ้า" @keyup.enter="fabricStore.frgPage = 1" />
+        <label>{{ dash.t[dash.lang].searchInput }}</label>
+        <input type="text" v-model="fabricStore.frgFilters.search" :placeholder="dash.t[dash.lang].searchGroupPlaceholder" @keyup.enter="fabricStore.frgPage = 1" />
       </div>
       <div class="fr-filter-actions">
-        <button class="fr-btn-util fr-btn-search" @click="fabricStore.frgPage = 1">🔍 ค้นหา</button>
-        <button class="fr-btn-util fr-btn-reset" @click="fabricStore.frgResetFilters()">↺ รีเซ็ต</button>
+        <button class="fr-btn-util fr-btn-search" @click="fabricStore.frgPage = 1">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+        <button class="fr-btn-util fr-btn-reset" @click="fabricStore.frgResetFilters()">↺ {{ dash.t[dash.lang].resetWord }}</button>
       </div>
     </div>
   </div>
 
   <!-- สรุป + แถบเลือกหลายรายการ -->
   <div class="fr-summary-row">
-    <span class="fr-summary-count">พบ {{ fabricStore.frgSortedFilteredItems.length }} รายการ</span>
+    <span class="fr-summary-count">{{ dash.t[dash.lang].foundItems }} {{ fabricStore.frgSortedFilteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span>
     <div v-if="fabricStore.frgSelected.length > 0" class="fr-bulk-bar">
-      <span>เลือก {{ fabricStore.frgSelected.length }} รายการ</span>
-      <button class="fr-bulk-btn" @click="fabricStore.frgBulkDelete()">🗑️ ลบที่เลือก</button>
+      <span>{{ dash.t[dash.lang].selectedCountWord }} {{ fabricStore.frgSelected.length }} {{ dash.t[dash.lang].itemsUnit }}</span>
+      <button class="fr-bulk-btn" @click="fabricStore.frgBulkDelete()">🗑️ {{ dash.t[dash.lang].deleteSelected }}</button>
     </div>
   </div>
 
@@ -37,13 +37,13 @@
       <thead>
         <tr>
           <th class="fr-th-check"><input type="checkbox" :checked="fabricStore.frgAllSelectedOnPage" @change="fabricStore.frgToggleSelectAll()" /></th>
-          <th style="width:48px;">ที่</th>
-          <th class="fr-th-sort" @click="fabricStore.frgSort(0)">ชื่อ <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(0) }}</span></th>
-          <th class="fr-th-sort" style="width:140px;" @click="fabricStore.frgSort(1)">หน้ากว้าง <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(1) }}</span></th>
-          <th class="fr-th-sort" style="width:140px;" @click="fabricStore.frgSort(2)">น้ำหนัก <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(2) }}</span></th>
-          <th class="fr-th-sort" style="width:150px;" @click="fabricStore.frgSort(3)">ราคาขายปลีก <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(3) }}</span></th>
-          <th class="fr-th-sort" style="width:130px;" @click="fabricStore.frgSort(4)">จำนวนเฉดสี <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(4) }}</span></th>
-          <th style="width:130px;">จัดการ</th>
+          <th style="width:48px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="fr-th-sort" @click="fabricStore.frgSort(0)">{{ dash.t[dash.lang].nameLabel }} <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(0) }}</span></th>
+          <th class="fr-th-sort" style="width:140px;" @click="fabricStore.frgSort(1)">{{ dash.t[dash.lang].widthLabel }} <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(1) }}</span></th>
+          <th class="fr-th-sort" style="width:140px;" @click="fabricStore.frgSort(2)">{{ dash.t[dash.lang].weightLabel }} <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(2) }}</span></th>
+          <th class="fr-th-sort" style="width:150px;" @click="fabricStore.frgSort(3)">{{ dash.t[dash.lang].retailPriceLabel }} <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(3) }}</span></th>
+          <th class="fr-th-sort" style="width:130px;" @click="fabricStore.frgSort(4)">{{ dash.t[dash.lang].shadeCountLabel }} <span class="fr-sort-icon">{{ fabricStore.frgSortIcon(4) }}</span></th>
+          <th style="width:130px;">{{ dash.t[dash.lang].manageWord }}</th>
         </tr>
       </thead>
       <tbody>
@@ -57,14 +57,14 @@
           <td>{{ item.colors || '-' }}</td>
           <td>
             <div class="fr-action-group">
-              <button class="fr-action-btn edit" title="แก้ไข" @click="fabricStore.frgEditItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-              <button class="fr-action-btn delete" title="ลบ" @click="fabricStore.frgDeleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
-              <button class="fr-action-btn view" title="เฉดสี" @click="dash.frgOpenShades(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+              <button class="fr-action-btn edit" :title="dash.t[dash.lang].edit" @click="fabricStore.frgEditItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+              <button class="fr-action-btn delete" :title="dash.t[dash.lang].delete" @click="fabricStore.frgDeleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+              <button class="fr-action-btn view" :title="dash.t[dash.lang].viewShades" @click="dash.frgOpenShades(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
             </div>
           </td>
         </tr>
         <tr v-if="fabricStore.frgPagedRows.length === 0">
-          <td colspan="8" style="text-align:center; padding:24px; color:#94a3b8;">ยังไม่มีข้อมูล{{ fabricStore.frgPageTitle }} — กด "+ เพิ่ม{{ fabricStore.frgPageTitle }}" เพื่อเพิ่มรายการ</td>
+          <td colspan="8" style="text-align:center; padding:24px; color:#94a3b8;">{{ dash.lang === 'th' ? `ยังไม่มีข้อมูล${frgTitle} — กด "+ เพิ่ม${frgTitle}" เพื่อเพิ่มรายการ` : `No ${frgTitle} yet — click "+ Add ${frgTitle}" to add one` }}</td>
         </tr>
       </tbody>
     </table>
@@ -74,38 +74,38 @@
   <!-- เลขหน้า -->
   <div class="xl-pagination" v-if="fabricStore.frgSortedFilteredItems.length > 0">
     <select v-model.number="fabricStore.frgPageSize" class="fr-page-size-select">
-      <option :value="15">15 / หน้า</option>
-      <option :value="30">30 / หน้า</option>
-      <option :value="50">50 / หน้า</option>
+      <option :value="15">15 {{ dash.t[dash.lang].perPageWord }}</option>
+      <option :value="30">30 {{ dash.t[dash.lang].perPageWord }}</option>
+      <option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option>
     </select>
-    <button class="fr-btn-util" :disabled="fabricStore.frgPage === 1" @click="fabricStore.frgPrevPage()">‹ ก่อนหน้า</button>
-    <span>หน้า {{ fabricStore.frgPage }} / {{ fabricStore.frgTotalPages }}</span>
-    <button class="fr-btn-util" :disabled="fabricStore.frgPage === fabricStore.frgTotalPages" @click="fabricStore.frgNextPage()">ถัดไป ›</button>
+    <button class="fr-btn-util" :disabled="fabricStore.frgPage === 1" @click="fabricStore.frgPrevPage()">{{ dash.t[dash.lang].prevPage }}</button>
+    <span>{{ dash.t[dash.lang].pageWord }} {{ fabricStore.frgPage }} / {{ fabricStore.frgTotalPages }}</span>
+    <button class="fr-btn-util" :disabled="fabricStore.frgPage === fabricStore.frgTotalPages" @click="fabricStore.frgNextPage()">{{ dash.t[dash.lang].nextPage }}</button>
   </div>
 
   <!-- โมดัลเพิ่ม/แก้ไข (ERP มาตรฐานกลาง) -->
   <div v-if="fabricStore.frgShowAddModal" class="erp-overlay" @click.self="fabricStore.frgCloseAddModal()">
     <div class="erp-modal" style="width: 560px;">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">🏷️</span> {{ fabricStore.frgModalMode === 'edit' ? 'แก้ไข' : 'เพิ่ม' }} {{ fabricStore.frgPageTitle }}</span>
+        <span><span class="erp-head-ic">🏷️</span> {{ fabricStore.frgModalMode === 'edit' ? dash.t[dash.lang].edit : dash.t[dash.lang].add }} {{ frgTitle }}</span>
         <button class="erp-x" @click="fabricStore.frgCloseAddModal()">✕</button>
       </div>
       <div class="erp-modal-body">
-        <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลกลุ่มผ้า</div>
+        <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].fabricGroupInfoSection }}</div>
         <div class="erp-grid">
-          <div class="erp-field erp-col-2"><label>ชื่อ <span class="erp-req">*</span></label><input v-model="fabricStore.frgNewItem.name" placeholder="ชื่อกลุ่มผ้า" /></div>
-          <div class="erp-field"><label>หน้ากว้าง</label>
-            <select v-model="fabricStore.frgNewItem.width"><option value="">— เลือก —</option><option v-for="w in fabricStore.frgWidthChoices" :key="w" :value="w">{{ w }}</option></select>
+          <div class="erp-field erp-col-2"><label>{{ dash.t[dash.lang].nameLabel }} <span class="erp-req">*</span></label><input v-model="fabricStore.frgNewItem.name" :placeholder="dash.t[dash.lang].fabricGroupNamePlaceholder" /></div>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].widthLabel }}</label>
+            <select v-model="fabricStore.frgNewItem.width"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option v-for="w in fabricStore.frgWidthChoices" :key="w" :value="w">{{ w }}</option></select>
           </div>
-          <div class="erp-field"><label>น้ำหนัก</label>
-            <select v-model="fabricStore.frgNewItem.weight"><option value="">— เลือก —</option><option v-for="w in fabricStore.frgWeightChoices" :key="w" :value="w">{{ w }}</option></select>
+          <div class="erp-field"><label>{{ dash.t[dash.lang].weightLabel }}</label>
+            <select v-model="fabricStore.frgNewItem.weight"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option v-for="w in fabricStore.frgWeightChoices" :key="w" :value="w">{{ w }}</option></select>
           </div>
-          <div class="erp-field erp-col-2"><label>ราคาขายปลีก</label><input type="number" v-model="fabricStore.frgNewItem.retail_price" placeholder="0.00" /></div>
+          <div class="erp-field erp-col-2"><label>{{ dash.t[dash.lang].retailPriceLabel }}</label><input type="number" v-model="fabricStore.frgNewItem.retail_price" placeholder="0.00" /></div>
         </div>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="fabricStore.frgCloseAddModal()">ยกเลิก</button>
-        <button class="erp-btn erp-btn-save" @click="fabricStore.frgSaveAdd()">💾 บันทึก</button>
+        <button class="erp-btn erp-btn-cancel" @click="fabricStore.frgCloseAddModal()">{{ dash.t[dash.lang].cancelWord }}</button>
+        <button class="erp-btn erp-btn-save" @click="fabricStore.frgSaveAdd()">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>
@@ -119,6 +119,13 @@ export default {
   inject: ['dash'],
   setup() {
     return { fabricStore: useFabricStore() };
+  },
+  computed: {
+    frgTitle() {
+      return this.fabricStore.frgKind === 'irregular'
+        ? this.dash.t[this.dash.lang].fabricGroupIrregularTitle
+        : this.dash.t[this.dash.lang].fabricGroupRegularTitle;
+    },
   },
 };
 </script>

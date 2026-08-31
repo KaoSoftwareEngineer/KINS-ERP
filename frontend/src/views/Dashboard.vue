@@ -1114,6 +1114,15 @@ data() {
             addressCompanyPlaceholder: 'ที่อยู่บริษัท / คู่ค้า',
             searchPartnerPlaceholder: 'ค้นหาชื่อบริษัท / ผู้ประสานงาน',
             noPartnersFound: 'ไม่พบข้อมูลคู่ค้า',
+            // ---- กลุ่มผ้า (fabric group) เฉพาะ ----
+            fabricGroupRegularTitle: 'กลุ่มผ้าประจำ',
+            fabricGroupIrregularTitle: 'กลุ่มผ้าไม่ประจำ',
+            searchGroupPlaceholder: 'ค้นหาชื่อกลุ่มผ้า',
+            retailPriceLabel: 'ราคาขายปลีก',
+            shadeCountLabel: 'จำนวนเฉดสี',
+            fabricGroupInfoSection: 'ข้อมูลกลุ่มผ้า',
+            fabricGroupNamePlaceholder: 'ชื่อกลุ่มผ้า',
+            selectGenericOpt: '— เลือก —',
           },
           en: {
             home: 'Home',
@@ -1292,6 +1301,14 @@ data() {
             addressCompanyPlaceholder: 'Company / Vendor address',
             searchPartnerPlaceholder: 'Search company name / coordinator',
             noPartnersFound: 'No vendor data found',
+            fabricGroupRegularTitle: 'Regular Fabric Group',
+            fabricGroupIrregularTitle: 'Non-Regular Fabric Group',
+            searchGroupPlaceholder: 'Search fabric group name',
+            retailPriceLabel: 'Retail Price',
+            shadeCountLabel: 'Shade Count',
+            fabricGroupInfoSection: 'Fabric Group Information',
+            fabricGroupNamePlaceholder: 'Fabric group name',
+            selectGenericOpt: '— Select —',
           }
         }
       };
