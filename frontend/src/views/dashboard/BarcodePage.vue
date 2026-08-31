@@ -1,52 +1,46 @@
 <template>
 <div class="bc-page">
-  <div class="bc-titlebar">🏷️ บาร์โค้ด — ตรวจสอบข้อมูลผ้า</div>
+  <div class="bc-titlebar">🏷️ {{ dash.t[dash.lang].barcodeCheckFabricTitle }}</div>
 
-  <!-- ส่วนสแกน -->
   <div class="bc-scan">
     <div class="bc-scan-field">
-      <label>สแกน / พิมพ์บาร์โค้ด</label>
+      <label>{{ dash.t[dash.lang].scanOrTypeBarcodeLabel }}</label>
       <div class="bc-scan-input">
         <span class="bc-scan-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14M7 5v14M11 5v14M14 5v14M18 5v14M21 5v14"/></svg>
         </span>
-        <input ref="scanInput" v-model="qr" placeholder="ยิง QR ม้วนผ้า แล้วกด Enter" @keyup.enter="lookup" />
-        <button class="bc-scan-btn" @click="lookup">ค้นหา</button>
+        <input ref="scanInput" v-model="qr" :placeholder="dash.t[dash.lang].scanRollQrEnterPlaceholder" @keyup.enter="lookup" />
+        <button class="bc-scan-btn" @click="lookup">{{ dash.t[dash.lang].searchWord }}</button>
       </div>
     </div>
     <div class="bc-print-field" v-if="roll">
-      <label>พิมพ์บาร์โค้ด</label>
+      <label>{{ dash.t[dash.lang].printBarcodeLabel }}</label>
       <div class="bc-print-row">
         <select v-model.number="printCount"><option v-for="n in 10" :key="n" :value="n">{{ n }}</option></select>
-        <button class="bc-print-btn" @click="printBarcode">🖨️ พิมพ์</button>
+        <button class="bc-print-btn" @click="printBarcode">🖨️ {{ dash.t[dash.lang].printWord }}</button>
       </div>
     </div>
   </div>
 
-  <!-- ผลลัพธ์ -->
   <div class="bc-body">
-    <!-- ยังไม่สแกน -->
     <div v-if="!roll && !notFound" class="bc-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M10 8v8M14 8v8M17 8v8"/></svg>
-      <p>ยิงบาร์โค้ดม้วนผ้าเพื่อดูข้อมูล</p>
+      <p>{{ dash.t[dash.lang].scanRollToViewInfoMsg }}</p>
     </div>
 
-    <!-- ไม่พบ -->
     <div v-else-if="notFound" class="bc-notfound">
       <span>✕</span>
-      <p>ไม่พบม้วนผ้ารหัส <b>{{ lastQr }}</b></p>
-      <small>ตรวจสอบว่าม้วนนี้รับเข้าระบบแล้วหรือยัง</small>
+      <p>{{ dash.t[dash.lang].rollNotFoundMsg }} <b>{{ lastQr }}</b></p>
+      <small>{{ dash.t[dash.lang].checkRollReceivedMsg }}</small>
     </div>
 
-    <!-- พบข้อมูล -->
     <div v-else class="bc-result">
-      <!-- ซ้าย: รูป + รหัส -->
       <div class="bc-card bc-card-main">
         <div class="bc-image">
-          <img v-if="roll.product_image && imgOk" :src="imgSrc" alt="รูปผ้า" @error="imgOk = false" />
+          <img v-if="roll.product_image && imgOk" :src="imgSrc" :alt="dash.t[dash.lang].fabricImageAlt" @error="imgOk = false" />
           <div v-else class="bc-image-ph">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-            <span>ไม่มีรูป</span>
+            <span>{{ dash.t[dash.lang].noImageMsg }}</span>
           </div>
         </div>
         <div class="bc-main-info">
@@ -57,32 +51,31 @@
         </div>
       </div>
 
-      <!-- ขวา: ข้อมูลรายละเอียด -->
       <div class="bc-card">
-        <div class="bc-card-title">ข้อมูลผ้า</div>
+        <div class="bc-card-title">{{ dash.t[dash.lang].fabricInfoTitle }}</div>
         <div class="bc-grid">
-          <div class="bc-item"><span class="bc-lbl">กลุ่มผ้า</span><span class="bc-val">{{ roll.product_type || '-' }}</span></div>
-          <div class="bc-item"><span class="bc-lbl">หน้ากว้าง</span><span class="bc-val">{{ roll.product_width || '-' }}</span></div>
-          <div class="bc-item"><span class="bc-lbl">น้ำหนัก</span><span class="bc-val">{{ roll.product_weight || '-' }}</span></div>
-          <div class="bc-item"><span class="bc-lbl">หน่วย</span><span class="bc-val">{{ roll.product_unit || 'หลา' }}</span></div>
-          <div class="bc-item"><span class="bc-lbl">เลขที่ล็อต</span><span class="bc-val">{{ roll.lot_no || '-' }}</span></div>
-          <div class="bc-item"><span class="bc-lbl">บาร์โค้ด</span><span class="bc-val bc-mono">{{ roll.roll_qr_code }}</span></div>
+          <div class="bc-item"><span class="bc-lbl">{{ dash.t[dash.lang].fabricGroupLabel }}</span><span class="bc-val">{{ roll.product_type || '-' }}</span></div>
+          <div class="bc-item"><span class="bc-lbl">{{ dash.t[dash.lang].widthLabel }}</span><span class="bc-val">{{ roll.product_width || '-' }}</span></div>
+          <div class="bc-item"><span class="bc-lbl">{{ dash.t[dash.lang].weightLabel }}</span><span class="bc-val">{{ roll.product_weight || '-' }}</span></div>
+          <div class="bc-item"><span class="bc-lbl">{{ dash.t[dash.lang].unitLabel }}</span><span class="bc-val">{{ roll.product_unit || dash.t[dash.lang].yardsUnit }}</span></div>
+          <div class="bc-item"><span class="bc-lbl">{{ dash.t[dash.lang].lotNoLabel }}</span><span class="bc-val">{{ roll.lot_no || '-' }}</span></div>
+          <div class="bc-item"><span class="bc-lbl">{{ dash.t[dash.lang].barcodeLabel }}</span><span class="bc-val bc-mono">{{ roll.roll_qr_code }}</span></div>
         </div>
 
-        <div class="bc-card-title bc-mt">ปริมาณ</div>
+        <div class="bc-card-title bc-mt">{{ dash.t[dash.lang].quantityTitle }}</div>
         <div class="bc-qty-row">
-          <div class="bc-qty"><span class="bc-qty-lbl">จำนวนรับ</span><span class="bc-qty-val">{{ fmt(roll.initial_yards) }}</span><span class="bc-qty-unit">{{ roll.product_unit || 'หลา' }}</span></div>
-          <div class="bc-qty bc-qty-stock"><span class="bc-qty-lbl">คงเหลือในสต็อก</span><span class="bc-qty-val">{{ fmt(roll.current_yards) }}</span><span class="bc-qty-unit">{{ roll.product_unit || 'หลา' }}</span></div>
+          <div class="bc-qty"><span class="bc-qty-lbl">{{ dash.t[dash.lang].receivedQtyLabel }}</span><span class="bc-qty-val">{{ fmt(roll.initial_yards) }}</span><span class="bc-qty-unit">{{ roll.product_unit || dash.t[dash.lang].yardsUnit }}</span></div>
+          <div class="bc-qty bc-qty-stock"><span class="bc-qty-lbl">{{ dash.t[dash.lang].stockRemainingLabel }}</span><span class="bc-qty-val">{{ fmt(roll.current_yards) }}</span><span class="bc-qty-unit">{{ roll.product_unit || dash.t[dash.lang].yardsUnit }}</span></div>
         </div>
 
-        <div class="bc-card-title bc-mt">ตำแหน่งจัดเก็บ</div>
+        <div class="bc-card-title bc-mt">{{ dash.t[dash.lang].storageLocationTitle }}</div>
         <div class="bc-loc" :class="{ 'bc-loc-empty': !roll.location_code }">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <template v-if="roll.location_code">
             <div class="bc-loc-code">{{ roll.location_code }}</div>
-            <div class="bc-loc-sub">โซน {{ roll.location_zone || '-' }} · แร็ค {{ roll.location_rack || '-' }}</div>
+            <div class="bc-loc-sub">{{ dash.t[dash.lang].zoneLabel }} {{ roll.location_zone || '-' }} · {{ dash.t[dash.lang].rackWord }} {{ roll.location_rack || '-' }}</div>
           </template>
-          <div v-else class="bc-loc-none">ยังไม่ได้เก็บเข้าแร็ค — ไปที่หน้า "ย้ายชั้นสินค้า" เพื่อสแกนเก็บ</div>
+          <div v-else class="bc-loc-none">{{ dash.t[dash.lang].notStoredYetMsg }}</div>
         </div>
       </div>
     </div>
@@ -112,7 +105,8 @@ export default {
   methods: {
     fmt(v) { return (Number(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     statusLabel(s) {
-      return { available: 'พร้อมใช้', reserved: 'จองแล้ว', in_use: 'กำลังใช้', depleted: 'หมดแล้ว', hold: 'พักไว้' }[s] || s || '-';
+      const d = this.dash.t[this.dash.lang];
+      return { available: d.statusAvailable, reserved: d.statusReserved, in_use: d.statusInUse, depleted: d.statusDepleted, hold: d.statusHold }[s] || s || '-';
     },
     async lookup() {
       const q = (this.qr || '').trim();
