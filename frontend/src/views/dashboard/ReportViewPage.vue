@@ -7,11 +7,11 @@
     <div class="header-actions">
       <button class="btn-small" @click="reload">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-2px;margin-right:4px;"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 16v-4h4"/></svg>
-        รีเฟรช
+        {{ dash.t[dash.lang].refreshWord }}
       </button>
       <button class="btn-small btn-primary" @click="exportExcel" :disabled="rows.length === 0">
         <svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#fff"/><path d="M14 2v6h6" fill="#cfe8dc"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#217346" stroke-width="1.8" stroke-linecap="round"/></svg>
-        ส่งออก Excel
+        {{ dash.t[dash.lang].exportExcelPlain }}
       </button>
     </div>
   </div>
@@ -32,24 +32,24 @@
           <td v-for="(cell, cidx) in row" :key="cidx">{{ cell }}</td>
         </tr>
         <tr v-if="loading">
-          <td :colspan="Math.max(columns.length, 1)" style="text-align:center; padding:24px; color:#94a3b8;">กำลังโหลดข้อมูล...</td>
+          <td :colspan="Math.max(columns.length, 1)" style="text-align:center; padding:24px; color:#94a3b8;">{{ dash.t[dash.lang].loadingWord }}</td>
         </tr>
         <tr v-else-if="rows.length === 0">
-          <td :colspan="Math.max(columns.length, 1)" style="text-align:center; padding:24px; color:#94a3b8;">ยังไม่มีข้อมูลสำหรับรายงานนี้ (ข้อมูลจะแสดงเมื่อมีเอกสารในระบบ)</td>
+          <td :colspan="Math.max(columns.length, 1)" style="text-align:center; padding:24px; color:#94a3b8;">{{ dash.t[dash.lang].noReportDataMsg }}</td>
         </tr>
       </tbody>
     </table>
     </div>
     <div class="xl-pagination" v-if="rows.length > 0">
       <select v-model.number="pageSize" class="fr-page-size-select">
-        <option :value="10">10 / หน้า</option>
-        <option :value="20">20 / หน้า</option>
-        <option :value="50">50 / หน้า</option>
-        <option :value="100">100 / หน้า</option>
+        <option :value="10">10 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="20">20 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="100">100 {{ dash.t[dash.lang].perPageWord }}</option>
       </select>
-      <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">‹ ก่อนหน้า</button>
-      <span>หน้า {{ page }} / {{ totalPages }}</span>
-      <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
+      <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">{{ dash.t[dash.lang].prevPage }}</button>
+      <span>{{ dash.t[dash.lang].pageWord }} {{ page }} / {{ totalPages }}</span>
+      <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">{{ dash.t[dash.lang].nextPage }}</button>
     </div>
   </div>
 </div>

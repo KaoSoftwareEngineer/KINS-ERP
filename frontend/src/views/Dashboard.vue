@@ -1471,6 +1471,9 @@ data() {
             billedDonePrefix: 'วางบิลแล้ว',
             bulkBilledPrefix: 'วางบิลแบบ Bulk แล้ว',
             creditNoteWord: 'ใบลดหนี้',
+            // ---- ReportViewPage (รายงานทั่วไป) เฉพาะ ----
+            refreshWord: 'รีเฟรช',
+            noReportDataMsg: 'ยังไม่มีข้อมูลสำหรับรายงานนี้ (ข้อมูลจะแสดงเมื่อมีเอกสารในระบบ)',
             // ---- ใบลดหนี้ลูกค้า/คู่ค้า เฉพาะ ----
             creditNotePartnerTitle: 'ใบลดหนี้คู่ค้า',
             creditNoteCustomerTitle: 'ใบลดหนี้ลูกค้า',
@@ -2010,6 +2013,8 @@ data() {
             billedDonePrefix: 'Billed',
             bulkBilledPrefix: 'Bulk billed',
             creditNoteWord: 'Credit Note',
+            refreshWord: 'Refresh',
+            noReportDataMsg: 'No data for this report yet (will show once documents exist)',
             creditNotePartnerTitle: 'Vendor Credit Note',
             creditNoteCustomerTitle: 'Customer Credit Note',
             creditNoteNoLabel: 'Credit Note No.',
