@@ -1393,6 +1393,18 @@ data() {
             totalAmountLabel: 'ยอดรวม',
             vatCutTotalLabel: 'ยอดรวมตัด VAT',
             fabricWord: 'ผ้า',
+            // ---- รายงานเบิกสินค้า VAT เฉพาะ ----
+            vatIssueReportTitle: 'รายงานเบิกสินค้า VAT',
+            searchDisbursePlaceholder: 'เลขที่เบิก/ลูกค้า/ใบกำกับภาษี',
+            fromShortWord: 'จาก',
+            viewItemsTitle: 'ดูรายการ',
+            noDataYetVatMsg: 'ยังไม่มีข้อมูล (จะแสดงเมื่อมีการเบิก/ตัดสต็อก VAT ในระบบ)',
+            disburseDateLabel: 'วันที่เบิก',
+            qtySoldLabel: 'จำนวนที่ขาย',
+            saleTotalLabel: 'รวมราคาขาย',
+            costTotalLabel: 'รวมราคารับ',
+            clickRowToViewMsg: 'คลิกแถวด้านบนเพื่อดูรายการสินค้า',
+            noItemsInDisburseMsg: 'ไม่มีรายการในใบเบิกนี้',
           },
           en: {
             home: 'Home',
@@ -1832,6 +1844,17 @@ data() {
             totalAmountLabel: 'Total Amount',
             vatCutTotalLabel: 'VAT Cut Total',
             fabricWord: 'Fabric',
+            vatIssueReportTitle: 'VAT Issue Report',
+            searchDisbursePlaceholder: 'Disbursement no./customer/invoice',
+            fromShortWord: 'From',
+            viewItemsTitle: 'View Items',
+            noDataYetVatMsg: 'No data yet (will show once VAT disbursement/stock cut occurs)',
+            disburseDateLabel: 'Disbursement Date',
+            qtySoldLabel: 'Qty Sold',
+            saleTotalLabel: 'Sale Total',
+            costTotalLabel: 'Cost Total',
+            clickRowToViewMsg: 'Click a row above to view items',
+            noItemsInDisburseMsg: 'No items in this disbursement',
           }
         }
       };
