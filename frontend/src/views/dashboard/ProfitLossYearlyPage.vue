@@ -1,23 +1,22 @@
 <template>
 <div class=" py-page rp-page">
   <div class="rp-titlebar">
-    <span>📅 รายงานกำไร & ขาดทุนรายปี</span>
+    <span>📅 {{ dash.t[dash.lang].profitLossYearlyTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
   <div class="rp-filter">
-    <div class="rp-f" style="max-width:160px"><label>ปี</label>
+    <div class="rp-f" style="max-width:160px"><label>{{ dash.t[dash.lang].yearLabel }}</label>
       <select v-model="year" @change="build"><option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option></select>
     </div>
-    <div class="rp-f-actions"><button class="rp-btn-search" @click="build">🔍 ค้นหา</button></div>
+    <div class="rp-f-actions"><button class="rp-btn-search" @click="build">🔍 {{ dash.t[dash.lang].searchWord }}</button></div>
   </div>
 
-  <!-- ส่วนที่ 1: กำไรขาดทุนจากการขาย (อิงต้นทุนสินค้า) -->
   <div class="rp-table-wrap">
     <table class="rp-table py-table">
       <thead>
-        <tr><th style="min-width:130px;text-align:left">รายการ</th><th v-for="m in months" :key="m" class="rp-r">{{ m }}</th><th class="rp-r">รวม</th></tr>
+        <tr><th style="min-width:130px;text-align:left">{{ dash.t[dash.lang].itemColLabel }}</th><th v-for="(m, mi) in months" :key="mi" class="rp-r">{{ m }}</th><th class="rp-r">{{ dash.t[dash.lang].totalWord }}</th></tr>
       </thead>
       <tbody>
         <tr v-for="row in section1" :key="row.key">
@@ -29,11 +28,10 @@
     </table>
   </div>
 
-  <!-- ส่วนที่ 2: กระแส (อิงยอดสั่งซื้อ) -->
   <div class="rp-table-wrap">
     <table class="rp-table py-table">
       <thead>
-        <tr><th style="min-width:130px;text-align:left">รายการ</th><th v-for="m in months" :key="m" class="rp-r">{{ m }}</th><th class="rp-r">รวม</th></tr>
+        <tr><th style="min-width:130px;text-align:left">{{ dash.t[dash.lang].itemColLabel }}</th><th v-for="(m, mi) in months" :key="mi" class="rp-r">{{ m }}</th><th class="rp-r">{{ dash.t[dash.lang].totalWord }}</th></tr>
       </thead>
       <tbody>
         <tr v-for="row in section2" :key="row.key">
@@ -54,30 +52,32 @@ export default {
   data() {
     return {
       year: new Date().getFullYear(),
-      months: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'],
       sales: Array(12).fill(0), cost: Array(12).fill(0), purchase: Array(12).fill(0), crCust: Array(12).fill(0), crPartner: Array(12).fill(0),
     };
   },
   computed: {
+    months() { return this.dash.t[this.dash.lang].monthNamesFull; },
     yearOptions() { const y = new Date().getFullYear(); return [y + 1, y, y - 1, y - 2]; },
     section1() {
+      const t = this.dash.t[this.dash.lang];
       const profit = this.sales.map((s, i) => s - this.cost[i] - this.crCust[i] + this.crPartner[i]);
       return [
-        { key: 'sale', label: 'ขาย', vals: this.sales, total: this.sum(this.sales) },
-        { key: 'cost', label: 'ต้นทุนสินค้า', vals: this.cost, total: this.sum(this.cost) },
-        { key: 'crc', label: 'ลดหนี้ลูกค้า', vals: this.crCust, total: this.sum(this.crCust) },
-        { key: 'crp', label: 'ลดหนี้คู่ค้า', vals: this.crPartner, total: this.sum(this.crPartner) },
-        { key: 'profit', label: 'กำไร/ขาดทุน', vals: profit, total: this.sum(profit) },
+        { key: 'sale', label: t.saleWord, vals: this.sales, total: this.sum(this.sales) },
+        { key: 'cost', label: t.goodsCostLabel, vals: this.cost, total: this.sum(this.cost) },
+        { key: 'crc', label: t.crCustLabel, vals: this.crCust, total: this.sum(this.crCust) },
+        { key: 'crp', label: t.crPartnerLabel, vals: this.crPartner, total: this.sum(this.crPartner) },
+        { key: 'profit', label: t.profitLossLabel, vals: profit, total: this.sum(profit) },
       ];
     },
     section2() {
+      const t = this.dash.t[this.dash.lang];
       const profit = this.sales.map((s, i) => s - this.purchase[i] - this.crCust[i] + this.crPartner[i]);
       return [
-        { key: 'sale', label: 'ขาย', vals: this.sales, total: this.sum(this.sales) },
-        { key: 'purchase', label: 'สั่งซื้อ', vals: this.purchase, total: this.sum(this.purchase) },
-        { key: 'crc', label: 'ลดหนี้ลูกค้า', vals: this.crCust, total: this.sum(this.crCust) },
-        { key: 'crp', label: 'ลดหนี้คู่ค้า', vals: this.crPartner, total: this.sum(this.crPartner) },
-        { key: 'profit', label: 'กำไร/ขาดทุน', vals: profit, total: this.sum(profit) },
+        { key: 'sale', label: t.saleWord, vals: this.sales, total: this.sum(this.sales) },
+        { key: 'purchase', label: t.purchaseWord, vals: this.purchase, total: this.sum(this.purchase) },
+        { key: 'crc', label: t.crCustLabel, vals: this.crCust, total: this.sum(this.crCust) },
+        { key: 'crp', label: t.crPartnerLabel, vals: this.crPartner, total: this.sum(this.crPartner) },
+        { key: 'profit', label: t.profitLossLabel, vals: profit, total: this.sum(profit) },
       ];
     },
   },
