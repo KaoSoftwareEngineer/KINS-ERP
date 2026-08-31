@@ -3,44 +3,44 @@
   <div class="rp-titlebar">
     <span>📈 {{ title }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
 
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
-    <div class="rp-f"><label>ลูกค้า</label><input v-model="filter.customer" placeholder="ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>พนักงานขาย</label>
-      <select v-model="filter.salesperson" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="s in salespersonOptions" :key="s" :value="s">{{ s }}</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].customerWord }}</label><input v-model="filter.customer" :placeholder="dash.t[dash.lang].customerWord" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].salespersonLabel }}</label>
+      <select v-model="filter.salesperson" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="s in salespersonOptions" :key="s" :value="s">{{ s }}</option></select>
     </div>
-    <div class="rp-f"><label>เงื่อนไขบัญชี</label>
-      <select v-model="filter.term" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="t in termOptions" :key="t" :value="t">{{ t }}</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
+      <select v-model="filter.term" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="t in termOptions" :key="t" :value="t">{{ t }}</option></select>
     </div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่อินวอยส์/ออร์เดอร์/ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchInvOrderCustomerPlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" @keyup.enter="applyFilter" /></div>
     <div class="rp-f-actions">
-      <button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button>
-      <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
+      <button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+      <button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button>
     </div>
   </div>
 
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <!-- ตารางอินวอยส์ -->
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" style="min-width:1250px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('inv_no')">เลขที่อินวอยส์ <span class="rp-sort" :class="{ on: sort.key==='inv_no' }">{{ sortIcon('inv_no') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('inv_date')">วันที่ <span class="rp-sort" :class="{ on: sort.key==='inv_date' }">{{ sortIcon('inv_date') }}</span></th>
-          <th>เลขที่ออร์เดอร์</th><th>ลูกค้า</th><th>เงื่อนไขบัญชี</th>
-          <th class="rp-r">ยอดรวม</th><th class="rp-r">ชำระแล้ว</th><th class="rp-r">ค้างชำระ</th>
-          <th>สถานะชำระเงิน</th><th>พนักงานขาย</th><th>พนักงานส่งของ</th><th style="width:60px;"></th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('inv_no')">{{ dash.t[dash.lang].invoiceNoLabel }} <span class="rp-sort" :class="{ on: sort.key==='inv_no' }">{{ sortIcon('inv_no') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('inv_date')">{{ dash.t[dash.lang].dateLabel }} <span class="rp-sort" :class="{ on: sort.key==='inv_date' }">{{ sortIcon('inv_date') }}</span></th>
+          <th>{{ dash.t[dash.lang].orderNoLabel }}</th><th>{{ dash.t[dash.lang].customerWord }}</th><th>{{ dash.t[dash.lang].accountTermsLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].totalAmountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].paidLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].outstandingLabel }}</th>
+          <th>{{ dash.t[dash.lang].payStatusLabel }}</th><th>{{ dash.t[dash.lang].salespersonLabel }}</th><th>{{ dash.t[dash.lang].shipperLabel }}</th><th style="width:60px;"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="13" class="rp-empty">— ไม่มีข้อมูลอินวอยส์ —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="13" class="rp-empty">{{ dash.t[dash.lang].invoiceDataEmptyMsg }}</td></tr>
         <tr v-for="(row, idx) in filtered" :key="row.id" :class="{ 'is-sel': selRow === row }" @click="selRow = row">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">{{ row.inv_no }}</td>
@@ -54,11 +54,11 @@
           <td><span class="rp-badge" :class="payClass(row._payStatus)">{{ row._payStatus }}</span></td>
           <td>{{ row.salesperson || '-' }}</td>
           <td>{{ row.shipper || '-' }}</td>
-          <td><button class="rp-ic" title="ดูรายละเอียด" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
+          <td><button class="rp-ic" :title="dash.t[dash.lang].viewDetails" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
         </tr>
       </tbody>
       <tfoot v-if="filtered.length">
-        <tr><td colspan="6" class="rp-r">รวม</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td class="rp-r">{{ fmt(sumPaid) }}</td><td class="rp-r">{{ fmt(sumOutstanding) }}</td><td colspan="3"></td></tr>
+        <tr><td colspan="6" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td class="rp-r">{{ fmt(sumPaid) }}</td><td class="rp-r">{{ fmt(sumOutstanding) }}</td><td colspan="3"></td></tr>
       </tfoot>
     </table>
   </div>
@@ -68,14 +68,14 @@
     <table class="rp-table" style="min-width:1150px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>รหัสสินค้า</th><th>รหัสสี</th><th>หน้ากว้าง</th>
-          <th class="rp-r">จำนวนที่เบิก</th><th class="rp-r">จำนวนที่ขาย</th><th>หน่วย</th>
-          <th class="rp-r">ราคา/หน่วย</th><th class="rp-r">ราคา</th><th>Cust Code</th><th>สินค้าทดแทน</th><th>บาร์โค้ด</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th><th>{{ dash.t[dash.lang].widthLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].withdrawnQtyLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].soldQtyLabel }}</th><th>{{ dash.t[dash.lang].unitLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].pricePerUnitLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].priceLabel }}</th><th>Cust Code</th><th>{{ dash.t[dash.lang].substituteLabel }}</th><th>{{ dash.t[dash.lang].barcodeLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!selItems.length"><td colspan="12" class="rp-empty">— เลือกอินวอยส์ด้านบนเพื่อดูรายการ —</td></tr>
+        <tr v-if="!selItems.length"><td colspan="12" class="rp-empty">{{ dash.t[dash.lang].selectInvoiceItemsMsg }}</td></tr>
         <tr v-for="(it, i) in selItems" :key="i">
           <td class="rp-c">{{ i + 1 }}</td>
           <td class="rp-mono">{{ it.sku || '-' }}</td>
@@ -83,16 +83,16 @@
           <td class="rp-c">{{ it.width || '-' }}</td>
           <td class="rp-r">{{ fmt(itQty(it)) }}</td>
           <td class="rp-r">{{ fmt(itQty(it)) }}</td>
-          <td class="rp-c">{{ it.unit || 'หลา' }}</td>
+          <td class="rp-c">{{ it.unit || dash.t[dash.lang].yardsUnit }}</td>
           <td class="rp-r">{{ it.unit_price != null ? fmt(it.unit_price) : '-' }}</td>
           <td class="rp-r">{{ it.amount != null ? fmt(it.amount) : '-' }}</td>
           <td>{{ it.cust_code || '-' }}</td>
-          <td>{{ it.substitute ? (it.substitute_text || 'ใช่') : '-' }}</td>
+          <td>{{ it.substitute ? (it.substitute_text || dash.t[dash.lang].trueWord) : '-' }}</td>
           <td class="rp-mono rp-muted">{{ it.barcode || '-' }}</td>
         </tr>
       </tbody>
       <tfoot v-if="selItems.length">
-        <tr><td colspan="4" class="rp-r">รวม</td><td class="rp-r">{{ fmt(selItemsQty) }}</td><td class="rp-r">{{ fmt(selItemsQty) }}</td><td colspan="2"></td><td class="rp-r">{{ fmt(selItemsAmount) }}</td><td colspan="3"></td></tr>
+        <tr><td colspan="4" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(selItemsQty) }}</td><td class="rp-r">{{ fmt(selItemsQty) }}</td><td colspan="2"></td><td class="rp-r">{{ fmt(selItemsAmount) }}</td><td colspan="3"></td></tr>
       </tfoot>
     </table>
   </div>
@@ -112,7 +112,7 @@ export default {
     };
   },
   computed: {
-    title() { return this.mode === 'wholesale' ? 'รายงานการขายส่ง' : this.mode === 'retail' ? 'รายงานการขายปลีก' : 'รายงานการขาย'; },
+    title() { const t = this.dash.t[this.dash.lang]; return this.mode === 'wholesale' ? t.salesReportWholesaleTitle : this.mode === 'retail' ? t.salesReportRetailTitle : t.salesReportAllTitle; },
     salespersonOptions() { return [...new Set(this.rows.map(r => r.salesperson).filter(Boolean))]; },
     termOptions() { return [...new Set(this.rows.map(r => r.account_term).filter(Boolean))]; },
     filtered() {
@@ -150,7 +150,8 @@ export default {
           const itemsTotal = items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
           const total = Number(r.total_amount) > 0 ? Number(r.total_amount) : itemsTotal;
           const paid = Number(r.paid_amount) || 0;
-          const status = r.pay_status || (paid >= total && total > 0 ? 'ชำระแล้ว' : paid > 0 ? 'ชำระบางส่วน' : 'ยังไม่ชำระ');
+          const t = this.dash.t[this.dash.lang];
+          const status = r.pay_status || (paid >= total && total > 0 ? t.paidLabel : paid > 0 ? t.partialPaidWord : t.notPaidWord);
           return { ...r, _total: total, _paid: paid, _outstanding: Math.max(0, total - paid), _payStatus: status };
         });
         this.selRow = null;
@@ -159,7 +160,7 @@ export default {
     itemsOf(r) { if (r._items) return r._items; let a = []; try { a = typeof r.items_json === 'string' ? JSON.parse(r.items_json || '[]') : (r.items_json || []); } catch (e) {} r._items = Array.isArray(a) ? a : []; return r._items; },
     itQty(it) { return Number(it.qty != null ? it.qty : (it.withdrawn_qty != null ? it.withdrawn_qty : it.ordered_qty)) || 0; },
     applyFilter() { this.selRow = null; },
-    payClass(s) { if (s === 'ชำระแล้ว') return 'ok'; if (s === 'ชำระบางส่วน') return 'info'; if (s === 'ยกเลิก') return 'cancel'; return 'pending'; },
+    payClass(s) { const t = this.dash.t[this.dash.lang]; if (s === t.paidLabel) return 'ok'; if (s === t.partialPaidWord) return 'info'; if (s === t.canceledWord) return 'cancel'; return 'pending'; },
     fmt(v) { return (Number(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     fmtDate(d) { if (!d) return ''; const s = String(d); const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : s.slice(0, 10); },
     toggleSort(k) { if (this.sort.key === k) this.sort.dir = this.sort.dir === 'asc' ? 'desc' : 'asc'; else { this.sort.key = k; this.sort.dir = 'asc'; } },
