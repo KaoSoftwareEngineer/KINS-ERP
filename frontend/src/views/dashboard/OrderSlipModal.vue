@@ -2,8 +2,8 @@
 <div class="oe-slip-overlay" @click.self="order.oeShowSlip = false">
   <div class="oe-slip-wrap">
     <div class="oe-slip-toolbar">
-      <button class="btn-small" @click="order.oeShowSlip = false">ปิด</button>
-      <button class="btn-small btn-primary" @click="order.oePrintSlipNow">🖨️ พิมพ์</button>
+      <button class="btn-small" @click="order.oeShowSlip = false">{{ dash.t[dash.lang].close }}</button>
+      <button class="btn-small btn-primary" @click="order.oePrintSlipNow">🖨️ {{ dash.t[dash.lang].printWord }}</button>
     </div>
     <div class="oe-slip" id="oeSlipPrintArea">
       <div class="oe-slip-customer">{{ order.oeForm.customer || '—' }}</div>
