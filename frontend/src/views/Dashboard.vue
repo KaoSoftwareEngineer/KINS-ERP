@@ -1187,6 +1187,9 @@ data() {
             reportBtnWord: 'รายงาน',
             savedMsgText: 'ระบบได้ทำการเพิ่มข้อมูลเรียบร้อยแล้ว',
             skuPlaceholderShort: 'รหัส',
+            finishedFabricWord: 'ผ้าสำเร็จ',
+            refShortLabel: 'อ้างอิง',
+            purchaseOrderPdfBtn: 'ใบสั่งซื้อ',
           },
           en: {
             home: 'Home',
@@ -1432,6 +1435,9 @@ data() {
             reportBtnWord: 'Report',
             savedMsgText: 'The record has been added successfully',
             skuPlaceholderShort: 'Code',
+            finishedFabricWord: 'Finished Fabric',
+            refShortLabel: 'Ref.',
+            purchaseOrderPdfBtn: 'Purchase Order',
           }
         }
       };
