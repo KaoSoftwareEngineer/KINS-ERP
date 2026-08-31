@@ -112,7 +112,7 @@
     </div>
     <div class="dy-ex-col dy-ex-col-wide">
       <div class="dy-ex-title">{{ dash.t[dash.lang].noteLabel }}</div>
-      <select v-model="remarkPreset" @change="applyRemarkPreset"><option value="">{{ dash.t[dash.lang].selectWord }}</option><option>{{ dash.t[dash.lang].urgentWord }}</option><option>{{ dash.t[dash.lang].sampleFirstWord }}</option><option>{{ dash.t[dash.lang].perCustomerSpecWord }}</option></select>
+      <select v-model="remarkPreset" @change="applyRemarkPreset"><option value="">{{ dash.t[dash.lang].selectWord }}</option><option value="ด่วน">{{ dash.t[dash.lang].urgentWord }}</option><option value="ตัวอย่างก่อน">{{ dash.t[dash.lang].sampleFirstWord }}</option><option value="ตามสเปกลูกค้า">{{ dash.t[dash.lang].perCustomerSpecWord }}</option></select>
       <textarea v-model="form.remark" rows="2"></textarea>
     </div>
   </div>

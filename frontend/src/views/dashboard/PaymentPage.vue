@@ -1,43 +1,43 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">💵 {{ mode === 'pay' ? 'จ่ายเงินคู่ค้า' : 'รับเงินลูกค้า' }}</div>
+  <div class="po-titlebar">💵 {{ mode === 'pay' ? dash.t[dash.lang].payPartnerTitle : dash.t[dash.lang].receiveCustomerTitle }}</div>
 
   <div class="po-items">
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
           <th style="min-width:170px;text-align:left;">{{ partyLabel }}</th>
-          <th style="width:110px;">ประเภท</th>
-          <th style="width:140px;">วันที่ชำระเงิน</th>
-          <th style="width:140px;">วันที่เช็ค</th>
-          <th style="width:150px;">เลขที่เช็ค</th>
-          <th style="width:150px;">{{ mode === 'pay' ? 'จากบัญชี' : 'เข้าบัญชี' }}</th>
-          <th style="width:130px;">จำนวนเงิน</th>
-          <th v-if="mode === 'receive'" style="width:160px;">อ้างอิงใบวางบิล</th>
-          <th style="min-width:150px;">หมายเหตุ</th>
-          <th style="width:90px;">สลิป</th>
+          <th style="width:110px;">{{ dash.t[dash.lang].typeLabel }}</th>
+          <th style="width:140px;">{{ dash.t[dash.lang].payDateLabel }}</th>
+          <th style="width:140px;">{{ dash.t[dash.lang].chequeDateLabel }}</th>
+          <th style="width:150px;">{{ dash.t[dash.lang].chequeNoLabel }}</th>
+          <th style="width:150px;">{{ mode === 'pay' ? dash.t[dash.lang].fromAccountLabel : dash.t[dash.lang].toAccountLabel }}</th>
+          <th style="width:130px;">{{ dash.t[dash.lang].amountLabel }}</th>
+          <th v-if="mode === 'receive'" style="width:160px;">{{ dash.t[dash.lang].billRefLabel }}</th>
+          <th style="min-width:150px;">{{ dash.t[dash.lang].remarkLabel }}</th>
+          <th style="width:90px;">{{ dash.t[dash.lang].slipLabel }}</th>
           <th style="width:70px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
-          <td><input list="pm-parties" v-model="row.party" placeholder="เลือก/พิมพ์" @change="onPartyChange(row)" /></td>
-          <td><select v-model="row.type"><option value="">—</option><option>เงินสด</option><option>เช็ค</option><option>โอน</option></select></td>
+          <td><input list="pm-parties" v-model="row.party" :placeholder="dash.t[dash.lang].pleaseSelectWord" @change="onPartyChange(row)" /></td>
+          <td><select v-model="row.type"><option value="">—</option><option value="เงินสด">{{ dash.t[dash.lang].cashOptionWord }}</option><option value="เช็ค">{{ dash.t[dash.lang].chequeWord }}</option><option value="โอน">{{ dash.t[dash.lang].transferWord }}</option></select></td>
           <td><input type="date" v-model="row.pay_date" /></td>
           <td><input type="date" v-model="row.cheque_date" :disabled="row.type !== 'เช็ค'" /></td>
-          <td><input v-model="row.cheque_no" :disabled="row.type !== 'เช็ค'" placeholder="เลขที่เช็ค" /></td>
+          <td><input v-model="row.cheque_no" :disabled="row.type !== 'เช็ค'" :placeholder="dash.t[dash.lang].chequeNoLabel" /></td>
           <td><select v-model="row.account"><option value="">—</option><option v-for="a in accountOptions" :key="a" :value="a">{{ a }}</option></select></td>
           <td><input type="number" v-model.number="row.amount" class="po-num" placeholder="0.00" /></td>
           <td v-if="mode === 'receive'">
-            <input :list="'pm-bills-' + row._key" v-model="row.invoiceRef" placeholder="เลขที่บิล" @change="onInvoiceRefChange(row)" />
+            <input :list="'pm-bills-' + row._key" v-model="row.invoiceRef" :placeholder="dash.t[dash.lang].billNoLabel" @change="onInvoiceRefChange(row)" />
             <datalist :id="'pm-bills-' + row._key"><option v-for="b in (row._billOptions || [])" :key="b.br_no" :value="b.br_no" /></datalist>
             <div v-if="row._balance" class="pm-balance-hint" :class="{ 'pm-full': (Number(row.amount) || 0) >= row._balance.remaining }">
-              บิล ฿{{ fmt(row._balance.total) }} · รับแล้ว ฿{{ fmt(row._balance.received) }} · คงเหลือ ฿{{ fmt(row._balance.remaining) }}
+              {{ dash.t[dash.lang].billWord }} ฿{{ fmt(row._balance.total) }} · {{ dash.t[dash.lang].receivedAlreadyWord }} ฿{{ fmt(row._balance.received) }} · {{ dash.t[dash.lang].remainingLabel }} ฿{{ fmt(row._balance.remaining) }}
             </div>
           </td>
-          <td><input v-model="row.note" placeholder="หมายเหตุ" /></td>
+          <td><input v-model="row.note" :placeholder="dash.t[dash.lang].remarkLabel" /></td>
           <td class="pm-img">
             <label class="pm-upload">
               <input type="file" accept="image/*" @change="onImg($event, row)" hidden />
@@ -47,13 +47,13 @@
             </label>
           </td>
           <td class="po-row-actions">
-            <button class="po-ic po-add" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-            <button class="po-ic po-del" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
           </td>
         </tr>
       </tbody>
       <tfoot>
-        <tr class="po-foot-row"><td colspan="7" class="po-foot-label">รวม</td><td class="po-num">{{ totalAmount.toFixed(2) }}</td><td :colspan="mode === 'receive' ? 4 : 3"></td></tr>
+        <tr class="po-foot-row"><td colspan="7" class="po-foot-label">{{ dash.t[dash.lang].totalWord }}</td><td class="po-num">{{ totalAmount.toFixed(2) }}</td><td :colspan="mode === 'receive' ? 4 : 3"></td></tr>
       </tfoot>
     </table>
     <datalist id="pm-parties"><option v-for="p in partyOptions" :key="p" :value="p" /></datalist>
@@ -61,13 +61,13 @@
 
   <!-- ประวัติล่าสุด — รวมดูที่เดียว ไม่ต้องไล่เช็คแยกที่ -->
   <div class="pm-history">
-    <div class="pm-history-title">ประวัติ{{ mode === 'pay' ? 'จ่ายเงิน' : 'รับเงิน' }}ล่าสุด</div>
+    <div class="pm-history-title">{{ mode === 'pay' ? dash.t[dash.lang].payHistoryTitleFull : dash.t[dash.lang].receiveHistoryTitleFull }}</div>
     <table class="pm-history-table">
       <thead>
         <tr>
-          <th>เลขที่</th><th>วันที่</th><th>{{ partyLabel }}</th>
-          <th v-if="mode === 'receive'">อ้างอิงบิล</th>
-          <th class="bl-r">จำนวนเงิน</th><th>สถานะ</th><th>สลิป</th>
+          <th>{{ dash.t[dash.lang].docNoLabel }}</th><th>{{ dash.t[dash.lang].dateLabel }}</th><th>{{ partyLabel }}</th>
+          <th v-if="mode === 'receive'">{{ dash.t[dash.lang].billRefLabel }}</th>
+          <th class="bl-r">{{ dash.t[dash.lang].amountLabel }}</th><th>{{ dash.t[dash.lang].status }}</th><th>{{ dash.t[dash.lang].slipLabel }}</th>
         </tr>
       </thead>
       <tbody>
@@ -75,10 +75,10 @@
           <td>{{ h.doc_no }}</td><td>{{ h.pay_date }}</td><td>{{ h.party }}</td>
           <td v-if="mode === 'receive'">{{ h.invoiceRef || '-' }}</td>
           <td class="bl-r">{{ fmt(h.amount) }}</td>
-          <td><span class="pm-history-status" :class="{ 'pm-partial': h.partial }">{{ h.partial ? 'ชำระบางส่วน' : 'ครบถ้วน' }}</span></td>
-          <td><a v-if="h.slipUrl" :href="h.slipUrl" target="_blank">📎 ดูสลิป</a><span v-else class="pm-no-slip">— ไม่มีสลิป —</span></td>
+          <td><span class="pm-history-status" :class="{ 'pm-partial': h.partial }">{{ h.partial ? dash.t[dash.lang].partialPaidWord : dash.t[dash.lang].fullyPaidWord }}</span></td>
+          <td><a v-if="h.slipUrl" :href="h.slipUrl" target="_blank">📎 {{ dash.t[dash.lang].viewSlipWord }}</a><span v-else class="pm-no-slip">{{ dash.t[dash.lang].noSlipWord }}</span></td>
         </tr>
-        <tr v-if="historyRows.length === 0"><td :colspan="mode === 'receive' ? 7 : 6" class="pm-history-empty">ยังไม่มีประวัติ</td></tr>
+        <tr v-if="historyRows.length === 0"><td :colspan="mode === 'receive' ? 7 : 6" class="pm-history-empty">{{ dash.t[dash.lang].noHistoryYetMsg }}</td></tr>
       </tbody>
     </table>
   </div>
@@ -86,9 +86,9 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
-      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 บันทึกใหม่</button>
+      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
+      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].saveNewBtn }}</button>
     </div>
   </div>
 </div>
@@ -108,7 +108,7 @@ export default {
     };
   },
   computed: {
-    partyLabel() { return this.mode === 'pay' ? 'คู่ค้า' : 'ลูกค้า'; },
+    partyLabel() { return this.mode === 'pay' ? this.dash.t[this.dash.lang].partnerWord : this.dash.t[this.dash.lang].customerWord; },
     totalAmount() { return this.items.reduce((s, r) => s + (Number(r.amount) || 0), 0); },
     // แตกรายการจากทุกเอกสารในประวัติ ให้เห็นทีละแถว พร้อมสถานะครบ/บางส่วนต่อบิล — ไม่ต้องนั่งเช็คเอง
     historyRows() {
@@ -211,7 +211,7 @@ export default {
         const res = await fetch('/api/payments', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(payload) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.saved = true; this.savedMsg = 'บันทึกเรียบร้อยแล้ว (' + d.doc_no + ')'; this.dash.fbDone('บันทึกแล้ว'); this.loadHistory(); }
+        if (d.ok) { this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].savedSuccessMsg + ' (' + d.doc_no + ')'; this.dash.fbDone('บันทึกแล้ว'); this.loadHistory(); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },

@@ -11,12 +11,12 @@
       <div class="po-field"><label>{{ dash.t[dash.lang].orderRefLabel }}</label><input v-model="form.order_ref" :placeholder="dash.t[dash.lang].orderRefLabel" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label><select v-model="form.account_term"><option>Cash</option><option>{{ dash.t[dash.lang].credit30Word }}</option><option>{{ dash.t[dash.lang].credit60Word }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label><select v-model="form.account_term"><option>Cash</option><option value="เครดิต 30 วัน">{{ dash.t[dash.lang].credit30Word }}</option><option value="เครดิต 60 วัน">{{ dash.t[dash.lang].credit60Word }}</option></select></div>
       <div class="po-field"><label>{{ dash.t[dash.lang].salespersonLabel }}</label><input v-model="form.salesperson" :placeholder="dash.t[dash.lang].salespersonLabel" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>{{ dash.t[dash.lang].billAddressLabel }}</label><select v-model="form.bill_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].headOfficeWord }}</option><option>{{ dash.t[dash.lang].branchWord }}</option></select></div>
-      <div class="po-field"><label>{{ dash.t[dash.lang].shipAddressLabel }}</label><select v-model="form.ship_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].headOfficeWord }}</option><option>{{ dash.t[dash.lang].branchWord }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].billAddressLabel }}</label><select v-model="form.bill_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="สำนักงานใหญ่">{{ dash.t[dash.lang].headOfficeWord }}</option><option value="สาขา">{{ dash.t[dash.lang].branchWord }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].shipAddressLabel }}</label><select v-model="form.ship_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="สำนักงานใหญ่">{{ dash.t[dash.lang].headOfficeWord }}</option><option value="สาขา">{{ dash.t[dash.lang].branchWord }}</option></select></div>
       <div class="po-field"><label>{{ dash.t[dash.lang].shipperLabel }}</label><select v-model="form.shipper"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option v-for="s in shippers" :key="s" :value="s">{{ s }}</option></select></div>
     </div>
     <div class="po-head-col po-head-col-wide">

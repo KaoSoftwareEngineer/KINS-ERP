@@ -8,7 +8,7 @@
     </div>
     <div class="po-head-col">
       <div class="po-field"><label>{{ dash.t[dash.lang].shipperLabel }}</label><select v-model="form.shipper"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option v-for="s in shippers" :key="s" :value="s">{{ s }}</option></select></div>
-      <div class="po-field"><label>{{ dash.t[dash.lang].paymentTypeLabel }}</label><select v-model="form.payment_type"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].cashOptionWord }}</option><option>{{ dash.t[dash.lang].chequeWord }}</option><option>{{ dash.t[dash.lang].transferWord }}</option><option>{{ dash.t[dash.lang].creditWord }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].paymentTypeLabel }}</label><select v-model="form.payment_type"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="เงินสด">{{ dash.t[dash.lang].cashOptionWord }}</option><option value="เช็ค">{{ dash.t[dash.lang].chequeWord }}</option><option value="โอน">{{ dash.t[dash.lang].transferWord }}</option><option value="เครดิต">{{ dash.t[dash.lang].creditWord }}</option></select></div>
     </div>
     <div class="po-head-col po-head-col-wide">
       <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>

@@ -33,7 +33,7 @@
           <td class="po-no">{{ idx + 1 }}</td>
           <td><input type="number" v-model.number="row.price" class="po-num" placeholder="0.00" /></td>
           <td><input type="number" v-model.number="row.qty" class="po-num" placeholder="0" /></td>
-          <td><select v-model="row.unit"><option>{{ dash.t[dash.lang].yardsUnit }}</option><option>{{ dash.t[dash.lang].meterWord }}</option><option>{{ dash.t[dash.lang].kgWord }}</option><option>{{ dash.t[dash.lang].pieceWord }}</option></select></td>
+          <td><select v-model="row.unit"><option value="หลา">{{ dash.t[dash.lang].yardsUnit }}</option><option value="เมตร">{{ dash.t[dash.lang].meterWord }}</option><option value="กก.">{{ dash.t[dash.lang].kgWord }}</option><option value="ชิ้น">{{ dash.t[dash.lang].pieceWord }}</option></select></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
           <td class="po-row-actions">
             <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>

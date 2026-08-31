@@ -13,7 +13,7 @@
         <datalist id="cn-parties"><option v-for="p in partyOptions" :key="p" :value="p" /></datalist>
       </div>
       <div class="po-field"><label>{{ dash.t[dash.lang].typeLabel }}</label>
-        <select v-model="form.return_type"><option>No Return</option><option>{{ dash.t[dash.lang].returnProductWord }}</option><option>{{ dash.t[dash.lang].discountLabel }}</option><option>{{ dash.t[dash.lang].priceAdjustWord }}</option></select>
+        <select v-model="form.return_type"><option>No Return</option><option value="รับคืนสินค้า">{{ dash.t[dash.lang].returnProductWord }}</option><option value="ส่วนลด">{{ dash.t[dash.lang].discountLabel }}</option><option value="ปรับราคา">{{ dash.t[dash.lang].priceAdjustWord }}</option></select>
       </div>
     </div>
     <div class="po-head-col">

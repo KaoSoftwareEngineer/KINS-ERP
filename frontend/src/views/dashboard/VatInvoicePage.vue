@@ -19,10 +19,10 @@
     </div>
     <div class="po-head-col">
       <div class="po-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
-        <select v-model="form.account_term"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].cashOptionWord }}</option><option>{{ dash.t[dash.lang].credit30Word }}</option><option>{{ dash.t[dash.lang].credit60Word }}</option></select>
+        <select v-model="form.account_term"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="เงินสด">{{ dash.t[dash.lang].cashOptionWord }}</option><option value="เครดิต 30 วัน">{{ dash.t[dash.lang].credit30Word }}</option><option value="เครดิต 60 วัน">{{ dash.t[dash.lang].credit60Word }}</option></select>
       </div>
       <div class="po-field"><label>{{ dash.t[dash.lang].billAddressLabel }}</label>
-        <select v-model="form.bill_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].headOfficeWord }}</option><option>{{ dash.t[dash.lang].branchWord }}</option></select>
+        <select v-model="form.bill_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="สำนักงานใหญ่">{{ dash.t[dash.lang].headOfficeWord }}</option><option value="สาขา">{{ dash.t[dash.lang].branchWord }}</option></select>
       </div>
     </div>
     <div class="po-head-col po-head-col-wide">

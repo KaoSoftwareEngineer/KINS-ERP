@@ -15,7 +15,7 @@
       </div>
       <div class="po-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
         <select v-model="form.account_term">
-          <option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].cashOptionWord }}</option><option>{{ dash.t[dash.lang].credit30Word }}</option><option>{{ dash.t[dash.lang].credit60Word }}</option>
+          <option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="เงินสด">{{ dash.t[dash.lang].cashOptionWord }}</option><option value="เครดิต 30 วัน">{{ dash.t[dash.lang].credit30Word }}</option><option value="เครดิต 60 วัน">{{ dash.t[dash.lang].credit60Word }}</option>
         </select>
       </div>
       <div class="po-field"><label>{{ dash.t[dash.lang].shipToLabel }}</label>

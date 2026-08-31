@@ -19,7 +19,7 @@
     <div class="po-head-col">
       <div class="po-field"><label>{{ dash.t[dash.lang].invoiceRefNoLabel }}</label><input :value="form.invoice_ref" readonly class="po-ro" placeholder="—" /></div>
       <div class="po-field"><label>{{ dash.t[dash.lang].saleTypeLabel }}</label>
-        <select v-model="form.sale_type"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].domesticSaleWord }}</option><option>{{ dash.t[dash.lang].exportSaleWord }}</option><option>{{ dash.t[dash.lang].retailSaleWord }}</option></select>
+        <select v-model="form.sale_type"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option value="ขายในประเทศ">{{ dash.t[dash.lang].domesticSaleWord }}</option><option value="ส่งออก">{{ dash.t[dash.lang].exportSaleWord }}</option><option value="ขายปลีก">{{ dash.t[dash.lang].retailSaleWord }}</option></select>
       </div>
     </div>
     <div class="po-head-col po-head-col-wide">
