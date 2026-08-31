@@ -1,38 +1,38 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>🧾 รายงานใบกำกับภาษี</span>
+    <span>🧾 {{ dash.t[dash.lang].vatInvoiceReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
-    <div class="rp-f"><label>ลูกค้า</label><input v-model="filter.customer" placeholder="ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>ประเภทการขาย</label>
-      <select v-model="filter.saleType" @change="applyFilter"><option value="">ทั้งหมด</option><option value="Wholesale">Wholesale</option><option value="Retail">Retail</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].customerWord }}</label><input v-model="filter.customer" :placeholder="dash.t[dash.lang].customerWord" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].saleTypeLabel }}</label>
+      <select v-model="filter.saleType" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option value="Wholesale">Wholesale</option><option value="Retail">Retail</option></select>
     </div>
-    <div class="rp-f"><label>ตัดสต็อก VAT</label>
-      <select v-model="filter.vatCut" @change="applyFilter"><option value="">ทั้งหมด</option><option value="yes">Yes</option><option value="no">No</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].vatCutLabel }}</label>
+      <select v-model="filter.vatCut" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option value="yes">Yes</option><option value="no">No</option></select>
     </div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่ใบกำกับ/อินวอยส์/ลูกค้า" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button><button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchInvoiceCustomerPlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button><button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button></div>
   </div>
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" style="min-width:1150px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('vt_no')">เลขที่ใบกำกับภาษี <span class="rp-sort" :class="{ on: sort.key==='vt_no' }">{{ sortIcon('vt_no') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('invoice_date')">วันที่ <span class="rp-sort" :class="{ on: sort.key==='invoice_date' }">{{ sortIcon('invoice_date') }}</span></th>
-          <th>เลขที่อินวอยส์</th><th>ประเภทการขาย</th><th>ลูกค้า</th><th>เงื่อนไขบัญชี</th><th>พนักงานขาย</th>
-          <th class="rp-r">ยอดรวม</th><th class="rp-r">ยอดรวมตัด VAT</th><th>ตัดสต็อก VAT</th><th style="width:60px;"></th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('vt_no')">{{ dash.t[dash.lang].invoiceNoLabel }} <span class="rp-sort" :class="{ on: sort.key==='vt_no' }">{{ sortIcon('vt_no') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('invoice_date')">{{ dash.t[dash.lang].dateLabel }} <span class="rp-sort" :class="{ on: sort.key==='invoice_date' }">{{ sortIcon('invoice_date') }}</span></th>
+          <th>{{ dash.t[dash.lang].invoiceRefNoLabel }}</th><th>{{ dash.t[dash.lang].saleTypeLabel }}</th><th>{{ dash.t[dash.lang].customerWord }}</th><th>{{ dash.t[dash.lang].accountTermsLabel }}</th><th>{{ dash.t[dash.lang].salespersonLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].totalAmountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].vatCutTotalLabel }}</th><th>{{ dash.t[dash.lang].vatCutLabel }}</th><th style="width:60px;"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">— ไม่มีข้อมูลใบกำกับภาษี —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">{{ dash.t[dash.lang].noInvoiceDataMsg }}</td></tr>
         <tr v-for="(row, idx) in filtered" :key="row.id" :class="{ 'is-sel': selRow === row }" @click="selRow = row">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">{{ row.vt_no }}</td>
@@ -45,10 +45,10 @@
           <td class="rp-r">{{ fmt(row.net_total) }}</td>
           <td class="rp-r rp-muted">-</td>
           <td class="rp-c"><span class="rp-badge" :class="row.vat_cut ? 'ok' : 'pending'">{{ row.vat_cut ? 'Yes' : 'No' }}</span></td>
-          <td><button class="rp-ic" title="ดูรายละเอียด" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
+          <td><button class="rp-ic" :title="dash.t[dash.lang].viewDetails" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
         </tr>
       </tbody>
-      <tfoot v-if="filtered.length"><tr><td colspan="8" class="rp-r">รวม</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td class="rp-r rp-muted">-</td><td colspan="2"></td></tr></tfoot>
+      <tfoot v-if="filtered.length"><tr><td colspan="8" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td class="rp-r rp-muted">-</td><td colspan="2"></td></tr></tfoot>
     </table>
   </div>
 
@@ -56,28 +56,28 @@
     <table class="rp-table" style="min-width:1000px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>รายละเอียดสินค้า</th><th>ชื่อกลุ่มสินค้า</th><th class="rp-r">จำนวน</th><th>หน่วย</th>
-          <th class="rp-r">ราคาขาย</th><th class="rp-r">ราคา</th><th class="rp-r">จำนวนที่ตัด</th><th class="rp-r">ราคารับ</th><th class="rp-r">รวม</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].productDetailLabel }}</th><th>{{ dash.t[dash.lang].groupNameLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].qtyLabel }}</th><th>{{ dash.t[dash.lang].unitLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].salePriceLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].priceLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].qtyCutLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].priceReceivedLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].totalWord }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!selItems.length"><td colspan="10" class="rp-empty">— เลือกใบกำกับภาษีด้านบนเพื่อดูรายการ —</td></tr>
+        <tr v-if="!selItems.length"><td colspan="10" class="rp-empty">{{ dash.t[dash.lang].selectInvoiceAboveMsg }}</td></tr>
         <tr v-for="(it, i) in selItems" :key="i">
           <td class="rp-c">{{ i + 1 }}</td>
           <td>{{ itemName(it) }}</td>
-          <td>{{ it.group || 'ผ้า' }}</td>
+          <td>{{ it.group || dash.t[dash.lang].fabricWord }}</td>
           <td class="rp-r">{{ fmt(itQty(it)) }}</td>
-          <td class="rp-c">{{ it.unit || 'หลา' }}</td>
+          <td class="rp-c">{{ it.unit || dash.t[dash.lang].yardsUnit }}</td>
           <td class="rp-r">{{ it.unit_price != null ? fmt(it.unit_price) : '-' }}</td>
           <td class="rp-r">{{ it.amount != null ? fmt(it.amount) : '-' }}</td>
           <td class="rp-r rp-muted">-</td><td class="rp-r rp-muted">-</td><td class="rp-r rp-muted">-</td>
         </tr>
       </tbody>
       <tfoot v-if="selItems.length">
-        <tr><td colspan="3" class="rp-r">รวม</td><td class="rp-r">{{ fmt(selQty) }}</td><td></td><td></td><td class="rp-r">{{ fmt(selSub) }}</td><td colspan="3"></td></tr>
+        <tr><td colspan="3" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(selQty) }}</td><td></td><td></td><td class="rp-r">{{ fmt(selSub) }}</td><td colspan="3"></td></tr>
         <tr><td colspan="6" class="rp-r">VAT 7%</td><td class="rp-r">{{ fmt(selVat) }}</td><td colspan="3" style="text-align:left;color:var(--muted)">VAT Exclusive</td></tr>
-        <tr><td colspan="6" class="rp-r">ยอดสุทธิ</td><td class="rp-r rp-bold">{{ fmt(selNet) }}</td><td colspan="3"></td></tr>
+        <tr><td colspan="6" class="rp-r">{{ dash.t[dash.lang].netTotalLabel }}</td><td class="rp-r rp-bold">{{ fmt(selNet) }}</td><td colspan="3"></td></tr>
       </tfoot>
     </table>
   </div>

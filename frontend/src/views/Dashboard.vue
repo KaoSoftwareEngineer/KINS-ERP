@@ -1381,6 +1381,18 @@ data() {
             wholesaleWord: 'ขายส่ง',
             customerNamePlaceholder: 'ชื่อลูกค้า',
             stockCutSuccessMsg: 'ตัดสต็อกเรียบร้อยแล้ว',
+            // ---- รายงาน VAT ทั่วไป (report pages) เฉพาะ ----
+            vatInvoiceReportTitle: 'รายงานใบกำกับภาษี',
+            exportExcelPlain: 'ส่งออก Excel',
+            vatCutLabel: 'ตัดสต็อก VAT',
+            searchInvoiceCustomerPlaceholder: 'เลขที่ใบกำกับ/อินวอยส์/ลูกค้า',
+            noInvoiceDataMsg: '— ไม่มีข้อมูลใบกำกับภาษี —',
+            productDetailLabel: 'รายละเอียดสินค้า',
+            groupNameLabel: 'ชื่อกลุ่มสินค้า',
+            selectInvoiceAboveMsg: '— เลือกใบกำกับภาษีด้านบนเพื่อดูรายการ —',
+            totalAmountLabel: 'ยอดรวม',
+            vatCutTotalLabel: 'ยอดรวมตัด VAT',
+            fabricWord: 'ผ้า',
           },
           en: {
             home: 'Home',
@@ -1809,6 +1821,17 @@ data() {
             wholesaleWord: 'Wholesale',
             customerNamePlaceholder: 'Customer name',
             stockCutSuccessMsg: 'Stock cut completed',
+            vatInvoiceReportTitle: 'VAT Invoice Report',
+            exportExcelPlain: 'Export Excel',
+            vatCutLabel: 'VAT Stock Cut',
+            searchInvoiceCustomerPlaceholder: 'Invoice/reference no./customer',
+            noInvoiceDataMsg: '— No invoice data —',
+            productDetailLabel: 'Product Detail',
+            groupNameLabel: 'Product Group Name',
+            selectInvoiceAboveMsg: '— Select an invoice above to view items —',
+            totalAmountLabel: 'Total Amount',
+            vatCutTotalLabel: 'VAT Cut Total',
+            fabricWord: 'Fabric',
           }
         }
       };
