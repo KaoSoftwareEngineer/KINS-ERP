@@ -3,53 +3,52 @@
   <div class="rp-titlebar">
     <span>{{ cfg.icon }} {{ cfg.title }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
 
   <div class="rp-filter">
-    <div v-if="cfg.filters.includes('date')" class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="load" /></div>
-    <div v-if="cfg.filters.includes('customer')" class="rp-f"><label>ลูกค้า</label><input v-model="filter.customer" placeholder="ลูกค้า" @keyup.enter="load" /></div>
-    <div v-if="cfg.filters.includes('width')" class="rp-f"><label>หน้ากว้าง</label><input v-model="filter.width" placeholder="หน้ากว้าง" @keyup.enter="load" /></div>
-    <div v-if="cfg.filters.includes('q')" class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="คำค้นหา" @keyup.enter="load" /></div>
-    <div v-if="cfg.filters.includes('sku')" class="rp-f"><label>รหัสสินค้า</label><input v-model="filter.sku" placeholder="รหัสสินค้า" @keyup.enter="load" /></div>
-    <div v-if="cfg.filters.includes('barcode')" class="rp-f"><label>บาร์โค้ด</label><input v-model="filter.barcode" placeholder="บาร์โค้ด" @keyup.enter="load" /></div>
-    <div v-if="cfg.filters.includes('color')" class="rp-f"><label>รหัสสี</label><input v-model="filter.color" placeholder="รหัสสี" @keyup.enter="load" /></div>
+    <div v-if="cfg.filters.includes('date')" class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="load" /></div>
+    <div v-if="cfg.filters.includes('customer')" class="rp-f"><label>{{ dash.t[dash.lang].customerWord }}</label><input v-model="filter.customer" :placeholder="dash.t[dash.lang].customerWord" @keyup.enter="load" /></div>
+    <div v-if="cfg.filters.includes('width')" class="rp-f"><label>{{ dash.t[dash.lang].widthLabel }}</label><input v-model="filter.width" :placeholder="dash.t[dash.lang].widthLabel" @keyup.enter="load" /></div>
+    <div v-if="cfg.filters.includes('q')" class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchInput" @keyup.enter="load" /></div>
+    <div v-if="cfg.filters.includes('sku')" class="rp-f"><label>{{ dash.t[dash.lang].skuLabel }}</label><input v-model="filter.sku" :placeholder="dash.t[dash.lang].skuLabel" @keyup.enter="load" /></div>
+    <div v-if="cfg.filters.includes('barcode')" class="rp-f"><label>{{ dash.t[dash.lang].barcodeLabel }}</label><input v-model="filter.barcode" :placeholder="dash.t[dash.lang].barcodeLabel" @keyup.enter="load" /></div>
+    <div v-if="cfg.filters.includes('color')" class="rp-f"><label>{{ dash.t[dash.lang].colorCodeLabel }}</label><input v-model="filter.color" :placeholder="dash.t[dash.lang].colorCodeLabel" @keyup.enter="load" /></div>
     <div class="rp-f-actions">
-      <button class="rp-btn-search" @click="load">🔍 ค้นหา</button>
-      <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
+      <button class="rp-btn-search" @click="load">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+      <button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button>
     </div>
   </div>
 
-  <div class="rp-found">พบ {{ rows.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ rows.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" :style="{ minWidth: Math.max(700, columns.length * 110) + 'px' }">
       <thead>
         <tr>
-          <th style="width:42px;">ที่</th>
+          <th style="width:42px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
           <th v-for="(c, i) in columns" :key="i" :class="{ 'rp-r': isNumCol(c) }">{{ c }}</th>
           <th style="width:56px;"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="loading"><td :colspan="columns.length + 2" class="rp-empty">กำลังโหลด…</td></tr>
+        <tr v-if="loading"><td :colspan="columns.length + 2" class="rp-empty">{{ dash.t[dash.lang].loadingWord }}</td></tr>
         <tr v-else-if="!rows.length"><td :colspan="columns.length + 2" class="rp-empty">{{ emptyMsg }}</td></tr>
         <tr v-for="(row, idx) in rows" :key="idx" :class="{ 'is-sel': selIdx === idx }" @click="selIdx = idx">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td v-for="(cell, ci) in row" :key="ci" :class="{ 'rp-r': isNumCol(columns[ci]), 'rp-mono': isCodeCol(columns[ci]) }">{{ cell === '' || cell == null ? '-' : cell }}</td>
           <td>
-            <button class="rp-ic" title="ดูรายละเอียด" @click.stop="openDetail(row)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button>
+            <button class="rp-ic" :title="dash.t[dash.lang].viewDetails" @click.stop="openDetail(row)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- โมดัลรายละเอียดแถว -->
   <div v-if="detail" class="rp-modal-mask" @click.self="detail = null">
     <div class="rp-modal">
-      <div class="rp-modal-head"><span>{{ cfg.icon }} รายละเอียด</span><button class="rp-modal-x" @click="detail = null">✕</button></div>
+      <div class="rp-modal-head"><span>{{ cfg.icon }} {{ dash.t[dash.lang].detailsWord }}</span><button class="rp-modal-x" @click="detail = null">✕</button></div>
       <div class="rp-modal-body">
         <div v-for="(c, i) in columns" :key="i" class="rp-modal-row"><span class="rp-modal-k">{{ c }}</span><span class="rp-modal-v">{{ detail[i] === '' || detail[i] == null ? '-' : detail[i] }}</span></div>
       </div>
@@ -59,11 +58,11 @@
 </template>
 
 <script>
-const CONFIGS = {
-  price:   { title: 'รายงานการแก้ไขราคาขาย',   icon: '🏷️', filters: ['date', 'customer', 'width', 'q', 'sku', 'color'], empty: '— ยังไม่มีประวัติการแก้ไขราคาขาย —' },
-  adjust:  { title: 'รายงานการปรับสต๊อกสินค้า', icon: '📦', filters: ['date', 'barcode', 'sku', 'color'], empty: '— ยังไม่มีรายการปรับสต๊อกสินค้า —' },
-  fold:    { title: 'รายงานการแบ่งพับสินค้า',   icon: '✂️', filters: ['date', 'barcode', 'sku', 'color'], empty: '— ยังไม่มีรายการแบ่งพับสินค้า —' },
-  barcode: { title: 'รายงานประวัติบาร์โค้ด',    icon: '🔖', filters: ['barcode'], empty: '— ไม่มีประวัติบาร์โค้ด (พิมพ์บาร์โค้ดเพื่อค้นหา) —' },
+const CONFIG_META = {
+  price:   { icon: '🏷️', filters: ['date', 'customer', 'width', 'q', 'sku', 'color'], titleKey: 'otherReportPriceTitle', emptyKey: 'otherReportPriceEmpty' },
+  adjust:  { icon: '📦', filters: ['date', 'barcode', 'sku', 'color'], titleKey: 'otherReportAdjustTitle', emptyKey: 'otherReportAdjustEmpty' },
+  fold:    { icon: '✂️', filters: ['date', 'barcode', 'sku', 'color'], titleKey: 'otherReportFoldTitle', emptyKey: 'otherReportFoldEmpty' },
+  barcode: { icon: '🔖', filters: ['barcode'], titleKey: 'otherReportBarcodeTitle', emptyKey: 'otherReportBarcodeEmpty' },
 };
 
 export default {
@@ -75,7 +74,12 @@ export default {
       filter: { date: '', customer: '', width: '', q: '', sku: '', barcode: '', color: '' } };
   },
   computed: {
-    cfg() { return CONFIGS[this.reportType] || { title: 'รายงาน', icon: '📄', filters: [], empty: '— ไม่มีข้อมูล —' }; },
+    cfg() {
+      const t = this.dash.t[this.dash.lang];
+      const m = CONFIG_META[this.reportType];
+      if (!m) return { title: t.otherReportDefaultTitle, icon: '📄', filters: [], empty: t.noDataGenericMsg };
+      return { title: t[m.titleKey], icon: m.icon, filters: m.filters, empty: t[m.emptyKey] };
+    },
     emptyMsg() { return this.cfg.empty; },
   },
   watch: { reportType() { this.reset(); } },
