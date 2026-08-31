@@ -1,63 +1,63 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">📄 {{ partyType === 'partner' ? 'ใบลดหนี้คู่ค้า' : 'ใบลดหนี้ลูกค้า' }}</div>
+  <div class="po-titlebar">📄 {{ partyType === 'partner' ? dash.t[dash.lang].creditNotePartnerTitle : dash.t[dash.lang].creditNoteCustomerTitle }}</div>
 
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.doc_date" /></div>
-      <div class="po-field"><label>เลขที่ใบลดหนี้</label><input :value="form.doc_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.doc_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].creditNoteNoLabel }}</label><input :value="form.doc_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
       <div class="po-field"><label>{{ partyLabel }}</label>
-        <input list="cn-parties" v-model="form.party" :placeholder="'เลือก/พิมพ์' + partyLabel" />
+        <input list="cn-parties" v-model="form.party" :placeholder="dash.t[dash.lang].pleaseSelectWord + '/' + partyLabel" />
         <datalist id="cn-parties"><option v-for="p in partyOptions" :key="p" :value="p" /></datalist>
       </div>
-      <div class="po-field"><label>ประเภท</label>
-        <select v-model="form.return_type"><option>No Return</option><option>รับคืนสินค้า</option><option>ส่วนลด</option><option>ปรับราคา</option></select>
+      <div class="po-field"><label>{{ dash.t[dash.lang].typeLabel }}</label>
+        <select v-model="form.return_type"><option>No Return</option><option>{{ dash.t[dash.lang].returnProductWord }}</option><option>{{ dash.t[dash.lang].discountLabel }}</option><option>{{ dash.t[dash.lang].priceAdjustWord }}</option></select>
       </div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เลขที่อินวอยส์</label><input v-model="form.invoice_ref" placeholder="เลขที่อินวอยส์" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].invoiceRefNoLabel }}</label><input v-model="form.invoice_ref" :placeholder="dash.t[dash.lang].invoiceRefNoLabel" /></div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
   </div>
 
   <div class="po-items">
     <table class="po-item-table">
       <thead>
-        <tr><th style="width:40px;">ที่</th><th style="text-align:left;">คำอธิบาย</th><th style="width:180px;">ราคา</th><th style="width:96px;"></th></tr>
+        <tr><th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th><th style="text-align:left;">{{ dash.t[dash.lang].descriptionLabel }}</th><th style="width:180px;">{{ dash.t[dash.lang].priceLabel }}</th><th style="width:96px;"></th></tr>
       </thead>
       <tbody>
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
-          <td><input v-model="row.detail" placeholder="คำอธิบาย" /></td>
+          <td><input v-model="row.detail" :placeholder="dash.t[dash.lang].descriptionLabel" /></td>
           <td><input type="number" v-model.number="row.price" class="po-num" placeholder="0.00" /></td>
           <td class="po-row-actions">
-            <button class="po-ic po-add" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-            <button class="po-ic po-del" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
           </td>
         </tr>
       </tbody>
     </table>
 
     <div class="po-summary">
-      <div class="po-sum-row"><label>รวม</label><input :value="subtotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
+      <div class="po-sum-row"><label>{{ dash.t[dash.lang].totalWord }}</label><input :value="subtotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
       <div class="po-sum-row">
         <label>VAT</label><select v-model="vatMode"><option value="none">None</option><option value="7">7%</option></select>
         <input :value="vatAmount.toFixed(2)" readonly class="po-num po-ro-cell" />
       </div>
-      <div class="po-sum-row po-sum-net"><label>ยอดสุทธิ</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
+      <div class="po-sum-row po-sum-net"><label>{{ dash.t[dash.lang].netTotalLabel }}</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
     </div>
   </div>
 
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
-      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 สร้างใหม่</button>
+      <button class="po-btn po-btn-report" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
+      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].createNewBtn }}</button>
     </div>
   </div>
 </div>
@@ -75,7 +75,7 @@ export default {
     };
   },
   computed: {
-    partyLabel() { return this.partyType === 'partner' ? 'คู่ค้า' : 'ลูกค้า'; },
+    partyLabel() { return this.partyType === 'partner' ? this.dash.t[this.dash.lang].partnerWord : this.dash.t[this.dash.lang].customerWord; },
     subtotal() { return this.items.reduce((s, r) => s + (Number(r.price) || 0), 0); },
     vatAmount() { return this.vatMode === '7' ? this.subtotal * 0.07 : 0; },
     netTotal() { return this.subtotal + this.vatAmount; },
@@ -105,7 +105,7 @@ export default {
         const res = await fetch('/api/credit-notes', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(payload) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.doc_no = d.doc_no; this.saved = true; this.savedMsg = 'บันทึกเรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.doc_no = d.doc_no; this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].savedSuccessMsg; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },

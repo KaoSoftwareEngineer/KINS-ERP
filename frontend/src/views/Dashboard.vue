@@ -1444,6 +1444,13 @@ data() {
             deductSuccessPrefix: 'หักบัญชีเรียบร้อยแล้ว',
             pleaseSelectWord: 'กรุณาเลือก',
             requireDeductAmountMsg: 'กรุณากรอกจำนวนที่หัก',
+            // ---- ใบลดหนี้ลูกค้า/คู่ค้า เฉพาะ ----
+            creditNotePartnerTitle: 'ใบลดหนี้คู่ค้า',
+            creditNoteCustomerTitle: 'ใบลดหนี้ลูกค้า',
+            creditNoteNoLabel: 'เลขที่ใบลดหนี้',
+            returnProductWord: 'รับคืนสินค้า',
+            priceAdjustWord: 'ปรับราคา',
+            createNewBtn: 'สร้างใหม่',
           },
           en: {
             home: 'Home',
@@ -1928,6 +1935,12 @@ data() {
             deductSuccessPrefix: 'Account deducted successfully',
             pleaseSelectWord: 'Please select',
             requireDeductAmountMsg: 'Please enter the deduction amount',
+            creditNotePartnerTitle: 'Vendor Credit Note',
+            creditNoteCustomerTitle: 'Customer Credit Note',
+            creditNoteNoLabel: 'Credit Note No.',
+            returnProductWord: 'Product Return',
+            priceAdjustWord: 'Price Adjustment',
+            createNewBtn: 'Create New',
           }
         }
       };
