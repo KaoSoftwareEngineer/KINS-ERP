@@ -3,32 +3,32 @@
   <div class="rp-titlebar">
     <span>📉 {{ title }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
     <div class="rp-f"><label>{{ partyLabel }}</label><input v-model="filter.party" :placeholder="partyLabel" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>{{ mode === 'partner' ? 'ประเภทเครดิต' : 'ประเภท' }}</label>
-      <select v-model="filter.type" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="t in typeOptions" :key="t" :value="t">{{ t }}</option></select>
+    <div class="rp-f"><label>{{ mode === 'partner' ? dash.t[dash.lang].creditTypeLabel : dash.t[dash.lang].typeLabel }}</label>
+      <select v-model="filter.type" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="t in typeOptions" :key="t" :value="t">{{ t }}</option></select>
     </div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่ใบลดหนี้/อินวอยส์" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button><button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchCreditNoteInvoicePlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button><button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button></div>
   </div>
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" style="min-width:950px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('doc_no')">เลขที่ใบลดหนี้ <span class="rp-sort" :class="{ on: sort.key==='doc_no' }">{{ sortIcon('doc_no') }}</span></th>
-          <th>เลขที่อินวอยส์</th><th>วันที่</th><th>{{ mode === 'partner' ? 'ประเภทเครดิต' : 'ประเภท' }}</th><th>{{ partyLabel }}</th>
-          <th class="rp-r">ยอดรวม</th><th>สถานะ</th><th>สถานะบัญชี</th><th style="width:60px;"></th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('doc_no')">{{ dash.t[dash.lang].creditNoteNoLabel }} <span class="rp-sort" :class="{ on: sort.key==='doc_no' }">{{ sortIcon('doc_no') }}</span></th>
+          <th>{{ dash.t[dash.lang].invoiceRefNoLabel }}</th><th>{{ dash.t[dash.lang].dateLabel }}</th><th>{{ mode === 'partner' ? dash.t[dash.lang].creditTypeLabel : dash.t[dash.lang].typeLabel }}</th><th>{{ partyLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].totalAmountLabel }}</th><th>{{ dash.t[dash.lang].status }}</th><th>{{ dash.t[dash.lang].acctStatusLabel }}</th><th style="width:60px;"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="10" class="rp-empty">— ไม่มีข้อมูลใบลดหนี้ —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="10" class="rp-empty">{{ dash.t[dash.lang].noCreditNoteDataMsg }}</td></tr>
         <tr v-for="(row, idx) in filtered" :key="row.id" :class="{ 'is-sel': selRow === row }" @click="selRow = row">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">{{ row.doc_no }}</td>
@@ -37,21 +37,21 @@
           <td>{{ row.return_type || 'No Return' }}</td>
           <td>{{ row.party || '-' }}</td>
           <td class="rp-r">{{ fmt(row.net_total) }}</td>
-          <td><span class="rp-badge ok">ปกติ</span></td>
+          <td><span class="rp-badge ok">{{ dash.t[dash.lang].normalStatusWord }}</span></td>
           <td><span class="rp-badge" :class="row.invoice_ref ? 'ok' : 'pending'">{{ acctLabel(row) }}</span></td>
-          <td><button class="rp-ic" title="ดูรายละเอียด" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
+          <td><button class="rp-ic" :title="dash.t[dash.lang].viewDetails" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
         </tr>
       </tbody>
-      <tfoot v-if="filtered.length"><tr><td colspan="6" class="rp-r">รวม</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td colspan="3"></td></tr></tfoot>
+      <tfoot v-if="filtered.length"><tr><td colspan="6" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(sumTotal) }}</td><td colspan="3"></td></tr></tfoot>
     </table>
   </div>
 
   <!-- รายการ (คำอธิบาย/ราคา) -->
   <div class="rp-table-wrap rp-rolls">
     <table class="rp-table" style="min-width:600px">
-      <thead><tr><th style="width:40px;">ที่</th><th>คำอธิบาย</th><th class="rp-r">ราคา</th></tr></thead>
+      <thead><tr><th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th><th>{{ dash.t[dash.lang].descriptionLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].priceLabel }}</th></tr></thead>
       <tbody>
-        <tr v-if="!selItems.length"><td colspan="3" class="rp-empty">— เลือกใบลดหนี้ด้านบนเพื่อดูรายการ —</td></tr>
+        <tr v-if="!selItems.length"><td colspan="3" class="rp-empty">{{ dash.t[dash.lang].selectCreditNoteAboveMsg }}</td></tr>
         <tr v-for="(it, i) in selItems" :key="i">
           <td class="rp-c">{{ i + 1 }}</td>
           <td>{{ it.description || it.desc || it.name || '-' }}</td>
@@ -59,25 +59,25 @@
         </tr>
       </tbody>
       <tfoot v-if="selItems.length">
-        <tr><td colspan="2" class="rp-r">รวม</td><td class="rp-r rp-bold">{{ fmt(selSub) }}</td></tr>
+        <tr><td colspan="2" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r rp-bold">{{ fmt(selSub) }}</td></tr>
         <tr v-if="mode === 'customer'"><td colspan="2" class="rp-r">VAT 7%</td><td class="rp-r">{{ fmt(selVat) }}</td></tr>
-        <tr v-if="mode === 'customer'"><td colspan="2" class="rp-r">ยอดสุทธิ</td><td class="rp-r rp-bold">{{ fmt(selNet) }}</td></tr>
+        <tr v-if="mode === 'customer'"><td colspan="2" class="rp-r">{{ dash.t[dash.lang].netTotalLabel }}</td><td class="rp-r rp-bold">{{ fmt(selNet) }}</td></tr>
       </tfoot>
     </table>
   </div>
 
   <!-- รายการตัดบัญชีการชำระเงิน (เฉพาะลูกค้า) -->
   <template v-if="mode === 'customer' && selRow">
-    <div class="rp-subtitle">รายการตัดบัญชีการชำระเงิน</div>
+    <div class="rp-subtitle">{{ dash.t[dash.lang].paymentDeductionListTitle }}</div>
     <div class="rp-table-wrap">
       <table class="rp-table" style="min-width:700px">
-        <thead><tr><th style="width:40px;">ที่</th><th>วันที่</th><th>ประเภท</th><th>เลขที่บิล</th><th class="rp-r">ยอดบิล</th><th class="rp-r">หักไปแล้ว</th><th class="rp-r">คงเหลือ</th></tr></thead>
+        <thead><tr><th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th><th>{{ dash.t[dash.lang].dateLabel }}</th><th>{{ dash.t[dash.lang].typeLabel }}</th><th>{{ dash.t[dash.lang].billNoLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].billAmountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].deductedAlreadyLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].remainingLabel }}</th></tr></thead>
         <tbody>
-          <tr v-if="!selRow.invoice_ref"><td colspan="7" class="rp-empty">— ไม่มีรายการตัดบัญชี —</td></tr>
+          <tr v-if="!selRow.invoice_ref"><td colspan="7" class="rp-empty">{{ dash.t[dash.lang].noDeductionListMsg }}</td></tr>
           <tr v-else>
             <td class="rp-c">1</td>
             <td class="rp-c">{{ fmtDate(selRow.doc_date) }}</td>
-            <td>{{ /^p/i.test(selRow.invoice_ref) ? 'ขายปลีก' : 'ขายส่ง' }}</td>
+            <td>{{ /^p/i.test(selRow.invoice_ref) ? dash.t[dash.lang].retailSaleWord : dash.t[dash.lang].wholesaleWord }}</td>
             <td class="rp-mono">{{ selRow.invoice_ref }}</td>
             <td class="rp-r">{{ billTotal(selRow.invoice_ref) != null ? fmt(billTotal(selRow.invoice_ref)) : '-' }}</td>
             <td class="rp-r">{{ fmt(selRow.net_total) }}</td>
@@ -97,8 +97,8 @@ export default {
   props: { mode: { type: String, default: 'customer' } }, // customer | partner
   data() { return { rows: [], invMap: {}, selRow: null, filter: { date: '', party: '', type: '', q: '' }, sort: { key: 'doc_no', dir: 'desc' } }; },
   computed: {
-    title() { return this.mode === 'partner' ? 'รายงานใบลดหนี้คู่ค้า' : 'รายงานใบลดหนี้ลูกค้า'; },
-    partyLabel() { return this.mode === 'partner' ? 'คู่ค้า' : 'ลูกค้า'; },
+    title() { return this.mode === 'partner' ? this.dash.t[this.dash.lang].creditNoteReportPartnerTitle : this.dash.t[this.dash.lang].creditNoteReportCustomerTitle; },
+    partyLabel() { return this.mode === 'partner' ? this.dash.t[this.dash.lang].partnerWord : this.dash.t[this.dash.lang].customerWord; },
     typeOptions() { return [...new Set(this.rows.map(r => r.return_type).filter(Boolean))]; },
     filtered() {
       let list = this.rows.slice(); const f = this.filter;
@@ -137,7 +137,7 @@ export default {
     billTotal(ref) { return this.invMap[ref] != null ? this.invMap[ref] : null; },
     itemsOf(r) { if (r._items) return r._items; let a = []; try { a = typeof r.items_json === 'string' ? JSON.parse(r.items_json || '[]') : (r.items_json || []); } catch (e) {} r._items = Array.isArray(a) ? a : []; return r._items; },
     itAmount(it) { return Number(it.amount != null ? it.amount : (it.price != null ? it.price : it.total)) || 0; },
-    acctLabel(r) { if (this.mode === 'partner') return r.invoice_ref ? 'หักแล้ว' : 'รอหัก'; return r.invoice_ref ? 'หักยอดแล้ว' : 'รอหัก'; },
+    acctLabel(r) { const t = this.dash.t[this.dash.lang]; if (this.mode === 'partner') return r.invoice_ref ? t.deductedWord : t.pendingDeductWord; return r.invoice_ref ? t.deductedAmountWord : t.pendingDeductWord; },
     applyFilter() { this.selRow = null; },
     fmt(v) { return (Number(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     fmtDate(d) { if (!d) return ''; const s = String(d); const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : s.slice(0, 10); },
