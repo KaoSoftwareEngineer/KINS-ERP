@@ -1,34 +1,34 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">🧵 เปิดใบสั่งซื้อ — ผ้าดิบ</div>
+  <div class="po-titlebar">🧵 {{ dash.t[dash.lang].openPoTitle }} — {{ dash.t[dash.lang].rawFabricWord }}</div>
 
   <!-- ส่วนหัว -->
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.po_date" /></div>
-      <div class="po-field"><label>เลขที่สั่งซื้อ</label><input :value="form.po_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.po_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].poNoLabel }}</label><input :value="form.po_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>คู่ค้า</label>
-        <input list="por-vendors" v-model="form.vendor" placeholder="เลือก/พิมพ์คู่ค้า" />
+      <div class="po-field"><label>{{ dash.t[dash.lang].partnerWord }}</label>
+        <input list="por-vendors" v-model="form.vendor" :placeholder="dash.t[dash.lang].vendorPlaceholder" />
         <datalist id="por-vendors"><option v-for="v in vendorOptions" :key="v" :value="v" /></datalist>
       </div>
-      <div class="po-field"><label>เงื่อนไขบัญชี</label>
+      <div class="po-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label>
         <select v-model="form.account_term">
-          <option value="">— เลือก —</option><option>เงินสด</option><option>เครดิต 30 วัน</option><option>เครดิต 60 วัน</option>
+          <option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].cashOptionWord }}</option><option>{{ dash.t[dash.lang].credit30Word }}</option><option>{{ dash.t[dash.lang].credit60Word }}</option>
         </select>
       </div>
-      <div class="po-field"><label>สถานที่จัดส่ง</label>
-        <select v-model="form.ship_to"><option value="">— เลือก —</option><option>Warehouse</option><option>Factory</option></select>
+      <div class="po-field"><label>{{ dash.t[dash.lang].shipToLabel }}</label>
+        <select v-model="form.ship_to"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>Warehouse</option><option>Factory</option></select>
       </div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เลขที่อ้างอิง</label><input v-model="form.ref_no" /></div>
-      <div class="po-field"><label>วันที่จัดส่ง</label><input type="date" v-model="form.ship_date" /></div>
-      <label class="po-approve"><input type="checkbox" v-model="form.approved" /> อนุมัติ</label>
+      <div class="po-field"><label>{{ dash.t[dash.lang].refNoLabel }}</label><input v-model="form.ref_no" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].shipDateLabel }}</label><input type="date" v-model="form.ship_date" /></div>
+      <label class="po-approve"><input type="checkbox" v-model="form.approved" /> {{ dash.t[dash.lang].approveWord }}</label>
     </div>
   </div>
 
@@ -37,34 +37,34 @@
     <table class="po-item-table">
       <thead>
         <tr>
-          <th style="width:36px;">ที่</th>
-          <th>รหัสสินค้า</th><th>ชื่อ</th><th>โครงสร้างผ้า</th><th>ส่วนประกอบ</th><th>หน้ากว้าง</th>
-          <th>จำนวน</th><th>ราคา/หน่วย</th><th>ราคา</th><th>สำหรับผ้ารหัส</th><th>รหัสสี</th>
+          <th style="width:36px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].nameLabel }}</th><th>{{ dash.t[dash.lang].structureLabel }}</th><th>{{ dash.t[dash.lang].compositionLabel }}</th><th>{{ dash.t[dash.lang].widthLabel }}</th>
+          <th>{{ dash.t[dash.lang].qtyLabel }}</th><th>{{ dash.t[dash.lang].pricePerUnitLabel }}</th><th>{{ dash.t[dash.lang].priceLabel }}</th><th>{{ dash.t[dash.lang].forFabricSkuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th>
           <th style="width:70px;"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, idx) in items" :key="row._key">
           <td class="po-no">{{ idx + 1 }}</td>
-          <td><input v-model="row.sku" @blur="lookupSku(row)" placeholder="รหัส" /></td>
-          <td><input v-model="row.name" class="po-ro-cell" placeholder="ชื่อ" /></td>
-          <td><input v-model="row.structure" class="po-ro-cell" placeholder="โครงสร้าง" /></td>
-          <td><input v-model="row.composition" class="po-ro-cell" placeholder="ส่วนประกอบ" /></td>
-          <td><input v-model="row.width" class="po-ro-cell" placeholder="หน้ากว้าง" /></td>
+          <td><input v-model="row.sku" @blur="lookupSku(row)" :placeholder="dash.t[dash.lang].skuPlaceholderShort" /></td>
+          <td><input v-model="row.name" class="po-ro-cell" :placeholder="dash.t[dash.lang].nameLabel" /></td>
+          <td><input v-model="row.structure" class="po-ro-cell" :placeholder="dash.t[dash.lang].structureLabel" /></td>
+          <td><input v-model="row.composition" class="po-ro-cell" :placeholder="dash.t[dash.lang].compositionLabel" /></td>
+          <td><input v-model="row.width" class="po-ro-cell" :placeholder="dash.t[dash.lang].widthLabel" /></td>
           <td><input type="number" v-model.number="row.qty" class="po-num" /></td>
           <td><input type="number" v-model.number="row.unit_price" class="po-num" /></td>
           <td><input :value="lineTotal(row).toFixed(2)" readonly class="po-num po-ro-cell" /></td>
-          <td><input v-model="row.for_sku" placeholder="ผ้ารหัส" /></td>
+          <td><input v-model="row.for_sku" :placeholder="dash.t[dash.lang].fabricCodePlaceholder" /></td>
           <td>
             <select v-if="row.shadeOptions && row.shadeOptions.length" v-model="row.color">
-              <option value="">— เลือกสี —</option>
+              <option value="">{{ dash.t[dash.lang].selectColorOpt }}</option>
               <option v-for="s in row.shadeOptions" :key="s" :value="s">{{ s }}</option>
             </select>
-            <input v-else v-model="row.color" placeholder="รหัสสี" />
+            <input v-else v-model="row.color" :placeholder="dash.t[dash.lang].colorCodeLabel" />
           </td>
           <td class="po-row-actions">
-            <button class="po-ic po-add" title="เพิ่มแถว" @click="addRow(idx)">＋</button>
-            <button class="po-ic po-del" title="ลบแถว" @click="removeRow(idx)">－</button>
+            <button class="po-ic po-add" :title="dash.t[dash.lang].addRowTitle" @click="addRow(idx)">＋</button>
+            <button class="po-ic po-del" :title="dash.t[dash.lang].removeRowTitle" @click="removeRow(idx)">－</button>
           </td>
         </tr>
       </tbody>
@@ -72,10 +72,10 @@
 
     <!-- สรุปยอด -->
     <div class="po-summary">
-      <div class="po-sum-row"><label>รวม</label><input :value="subtotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
+      <div class="po-sum-row"><label>{{ dash.t[dash.lang].totalWord }}</label><input :value="subtotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
       <div class="po-sum-row">
-        <label>ส่วนลด</label>
-        <select v-model="discountMode"><option value="none">None</option><option value="percent">%</option><option value="amount">บาท</option></select>
+        <label>{{ dash.t[dash.lang].discountLabel }}</label>
+        <select v-model="discountMode"><option value="none">None</option><option value="percent">%</option><option value="amount">{{ dash.t[dash.lang].bahtWord }}</option></select>
         <input type="number" v-model.number="discountValue" :disabled="discountMode==='none'" class="po-num" />
         <input :value="discountAmount.toFixed(2)" readonly class="po-num po-ro-cell" />
       </div>
@@ -84,7 +84,7 @@
         <select v-model="vatMode"><option value="none">None</option><option value="7">7%</option></select>
         <input :value="vatAmount.toFixed(2)" readonly class="po-num po-ro-cell" />
       </div>
-      <div class="po-sum-row po-sum-net"><label>ยอดสุทธิ</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
+      <div class="po-sum-row po-sum-net"><label>{{ dash.t[dash.lang].netTotalLabel }}</label><input :value="netTotal.toFixed(2)" readonly class="po-num po-ro-cell" /></div>
     </div>
   </div>
 
@@ -92,8 +92,8 @@
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button class="po-btn po-btn-report" @click="openReport()">👁 รายงาน</button>
-      <button class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
+      <button class="po-btn po-btn-report" @click="openReport()">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+      <button class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
     </div>
   </div>
 </div>
@@ -161,7 +161,7 @@ export default {
         const res = await fetch('/api/purchase-orders', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify(payload) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.po_no = d.po_no; this.savedMsg = 'ระบบได้ทำการเพิ่มข้อมูลเรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.po_no = d.po_no; this.savedMsg = this.dash.t[this.dash.lang].savedMsgText; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
