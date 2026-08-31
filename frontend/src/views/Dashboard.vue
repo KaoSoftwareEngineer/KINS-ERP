@@ -1242,6 +1242,9 @@ data() {
             transferPdfBtn: 'ใบย้ายสินค้า',
             transferNewBtn: 'ย้ายใหม่',
             noProductsFound: 'ไม่พบสินค้า',
+            moveRawFabricTitle: 'ย้ายผ้าดิบ',
+            noRawTransferItemsMsg: 'ยังไม่มีรายการ — กด "เลือกผ้าดิบ" เพื่อเพิ่มผ้าที่จะย้าย',
+            transferRawPdfBtn: 'ใบย้ายผ้าดิบ',
           },
           en: {
             home: 'Home',
@@ -1539,6 +1542,9 @@ data() {
             transferPdfBtn: 'Transfer Slip',
             transferNewBtn: 'New Transfer',
             noProductsFound: 'No products found',
+            moveRawFabricTitle: 'Transfer Raw Fabric',
+            noRawTransferItemsMsg: 'No items yet — click "Select Raw Fabric" to add fabric to transfer',
+            transferRawPdfBtn: 'Raw Fabric Transfer Slip',
           }
         }
       };
