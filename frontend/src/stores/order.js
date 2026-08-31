@@ -213,8 +213,8 @@ export const useOrderStore = defineStore('order', {
       const html = `
         <style>
           .slip { color:#111; }
-          .cust { font-size:12px; font-weight:700; padding-bottom:4px; border-bottom:1px solid #111; margin-bottom:5px; }
-          .meta { display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:6px; }
+          .cust { font-size:12px; font-weight:700; line-height:1.6; padding-bottom:6px; border-bottom:1px solid #111; margin-bottom:5px; }
+          .meta { display:flex; justify-content:space-between; font-size:10.5px; line-height:1.5; margin-bottom:6px; }
           table { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; border-top:1px solid #111; border-left:1px solid #111; }
           th, td { border-right:1px solid #111; border-bottom:1px solid #111; padding:5px 5px; font-size:10px; text-align:center; word-break:break-word; line-height:1.35; }
           th { font-weight:600; background:#f0f0f0; }
@@ -302,8 +302,8 @@ export const useOrderStore = defineStore('order', {
       const html = `
         <style>
           .slip { color:#111; }
-          .cust { font-size: 12px; font-weight:700; padding-bottom:4px; border-bottom:1px solid #111; margin-bottom: 5px; }
-          .ohead { display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 6px; }
+          .cust { font-size: 12px; font-weight:700; line-height:1.6; padding-bottom:6px; border-bottom:1px solid #111; margin-bottom: 5px; }
+          .ohead { display: flex; justify-content: space-between; font-size: 10.5px; line-height:1.5; margin-bottom: 6px; }
           table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; border-top: 1px solid #111; border-left: 1px solid #111; }
           th, td { border-right: 1px solid #111; border-bottom: 1px solid #111; padding: 5px 5px; font-size: 10px; text-align: center; word-break: break-word; line-height: 1.35; }
           th { font-weight: 600; background:#f0f0f0; }

@@ -258,10 +258,11 @@ export const useFabricStore = defineStore('fabric', {
       win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>พิมพ์บาร์โค้ด (${items.length})</title>
         <style>
           * { box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 16px; }
+          /* Noto Sans Thai + line-height 1.5: กันสระบน/ล่างภาษาไทยล้นไปทับบรรทัดถัดไป/เส้นขอบ */
+          body { font-family: 'Noto Sans Thai', 'Segoe UI', Tahoma, sans-serif; margin: 16px; line-height: 1.5; }
           .sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
           .label { border: 1px solid #ddd; border-radius: 6px; padding: 10px; text-align: center; page-break-inside: avoid; }
-          .lb-name { font-size: 12px; color: #333; margin-bottom: 6px; min-height: 30px; word-break: break-word; }
+          .lb-name { font-size: 12px; color: #333; line-height: 1.5; margin-bottom: 6px; min-height: 30px; word-break: break-word; }
           .lb-bars { display: flex; align-items: flex-end; justify-content: center; height: 44px; gap: 0; }
           .lb-bars .bar { display: inline-block; height: 44px; }
           .lb-code { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-top: 4px; }

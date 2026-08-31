@@ -115,7 +115,8 @@ export async function buildFittedPdf(innerHtml, { widthMm = 72.1, padMm = 3, fil
   doc.write(`<!doctype html><html><head><meta charset="utf-8"><style>
       *{margin:0;padding:0;box-sizing:border-box;}
       html,body{background:#fff;}
-      body{font-family:'Noto Sans Thai','Tahoma',sans-serif;color:#111;}
+      /* line-height 1.5: ภาษาไทยมีสระบน/ล่าง+วรรณยุกต์ ถ้าแคบกว่านี้ตัวอักษรจะล้นไปทับเส้นขอบ */
+      body{font-family:'Noto Sans Thai','Tahoma',sans-serif;color:#111;line-height:1.5;}
       #wrap{width:${widthMm}mm;padding:${padMm}mm;background:#fff;}
     </style></head><body><div id="wrap">${innerHtml}</div></body></html>`);
   doc.close();
@@ -163,7 +164,8 @@ export async function buildDocPdf(innerHtml, { filename = 'document.pdf', open =
   doc.write(`<!doctype html><html><head><meta charset="utf-8"><style>
       *{margin:0;padding:0;box-sizing:border-box;}
       html,body{background:#fff;}
-      body{font-family:'Noto Sans Thai','Tahoma',sans-serif;color:#111;font-size:13px;}
+      /* line-height 1.5: ภาษาไทยมีสระบน/ล่าง+วรรณยุกต์ ถ้าแคบกว่านี้ตัวอักษรจะล้นไปทับเส้นขอบ */
+      body{font-family:'Noto Sans Thai','Tahoma',sans-serif;color:#111;font-size:13px;line-height:1.5;}
       #wrap{width:${contentW}mm;background:#fff;}
     </style></head><body><div id="wrap">${innerHtml}</div></body></html>`);
   doc.close();
@@ -241,15 +243,16 @@ export async function buildRollLabelsPdf(labels, { open = true, download = false
              display:flex; flex-direction:column; color:#000; font-family:'Noto Sans Thai','Tahoma',sans-serif; }
       .lbl-brand { display:flex; align-items:center; gap:1.6mm; background:#f2f3f7; border:1px solid #d6dae6; border-radius:1.4mm; padding:.8mm 1.8mm; margin-bottom:1.2mm; }
       .lbl-brand svg { width:5.8mm; height:5.8mm; flex:none; }
-      .lbl-co { font-size:8pt; font-weight:800; letter-spacing:.1px; color:#1a1f2e; line-height:1.05; }
-      .lbl-hd { font-size:12pt; line-height:1.05; margin-bottom:1.6mm; }
+      /* line-height ≥1.3 ทุกบรรทัด: ภาษาไทยมีสระบน/ล่าง ถ้าแคบกว่านี้จะล้นไปทับเส้นคั่น/บรรทัดถัดไป */
+      .lbl-co { font-size:8pt; font-weight:800; letter-spacing:.1px; color:#1a1f2e; line-height:1.3; }
+      .lbl-hd { font-size:12pt; line-height:1.3; margin-bottom:1.2mm; }
       .lbl-hd b { font-weight:800; }
       .k { color:#000; font-weight:700; margin-right:1.1mm; }
-      .lbl-color { font-size:8.5pt; padding-bottom:1mm; border-bottom:1.4px solid #000; overflow:hidden; white-space:nowrap; }
+      .lbl-color { font-size:8.5pt; line-height:1.4; padding-bottom:1.6mm; border-bottom:1.4px solid #000; overflow:hidden; white-space:nowrap; }
       .lbl-roll { float:right; color:#555; font-size:7.5pt; font-weight:700; }
       .lbl-body { flex:1; display:flex; gap:2mm; padding-top:1.4mm; min-height:0; }
       .lbl-meta { flex:1; display:flex; flex-direction:column; justify-content:flex-start; font-size:10pt; }
-      .lbl-meta > div { line-height:1.1; margin-bottom:1.9mm; }
+      .lbl-meta > div { line-height:1.35; margin-bottom:1.4mm; }
       .lbl-meta > div:last-child { margin-bottom:0; }
       .lbl-struct { font-size:8pt; }
       .lbl-right { width:26mm; display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:1.5px solid #000; padding-left:2mm; }

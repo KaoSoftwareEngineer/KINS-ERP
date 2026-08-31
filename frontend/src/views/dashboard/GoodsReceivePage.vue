@@ -320,12 +320,13 @@ export default {
       win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>สติ๊กเกอร์ QR ไม้ผ้า (${this.savedRolls.length})</title>
         <style>
           * { box-sizing: border-box; }
-          body { font-family: 'Noto Sans Thai','Segoe UI',sans-serif; margin: 12px; }
+          /* line-height 1.5: กันสระบน/ล่างภาษาไทยล้นไปทับบรรทัดถัดไป/เส้นขอบ */
+          body { font-family: 'Noto Sans Thai','Segoe UI',sans-serif; margin: 12px; line-height: 1.5; }
           .sheet { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
           .st { border: 1px solid #333; border-radius: 6px; padding: 8px; text-align: center; page-break-inside: avoid; }
           .st-head { min-height: 34px; }
-          .st-sku { font-size: 12px; font-weight: 800; }
-          .st-name { font-size: 10px; color: #444; line-height: 1.1; }
+          .st-sku { font-size: 12px; font-weight: 800; line-height: 1.4; }
+          .st-name { font-size: 10px; color: #444; line-height: 1.4; }
           .st-qr { width: 100%; max-width: 130px; aspect-ratio: 1/1; object-fit: contain; margin: 4px auto; display: block; }
           .st-info { text-align: left; font-size: 10.5px; line-height: 1.35; }
           .st-code { font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; margin-top: 4px; letter-spacing: .5px; }

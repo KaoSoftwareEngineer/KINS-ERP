@@ -7131,14 +7131,16 @@ data() {
   .oe-slip-customer {
     font-weight: 700;
     font-size: 16px;
+    /* line-height 1.6: กันสระบน/ล่างภาษาไทยล้นไปทับเส้นใต้ตอนพิมพ์ */
+    line-height: 1.6;
     text-align: center;
     border-bottom: 2px solid #000;
     padding-bottom: 8px;
     margin-bottom: 8px;
   }
-  .oe-slip-meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; }
+  .oe-slip-meta { display: flex; justify-content: space-between; font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
   .oe-slip-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .oe-slip-table th, .oe-slip-table td { border: 1px solid #000; padding: 4px 6px; text-align: left; }
+  .oe-slip-table th, .oe-slip-table td { border: 1px solid #000; padding: 4px 6px; line-height: 1.5; text-align: left; }
   .oe-slip-pack { text-align: center; }
   .oe-slip-pack svg { width: 16px; height: 16px; }
   .oe-slip-total { border: 1px solid #000; border-top: none; text-align: center; font-weight: 700; padding: 6px; font-size: 12.5px; }

@@ -262,8 +262,9 @@ export default {
       const win = window.open('', '_blank', 'width=400,height=460');
       if (!win) { alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์'); return; }
       win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ช่อง ${loc.location_code}</title>
-        <style>body{font-family:'Noto Sans Thai',sans-serif;text-align:center;margin:20px}
-        .code{font-size: 17px;font-weight:800;margin-bottom:6px}.sub{font-size:12px;color:#555;margin-bottom:10px}
+        <style>/* line-height 1.5: กันสระบน/ล่างภาษาไทยล้นทับกัน */
+        body{font-family:'Noto Sans Thai',sans-serif;text-align:center;margin:20px;line-height:1.5}
+        .code{font-size: 17px;font-weight:800;line-height:1.4;margin-bottom:6px}.sub{font-size:12px;color:#555;line-height:1.5;margin-bottom:10px}
         img{width:240px;height:240px}.qtext{font-family:monospace;font-size: 12px;margin-top:8px}
         @media print{.no-print{display:none}}</style></head><body>
         <div class="no-print" style="margin-bottom:10px"><button onclick="window.print()" style="padding:8px 20px;font-size: 12px;cursor:pointer">🖨️ พิมพ์</button></div>
