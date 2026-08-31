@@ -4,11 +4,11 @@
   <div class="set-topbar">
     <div class="set-topbar-title">
       <h1>⚙️ {{ dash.t[dash.lang].settingsTitle }}</h1>
-      <p class="set-subtitle">จัดการบัญชี ความปลอดภัย และนำเข้าข้อมูลของระบบ</p>
+      <p class="set-subtitle">{{ dash.t[dash.lang].settingsSubtitle }}</p>
     </div>
     <div class="set-import-actions">
-      <button class="set-import-btn" @click="dash.xlTogglePanel"><span class="set-import-ic">📊</span> นำเข้าข้อมูลผ้า (Excel)</button>
-      <button class="set-import-btn" @click="customer.cmTogglePanel"><span class="set-import-ic">👥</span> นำเข้าข้อมูลลูกค้า (Excel)</button>
+      <button class="set-import-btn" @click="dash.xlTogglePanel"><span class="set-import-ic">📊</span> {{ dash.t[dash.lang].importFabricExcelLabel }}</button>
+      <button class="set-import-btn" @click="customer.cmTogglePanel"><span class="set-import-ic">👥</span> {{ dash.t[dash.lang].importCustomerExcelLabel }}</button>
     </div>
   </div>
 
@@ -29,15 +29,14 @@
         </div>
         <div class="set-profile-body">
           <div class="set-profile-name">{{ dash.currentUser.name || '-' }}</div>
-          <span class="set-role-badge">{{ dash.currentUser.role || 'ผู้ใช้งาน' }}</span>
+          <span class="set-role-badge">{{ dash.currentUser.role || dash.t[dash.lang].userWord }}</span>
           <div class="set-info-grid">
-            <div class="set-info"><span class="set-info-lbl">อีเมล</span><span class="set-info-val">{{ dash.currentUser.email || '-' }}</span></div>
-            <div class="set-info"><span class="set-info-lbl">เบอร์โทร</span><span class="set-info-val">{{ dash.currentUser.phone || '-' }}</span></div>
+            <div class="set-info"><span class="set-info-lbl">{{ dash.t[dash.lang].email }}</span><span class="set-info-val">{{ dash.currentUser.email || '-' }}</span></div>
+            <div class="set-info"><span class="set-info-lbl">{{ dash.t[dash.lang].phoneLabel }}</span><span class="set-info-val">{{ dash.currentUser.phone || '-' }}</span></div>
           </div>
         </div>
       </div>
 
-      <!-- โหมดแก้ไข -->
       <div v-else class="set-edit">
         <div class="set-avatar-edit">
           <div class="set-avatar">
@@ -46,34 +45,33 @@
           </div>
           <label class="set-upload-btn">
             <input type="file" accept="image/*" @change="dash.settingsHandleAvatarFile" hidden />
-            📷 เปลี่ยนรูปโปรไฟล์
+            {{ dash.t[dash.lang].changeProfilePicLabel }}
           </label>
         </div>
         <div class="set-form-grid">
           <div class="fr-field-group">
-            <label>ชื่อ-นามสกุล</label>
-            <input type="text" v-model="dash.settingsEditForm.name" placeholder="ชื่อ-นามสกุล" />
+            <label>{{ dash.t[dash.lang].fullNameLabel }}</label>
+            <input type="text" v-model="dash.settingsEditForm.name" :placeholder="dash.t[dash.lang].fullNameLabel" />
           </div>
           <div class="fr-field-group">
-            <label>เบอร์โทร</label>
+            <label>{{ dash.t[dash.lang].phoneLabel }}</label>
             <input type="tel" v-model="dash.settingsEditForm.phone" placeholder="0812345678" />
           </div>
         </div>
         <div class="set-edit-actions">
           <button class="btn-small btn-primary" :disabled="dash.settingsEditSaving" @click="dash.settingsSaveProfile">
-            {{ dash.settingsEditSaving ? 'กำลังบันทึก...' : '💾 บันทึก' }}
+            {{ dash.settingsEditSaving ? dash.t[dash.lang].savingWord : '💾 ' + dash.t[dash.lang].save }}
           </button>
-          <button class="btn-small" @click="dash.settingsCloseEdit">ยกเลิก</button>
+          <button class="btn-small" @click="dash.settingsCloseEdit">{{ dash.t[dash.lang].cancelWord }}</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== ความปลอดภัย ===== -->
     <div class="section set-card">
       <div class="set-card-head"><h2><span class="set-ic">🔒</span> {{ dash.t[dash.lang].security }}</h2></div>
       <div class="set-row">
         <div class="set-row-info">
-          <div class="set-row-title">รหัสผ่าน</div>
+          <div class="set-row-title">{{ dash.t[dash.lang].passwordLabel }}</div>
           <div class="set-row-desc">{{ dash.t[dash.lang].accountNormal }}</div>
         </div>
         <button class="btn-small">{{ dash.t[dash.lang].changePassword }}</button>
@@ -100,34 +98,31 @@
   <div class="erp-overlay" v-if="dash.xlShowPanel" @click.self="dash.xlTogglePanel">
     <div class="erp-modal erp-modal-wide">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">📊</span> นำเข้าข้อมูลผ้าจากไฟล์ Excel</span>
+        <span><span class="erp-head-ic">📊</span> {{ dash.t[dash.lang].importFabricFromExcelTitle }}</span>
         <button class="erp-x" @click="dash.xlTogglePanel">✕</button>
       </div>
       <div class="erp-modal-body">
-        <div class="imp-step-title">📎 เลือกไฟล์ Excel ที่จะนำเข้า</div>
+        <div class="imp-step-title">{{ dash.t[dash.lang].selectExcelFileToImportLabel }}</div>
         <label class="imp-dropzone" :class="{ dragging: dragXl, 'has-file': dash.xlFile }"
                @dragover.prevent="dragXl = true" @dragleave.prevent="dragXl = false" @drop.prevent="onDropXl">
           <input :key="dash.xlFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="dash.xlHandleFile" hidden />
           <div class="imp-dz-icon">{{ dash.xlFile ? '📗' : '📁' }}</div>
           <div v-if="!dash.xlFile" class="imp-dz-text">
-            <span class="imp-dz-main"><strong>คลิกเพื่อเลือกไฟล์</strong> หรือ ลากไฟล์มาวางที่นี่</span>
-            <span class="imp-dz-sub">รองรับไฟล์ .xlsx, .xls, .csv</span>
+            <span class="imp-dz-main"><strong>{{ dash.t[dash.lang].clickToSelectFileLabel }}</strong> {{ dash.t[dash.lang].orDragFileHereLabel }}</span>
+            <span class="imp-dz-sub">{{ dash.t[dash.lang].supportedFileTypesLabel }}</span>
           </div>
           <div v-else class="imp-dz-text">
             <span class="imp-dz-main imp-dz-file">✓ {{ dash.xlFile.name }}</span>
-            <span class="imp-dz-sub">คลิกเพื่อเปลี่ยนไฟล์ — แล้วกดปุ่ม "นำเข้าข้อมูล" ด้านล่าง</span>
+            <span class="imp-dz-sub">{{ dash.t[dash.lang].clickToChangeFileHint }}</span>
           </div>
         </label>
-        <p class="imp-hint">
-          รูปแบบไฟล์: แถวแรกเป็นหัวคอลัมน์ตามลำดับ — ที่, ประเภท, รหัสสินค้า, จำนวนสี, ชื่อ, โครงสร้างผ้า, ส่วนประกอบ, หน้ากว้าง, Finishing, น้ำหนัก, หน่วย, รูป
-          (รหัสสินค้าซ้ำ = อัปเดตข้อมูลเดิม)
-        </p>
+        <p class="imp-hint">{{ dash.t[dash.lang].fabricImportHintMsg }}</p>
         <p v-if="dash.xlImportMessage" class="xl-import-message" :class="{ 'is-error': dash.xlImportMessage.indexOf('⚠️') === 0 }">{{ dash.xlImportMessage }}</p>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="dash.xlTogglePanel">ปิด</button>
+        <button class="erp-btn erp-btn-cancel" @click="dash.xlTogglePanel">{{ dash.t[dash.lang].close }}</button>
         <button class="erp-btn erp-btn-save" :disabled="dash.xlImporting" @click="dash.xlImportFile">
-          {{ dash.xlImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
+          {{ dash.xlImporting ? dash.t[dash.lang].importingWord : dash.t[dash.lang].importDataLabel }}
         </button>
       </div>
     </div>
@@ -137,34 +132,31 @@
   <div class="erp-overlay" v-if="customer.cmShowPanel" @click.self="customer.cmTogglePanel">
     <div class="erp-modal erp-modal-wide">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">👥</span> นำเข้าข้อมูลลูกค้าจากไฟล์ Excel</span>
+        <span><span class="erp-head-ic">👥</span> {{ dash.t[dash.lang].importCustomerFromExcelTitle }}</span>
         <button class="erp-x" @click="customer.cmTogglePanel">✕</button>
       </div>
       <div class="erp-modal-body">
-        <div class="imp-step-title">📎 เลือกไฟล์ Excel ที่จะนำเข้า</div>
+        <div class="imp-step-title">{{ dash.t[dash.lang].selectExcelFileToImportLabel }}</div>
         <label class="imp-dropzone" :class="{ dragging: dragCm, 'has-file': customer.cmFile }"
                @dragover.prevent="dragCm = true" @dragleave.prevent="dragCm = false" @drop.prevent="onDropCm">
           <input :key="customer.cmFileInputKey" type="file" accept=".xlsx,.xls,.csv" @change="customer.cmHandleFile" hidden />
           <div class="imp-dz-icon">{{ customer.cmFile ? '📗' : '📁' }}</div>
           <div v-if="!customer.cmFile" class="imp-dz-text">
-            <span class="imp-dz-main"><strong>คลิกเพื่อเลือกไฟล์</strong> หรือ ลากไฟล์มาวางที่นี่</span>
-            <span class="imp-dz-sub">รองรับไฟล์ .xlsx, .xls, .csv</span>
+            <span class="imp-dz-main"><strong>{{ dash.t[dash.lang].clickToSelectFileLabel }}</strong> {{ dash.t[dash.lang].orDragFileHereLabel }}</span>
+            <span class="imp-dz-sub">{{ dash.t[dash.lang].supportedFileTypesLabel }}</span>
           </div>
           <div v-else class="imp-dz-text">
             <span class="imp-dz-main imp-dz-file">✓ {{ customer.cmFile.name }}</span>
-            <span class="imp-dz-sub">คลิกเพื่อเปลี่ยนไฟล์ — แล้วกดปุ่ม "นำเข้าข้อมูล" ด้านล่าง</span>
+            <span class="imp-dz-sub">{{ dash.t[dash.lang].clickToChangeFileHint }}</span>
           </div>
         </label>
-        <p class="imp-hint">
-          คอลัมน์ A = รหัสลูกค้า (เลข 4 หลักนำหน้า) + ชื่อลูกค้า เช่น "2114 Mr.Hamad", คอลัมน์ B = ที่อยู่จัดส่ง
-          — ระบบจะแยกรหัสและชื่อให้อัตโนมัติ และแจ้งเตือนหากพบรหัสลูกค้าซ้ำ
-        </p>
+        <p class="imp-hint">{{ dash.t[dash.lang].customerImportHintMsg }}</p>
         <p v-if="customer.cmImportMessage" class="xl-import-message" :class="{ 'is-error': customer.cmImportMessage.indexOf('⚠️') === 0 }">{{ customer.cmImportMessage }}</p>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="customer.cmTogglePanel">ปิด</button>
+        <button class="erp-btn erp-btn-cancel" @click="customer.cmTogglePanel">{{ dash.t[dash.lang].close }}</button>
         <button class="erp-btn erp-btn-save" :disabled="customer.cmImporting" @click="customer.cmImportFile">
-          {{ customer.cmImporting ? 'กำลังนำเข้า...' : '⬆️ นำเข้าข้อมูล' }}
+          {{ customer.cmImporting ? dash.t[dash.lang].importingWord : dash.t[dash.lang].importDataLabel }}
         </button>
       </div>
     </div>
