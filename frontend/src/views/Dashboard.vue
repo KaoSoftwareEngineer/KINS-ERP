@@ -1346,6 +1346,12 @@ data() {
             noGroupsYetMsg: 'ยังไม่มีกลุ่ม — กด "เพิ่มกลุ่ม" เพื่อเริ่มกำหนด',
             addGroupBtn: 'เพิ่มกลุ่ม',
             savedSuccessMsg: 'บันทึกเรียบร้อยแล้ว',
+            // ---- รับสินค้า VAT เฉพาะ ----
+            vatReceiveTitle: 'รับสินค้า VAT',
+            priceReceivedLabel: 'ราคารับ',
+            meterWord: 'เมตร',
+            kgWord: 'กก.',
+            pieceWord: 'ชิ้น',
           },
           en: {
             home: 'Home',
@@ -1743,6 +1749,11 @@ data() {
             noGroupsYetMsg: 'No groups yet — click "Add Group" to start',
             addGroupBtn: 'Add Group',
             savedSuccessMsg: 'Saved successfully',
+            vatReceiveTitle: 'VAT Goods Receipt',
+            priceReceivedLabel: 'Received Price',
+            meterWord: 'Meter',
+            kgWord: 'kg.',
+            pieceWord: 'pcs.',
           }
         }
       };
