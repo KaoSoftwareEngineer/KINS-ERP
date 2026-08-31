@@ -1335,6 +1335,7 @@ data() {
             requiredLocationCodeMsg: '⚠️ กรุณากรอกรหัสช่อง',
             requiredBothQrMsg: '⚠️ ต้องสแกนทั้ง QR ช่อง และ QR ไม้ผ้า',
             requiredCutYardsMsg: '⚠️ กรอกจำนวนหลาที่ตัด (> 0)',
+            exportSelectedBtn: 'ส่งออกที่เลือก',
           },
           en: {
             home: 'Home',
@@ -1722,6 +1723,7 @@ data() {
             requiredLocationCodeMsg: '⚠️ Please enter a location code',
             requiredBothQrMsg: '⚠️ Must scan both location QR and roll QR',
             requiredCutYardsMsg: '⚠️ Enter yards to cut (> 0)',
+            exportSelectedBtn: 'Export Selected',
           }
         }
       };
