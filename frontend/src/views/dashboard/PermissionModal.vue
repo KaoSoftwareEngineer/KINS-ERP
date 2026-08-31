@@ -4,28 +4,26 @@
       <div class="erp-modal pm-modal">
         <!-- หัวโมดัล (ธีม ERP) -->
         <div class="erp-modal-head">
-          <span><span class="erp-head-ic">🔐</span> {{ dash.pmEditing ? 'แก้ไข' : 'เพิ่ม' }}บทบาท / สิทธิ์การเข้าใช้งาน</span>
-          <button class="erp-x" @click="dash.pmClose()" aria-label="ปิด">✕</button>
+          <span><span class="erp-head-ic">🔐</span> {{ dash.pmEditing ? dash.t[dash.lang].edit : dash.t[dash.lang].add }}{{ dash.t[dash.lang].roleAccessPermissionTitle }}</span>
+          <button class="erp-x" @click="dash.pmClose()" :aria-label="dash.t[dash.lang].close">✕</button>
         </div>
 
         <div class="erp-modal-body">
-          <!-- ===== ส่วนที่ 1: ข้อมูลบทบาท ===== -->
-          <div class="erp-sec-title"><span class="erp-sec-bar"></span>ข้อมูลบทบาท</div>
+          <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].roleInfoSectionTitle }}</div>
           <div class="erp-grid">
             <div class="erp-field erp-col-2">
-              <label>ชื่อบทบาท / ตำแหน่ง <span class="erp-req">*</span></label>
-              <input v-model="name" placeholder="เช่น CEO, ฝ่ายบัญชี, พนักงานส่งของ" />
+              <label>{{ dash.t[dash.lang].roleNamePositionLabel }} <span class="erp-req">*</span></label>
+              <input v-model="name" :placeholder="dash.t[dash.lang].egRolePlaceholder" />
             </div>
           </div>
           <div class="pm-presets">
-            <span class="pm-presets-label">เลือกจากตำแหน่งแนะนำ:</span>
+            <span class="pm-presets-label">{{ dash.t[dash.lang].selectFromSuggestedRolesLabel }}</span>
             <button v-for="p in presets" :key="p.key" type="button" class="pm-preset-btn" :title="p.desc" @click="applyPreset(p)">
               {{ p.label }}
             </button>
           </div>
 
-          <!-- ===== ส่วนที่ 2: สิทธิ์การกระทำ ===== -->
-          <div class="erp-sec-title"><span class="erp-sec-bar"></span>สิทธิ์การกระทำ</div>
+          <div class="erp-sec-title"><span class="erp-sec-bar"></span>{{ dash.t[dash.lang].actionPermissionsSectionTitle }}</div>
           <div class="pm-actions-grid">
             <div v-for="grp in actions" :key="grp.title" class="pm-action-col">
               <div class="pm-action-title">{{ grp.title }}</div>
@@ -36,12 +34,11 @@
             </div>
           </div>
 
-          <!-- ===== ส่วนที่ 3: สิทธิ์การเข้าถึงเมนู ===== -->
           <div class="erp-sec-title pm-sec-flex">
-            <span class="erp-sec-bar"></span>สิทธิ์การเข้าถึงเมนู
+            <span class="erp-sec-bar"></span>{{ dash.t[dash.lang].menuAccessPermissionsSectionTitle }}
             <span class="pm-quick">
-              <button type="button" class="pm-quick-btn" @click="selectAllMenus">☑ เลือกทุกเมนู</button>
-              <button type="button" class="pm-quick-btn" @click="clearAllMenus">☐ ล้างทั้งหมด</button>
+              <button type="button" class="pm-quick-btn" @click="selectAllMenus">{{ dash.t[dash.lang].selectAllMenusLabel }}</button>
+              <button type="button" class="pm-quick-btn" @click="clearAllMenus">{{ dash.t[dash.lang].clearAllLabel }}</button>
             </span>
           </div>
           <div class="pm-groups">
@@ -63,10 +60,10 @@
 
         <!-- ปุ่มบันทึก (ธีม ERP) -->
         <div class="erp-modal-foot">
-          <span class="pm-count">เลือกแล้ว <strong>{{ selectedCount }}</strong> สิทธิ์</span>
+          <span class="pm-count">{{ dash.t[dash.lang].selectedCountLabel }} <strong>{{ selectedCount }}</strong> {{ dash.t[dash.lang].permissionsUnit }}</span>
           <span class="pm-foot-spacer"></span>
-          <button class="erp-btn erp-btn-cancel" @click="dash.pmClose()">ยกเลิก</button>
-          <button class="erp-btn erp-btn-save" @click="save">💾 บันทึก</button>
+          <button class="erp-btn erp-btn-cancel" @click="dash.pmClose()">{{ dash.t[dash.lang].cancelWord }}</button>
+          <button class="erp-btn erp-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
         </div>
       </div>
     </div>
