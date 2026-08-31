@@ -5,7 +5,7 @@
       <h1>🔐 {{ dash.pageTitle('user-permissions') }}</h1>
     </div>
     <div class="header-actions">
-      <button class="btn-small" @click="dash.genExportExcel(false)">⬇️ ส่งออก Excel</button>
+      <button class="btn-small" @click="dash.genExportExcel(false)">⬇️ {{ dash.t[dash.lang].exportExcelPlain }}</button>
       <button class="btn-small fr-btn-add" @click="dash.pmOpen()">+ {{ dash.t[dash.lang].addRole }}</button>
     </div>
   </div>
@@ -15,7 +15,7 @@
     <div class="section-header">
       <h2>📋 {{ dash.t[dash.lang].totalItems }} {{ dash.genCurrentTable.rows.length }} {{ dash.t[dash.lang].rolesUnit }}</h2>
       <div class="fr-summary-actions">
-        <button v-if="dash.genSelected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="dash.genBulkDeleteRows">🗑️ ลบที่เลือก ({{ dash.genSelected.length }})</button>
+        <button v-if="dash.genSelected.length > 0" class="btn-small" style="color: var(--danger); border-color: var(--danger);" @click="dash.genBulkDeleteRows">🗑️ {{ dash.t[dash.lang].deleteSelected }} ({{ dash.genSelected.length }})</button>
       </div>
     </div>
 
@@ -27,7 +27,7 @@
             <th v-for="(col, cidx) in dash.genCurrentTable.columns" :key="col" class="fr-th-sort" @click="dash.genSort(cidx)">
               {{ col }} <span class="fr-sort-icon">{{ dash.genSortCol === cidx ? (dash.genSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span>
             </th>
-            <th style="width:90px;">จัดการ</th>
+            <th style="width:90px;">{{ dash.t[dash.lang].manageWord }}</th>
           </tr>
         </thead>
         <tbody>
@@ -36,12 +36,12 @@
             <td v-for="(cell, cidx) in row" :key="cidx">{{ cell }}</td>
             <td>
               <div class="fr-action-group">
-                <button class="fr-action-btn edit" title="แก้ไขสิทธิ์บทบาท" @click="dash.pmEditRole(row)"><svg viewBox="0 0 24 24"></svg></button>
+                <button class="fr-action-btn edit" :title="dash.t[dash.lang].editRolePermissionTitle" @click="dash.pmEditRole(row)"><svg viewBox="0 0 24 24"></svg></button>
               </div>
             </td>
           </tr>
           <tr v-if="dash.genCurrentTable.rows.length === 0" class="fr-empty-row">
-            <td :colspan="dash.genCurrentTable.columns.length + 2" style="text-align:center; padding:24px; color:#94a3b8;">ยังไม่มีบทบาท</td>
+            <td :colspan="dash.genCurrentTable.columns.length + 2" style="text-align:center; padding:24px; color:#94a3b8;">{{ dash.t[dash.lang].noRolesYetMsg }}</td>
           </tr>
         </tbody>
       </table>
@@ -49,33 +49,32 @@
 
     <div class="xl-pagination" v-if="dash.genCurrentTable.rows.length > 0" style="margin-top: 14px;">
       <select v-model.number="dash.genPageSize" class="fr-page-size-select">
-        <option :value="10">10 / หน้า</option>
-        <option :value="20">20 / หน้า</option>
-        <option :value="50">50 / หน้า</option>
+        <option :value="10">10 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="20">20 {{ dash.t[dash.lang].perPageWord }}</option>
+        <option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option>
       </select>
-      <button class="fr-btn-util" :disabled="dash.genPage === 1" @click="dash.genPrevPage">‹ ก่อนหน้า</button>
-      <span>หน้า {{ dash.genPage }} / {{ dash.genTotalPages }}</span>
-      <button class="fr-btn-util" :disabled="dash.genPage === dash.genTotalPages" @click="dash.genNextPage">ถัดไป ›</button>
+      <button class="fr-btn-util" :disabled="dash.genPage === 1" @click="dash.genPrevPage">{{ dash.t[dash.lang].prevPage }}</button>
+      <span>{{ dash.t[dash.lang].pageWord }} {{ dash.genPage }} / {{ dash.genTotalPages }}</span>
+      <button class="fr-btn-util" :disabled="dash.genPage === dash.genTotalPages" @click="dash.genNextPage">{{ dash.t[dash.lang].nextPage }}</button>
     </div>
   </div>
 
-  <!-- ===== ส่วนที่ 2: สิทธิ์การเข้าถึงต่อบัญชี (การ์ดเดียวครอบทั้งหมด) ===== -->
   <div class="section perm-card" style="margin-top: 20px;">
     <div class="section-header">
-      <h2>👥 สิทธิ์การเข้าถึงต่อบัญชี — {{ accounts.length }} บัญชี</h2>
-      <input class="acct-search" v-model="acctSearch" placeholder="ค้นหาชื่อ / อีเมล / ตำแหน่ง" />
+      <h2>👥 {{ dash.t[dash.lang].accessPermissionPerAccountTitle }} — {{ accounts.length }} {{ dash.t[dash.lang].accountsUnit }}</h2>
+      <input class="acct-search" v-model="acctSearch" :placeholder="dash.t[dash.lang].searchNameEmailPositionPlaceholder" />
     </div>
-    <p class="acct-note">สิทธิ์ของแต่ละบัญชีมาจาก "บทบาท/ตำแหน่ง" ที่กำหนดไว้ — ปรับสิทธิ์ได้ที่ตารางบทบาทด้านบน หรือเปลี่ยนตำแหน่งบัญชีที่หน้า "บัญชีผู้ใช้งาน"</p>
+    <p class="acct-note">{{ dash.t[dash.lang].acctNoteMsg }}</p>
 
     <div class="perm-table-wrap">
       <table class="fr-table">
         <thead>
           <tr>
-            <th style="width:52px;">ที่</th>
-            <th style="min-width:200px;">บัญชี</th>
-            <th style="min-width:160px;">ตำแหน่ง / บทบาท</th>
-            <th>สิทธิ์การเข้าถึงเมนู</th>
-            <th style="width:110px;">จำนวนเมนู</th>
+            <th style="width:52px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+            <th style="min-width:200px;">{{ dash.t[dash.lang].accountLabel }}</th>
+            <th style="min-width:160px;">{{ dash.t[dash.lang].positionRoleLabel }}</th>
+            <th>{{ dash.t[dash.lang].menuAccessPermissionsSectionTitle }}</th>
+            <th style="width:110px;">{{ dash.t[dash.lang].menuCountLabel }}</th>
           </tr>
         </thead>
         <tbody>
@@ -86,27 +85,27 @@
               <div class="acct-email">{{ a.email }}</div>
             </td>
             <td>
-              <span class="role-badge" :class="a.full ? 'is-admin' : (a.restricted ? 'is-restricted' : 'is-role')">{{ a.role || '— ยังไม่กำหนด —' }}</span>
+              <span class="role-badge" :class="a.full ? 'is-admin' : (a.restricted ? 'is-restricted' : 'is-role')">{{ a.role || dash.t[dash.lang].notSetYetPlaceholder }}</span>
             </td>
             <td>
-              <span v-if="a.full" class="perm-chip full">✓ ทุกเมนู (เต็มสิทธิ์)</span>
-              <span v-else-if="a.restricted" class="perm-chip restricted">จำกัด — แดชบอร์ด, ตั้งค่า เท่านั้น</span>
+              <span v-if="a.full" class="perm-chip full">{{ dash.t[dash.lang].allMenusFullAccessLabel }}</span>
+              <span v-else-if="a.restricted" class="perm-chip restricted">{{ dash.t[dash.lang].restrictedDashboardSettingsOnlyLabel }}</span>
               <template v-else>
                 <span v-for="m in a.menusShown" :key="m" class="perm-chip">{{ m }}</span>
-                <span v-if="a.menusExtra > 0" class="perm-chip more" :title="a.menus.join(', ')">+{{ a.menusExtra }} เมนู</span>
+                <span v-if="a.menusExtra > 0" class="perm-chip more" :title="a.menus.join(', ')">+{{ a.menusExtra }} {{ dash.t[dash.lang].menuUnit }}</span>
               </template>
             </td>
             <td style="text-align:center;">
-              <strong>{{ a.full ? 'ทั้งหมด' : (a.restricted ? '2*' : a.menus.length) }}</strong>
+              <strong>{{ a.full ? dash.t[dash.lang].allWord : (a.restricted ? '2*' : a.menus.length) }}</strong>
             </td>
           </tr>
           <tr v-if="accounts.length === 0" class="fr-empty-row">
-            <td colspan="5" style="text-align:center; padding:24px; color:#94a3b8;">ไม่พบบัญชีผู้ใช้</td>
+            <td colspan="5" style="text-align:center; padding:24px; color:#94a3b8;">{{ dash.t[dash.lang].noUserAccountsFoundMsg }}</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="acct-footnote">* บัญชีที่ถูกจำกัดยังเข้าถึง "แดชบอร์ด" และ "ตั้งค่า" ได้เสมอ (เมนูพื้นฐาน)</p>
+    <p class="acct-footnote">{{ dash.t[dash.lang].restrictedAccountFootnote }}</p>
   </div>
 </div>
 </template>
