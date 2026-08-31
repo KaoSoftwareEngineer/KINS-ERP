@@ -13,15 +13,15 @@
     <!-- งานค้างดำเนินการ — เรียงแถวเดียวกับกระดิ่ง (hover ที่ไอคอนเพื่อดูรายละเอียด) -->
     <div class="hidden md:flex items-center">
       <div class="sidebar-notif-row">
-        <button class="sidebar-notif-item notif-fulfill" :title="'จัดออร์เดอร์ — ค้าง ' + dash.pipelineBadgeCount('order-fulfill') + ' รายการ'" @click="dash.currentPage = 'order-fulfill'">
+        <button class="sidebar-notif-item notif-fulfill" :title="dash.pageTitle('order-fulfill') + ' — ' + dash.t[dash.lang].pendingLabel + ' ' + dash.pipelineBadgeCount('order-fulfill') + ' ' + dash.t[dash.lang].itemsUnit" @click="dash.currentPage = 'order-fulfill'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
           <span v-if="dash.pipelineBadgeCount('order-fulfill') > 0" class="sidebar-notif-count">{{ dash.pipelineBadgeCount('order-fulfill') }}</span>
         </button>
-        <button class="sidebar-notif-item notif-invoice" :title="'เปิดอินวอยส์ — ค้าง ' + dash.pipelineBadgeCount('invoice-open') + ' รายการ'" @click="dash.currentPage = 'invoice-open'">
+        <button class="sidebar-notif-item notif-invoice" :title="dash.pageTitle('invoice-open') + ' — ' + dash.t[dash.lang].pendingLabel + ' ' + dash.pipelineBadgeCount('invoice-open') + ' ' + dash.t[dash.lang].itemsUnit" @click="dash.currentPage = 'invoice-open'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2.5v19l2-1.2 2 1.2 2-1.2 2 1.2 2-1.2 2 1.2 2-1.2 2 1.2V2.5l-2 1.2-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2-2 1.2Z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
           <span v-if="dash.pipelineBadgeCount('invoice-open') > 0" class="sidebar-notif-count">{{ dash.pipelineBadgeCount('invoice-open') }}</span>
         </button>
-        <button class="sidebar-notif-item notif-vat" :title="'ใบกำกับภาษี (VAT) — ค้าง ' + dash.pipelineBadgeCount('vat-invoice') + ' รายการ'" @click="dash.currentPage = 'vat-invoice'">
+        <button class="sidebar-notif-item notif-vat" :title="dash.pageTitle('vat-invoice') + ' — ' + dash.t[dash.lang].pendingLabel + ' ' + dash.pipelineBadgeCount('vat-invoice') + ' ' + dash.t[dash.lang].itemsUnit" @click="dash.currentPage = 'vat-invoice'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5z"/><path d="M14 2.5v5h5"/><line x1="14.5" y1="12" x2="9.5" y2="17.5"/><circle cx="9.7" cy="12.3" r="0.9"/><circle cx="14.3" cy="17.2" r="0.9"/></svg>
           <span v-if="dash.pipelineBadgeCount('vat-invoice') > 0" class="sidebar-notif-count">{{ dash.pipelineBadgeCount('vat-invoice') }}</span>
         </button>
@@ -34,8 +34,8 @@
       <button
         type="button"
         class="relative flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--field)] hover:text-[var(--text)]"
-        title="การแจ้งเตือน"
-        aria-label="การแจ้งเตือน"
+        :title="dash.t[dash.lang].notificationsWord"
+        :aria-label="dash.t[dash.lang].notificationsWord"
         @click.stop="dash.toggleNotif()"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
@@ -53,7 +53,7 @@
         v-if="dash.topnavNotifOpen"
         class="absolute right-0 top-[calc(100%+8px)] z-[3000] w-72 overflow-hidden rounded-xl border bg-[var(--surface)] border-[var(--field-border)] shadow-[0_8px_24px_rgba(0,0,0,.12)]"
       >
-        <div class="px-3.5 py-2 border-b border-[var(--field-border)] text-[13px] font-bold text-[var(--text)]">การแจ้งเตือน</div>
+        <div class="px-3.5 py-2 border-b border-[var(--field-border)] text-[13px] font-bold text-[var(--text)]">{{ dash.t[dash.lang].notificationsWord }}</div>
         <div class="max-h-80 overflow-y-auto">
           <!-- ผ้าใกล้หมด (กดเพื่อไปดูผังคลัง) -->
           <button
@@ -62,8 +62,8 @@
             class="w-full flex items-center justify-between gap-2 px-3.5 py-2 bg-[#fff4ea] border-b border-[var(--field-border)] text-left hover:bg-[#ffe9d5]"
             @click="dash.currentPage = 'zone-rack'; dash.topnavNotifOpen = false"
           >
-            <span class="text-[12px] font-bold text-[#b8480d]">🚨 ผ้าใกล้หมด {{ dash.lowStockRolls.length }} ม้วน</span>
-            <span class="text-[10.5px] text-[#b8480d] whitespace-nowrap">ดูผังคลัง →</span>
+            <span class="text-[12px] font-bold text-[#b8480d]">🚨 {{ dash.t[dash.lang].lowStockLabel }} {{ dash.lowStockRolls.length }} {{ dash.t[dash.lang].rollsUnit }}</span>
+            <span class="text-[10.5px] text-[#b8480d] whitespace-nowrap">{{ dash.t[dash.lang].viewWarehouseMapLabel }}</span>
           </button>
           <div
             v-for="(activity, idx) in dash.recentActivities.slice(0, 4)"
@@ -95,8 +95,8 @@
           {{ topnavInitial }}
         </div>
         <div class="hidden sm:block text-left leading-tight">
-          <div class="text-xs font-bold text-[var(--text)]">{{ dash.currentUser.name || (dash.lang === 'th' ? 'ผู้ใช้งาน' : 'User') }}</div>
-          <div class="text-[10.5px] text-[var(--muted)]">Role: {{ dash.currentUser.role || 'พนักงาน' }}</div>
+          <div class="text-xs font-bold text-[var(--text)]">{{ dash.currentUser.name || dash.t[dash.lang].userWord }}</div>
+          <div class="text-[10.5px] text-[var(--muted)]">Role: {{ dash.currentUser.role || dash.t[dash.lang].employeeWord }}</div>
         </div>
         <svg
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -113,19 +113,19 @@
         class="absolute right-0 top-[calc(100%+8px)] z-[3000] w-56 overflow-hidden rounded-xl border bg-[var(--surface)] border-[var(--field-border)] py-1.5 shadow-[0_8px_24px_rgba(0,0,0,.12)]"
       >
         <div class="px-3.5 py-2 border-b border-[var(--field-border)] sm:hidden">
-          <div class="text-sm font-bold text-[var(--text)]">{{ dash.currentUser.name || 'ผู้ใช้งาน' }}</div>
-          <div class="text-xs text-[var(--muted)]">Role: {{ dash.currentUser.role || 'พนักงาน' }}</div>
+          <div class="text-sm font-bold text-[var(--text)]">{{ dash.currentUser.name || dash.t[dash.lang].userWord }}</div>
+          <div class="text-xs text-[var(--muted)]">Role: {{ dash.currentUser.role || dash.t[dash.lang].employeeWord }}</div>
         </div>
         <button
           type="button"
           class="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm text-[var(--text)] transition-colors hover:bg-[var(--field)]"
           @click="dash.currentPage = 'settings'; dash.settingsOpenEdit(); dash.topnavProfileOpen = false"
-        >⚙️ ตั้งค่าบัญชี / แก้ไขโปรไฟล์</button>
+        >⚙️ {{ dash.t[dash.lang].accountSettingsEditProfileLabel }}</button>
         <button
           type="button"
           class="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm text-[var(--danger)] transition-colors hover:bg-[var(--field)]"
           @click="dash.topnavProfileOpen = false; dash.logout()"
-        >🚪 ออกจากระบบ</button>
+        >🚪 {{ dash.t[dash.lang].logout }}</button>
       </div>
     </div>
   </div>
