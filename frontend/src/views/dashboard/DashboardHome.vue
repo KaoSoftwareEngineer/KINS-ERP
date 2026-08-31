@@ -8,40 +8,38 @@
     <div class="header-actions">
       <button class="btn-small" @click="dash.dashExportExcel('day')">{{ dash.t[dash.lang].dailyDaily }}</button>
       <button class="btn-small" @click="dash.dashExportExcel('week')">{{ dash.t[dash.lang].weekly }}</button>
-      <button class="btn-small btn-green" @click="dash.dashExportExcel('month')"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#fff"/><path d="M14 2v6h6" fill="#cfe8dc"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#1a9c54" stroke-width="1.8" stroke-linecap="round"/></svg>ส่งออก Excel</button>
+      <button class="btn-small btn-green" @click="dash.dashExportExcel('month')"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#fff"/><path d="M14 2v6h6" fill="#cfe8dc"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#1a9c54" stroke-width="1.8" stroke-linecap="round"/></svg>{{ dash.t[dash.lang].exportExcelPlain }}</button>
       <div class="dash-customize-wrap">
-        <button class="btn-small dash-customize-btn" :class="{ 'is-open': customizeOpen }" @click="customizeOpen = !customizeOpen" title="ปรับแต่งหน้า">
+        <button class="btn-small dash-customize-btn" :class="{ 'is-open': customizeOpen }" @click="customizeOpen = !customizeOpen" :title="dash.t[dash.lang].customizePageLabel">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          ปรับแต่งหน้า
+          {{ dash.t[dash.lang].customizePageLabel }}
         </button>
         <transition name="dash-fade">
           <div v-if="customizeOpen" class="dash-customize-panel">
-            <div class="dash-customize-head">แสดง/ซ่อนการ์ด</div>
+            <div class="dash-customize-head">{{ dash.t[dash.lang].showHideCardsLabel }}</div>
             <label v-for="c in cardList" :key="c.key" class="dash-customize-item">
               <input type="checkbox" :checked="cards[c.key]" @change="toggleCard(c.key)" />
               <span>{{ c.label }}</span>
             </label>
-            <button class="dash-customize-reset" @click="resetCards">คืนค่าเริ่มต้น</button>
+            <button class="dash-customize-reset" @click="resetCards">{{ dash.t[dash.lang].resetToDefaultLabel }}</button>
           </div>
         </transition>
       </div>
     </div>
   </div>
 
-  <!-- แจ้งเตือน: บัญชียังไม่ได้รับสิทธิ์ (role ว่าง) -->
   <div v-if="!hasRole" class="dash-norole">
     <span class="dash-norole-icon">⚠️</span>
     <div>
-      <div class="dash-norole-title">บัญชีของคุณยังไม่ได้รับสิทธิ์การใช้งาน</div>
-      <div class="dash-norole-sub">กรุณาติดต่อผู้ดูแลระบบ (Admin) เพื่อกำหนดตำแหน่งและสิทธิ์การเข้าถึงเมนู — ตอนนี้เข้าได้เฉพาะหน้าแดชบอร์ดและตั้งค่า</div>
+      <div class="dash-norole-title">{{ dash.t[dash.lang].noRoleTitle }}</div>
+      <div class="dash-norole-sub">{{ dash.t[dash.lang].noRoleSub }}</div>
     </div>
   </div>
 
-  <!-- My Tasks / Action Required -->
   <div v-if="cards.tasks" class="section dash-tasks">
     <div class="section-header">
-      <h2>✅ งานที่ต้องทำวันนี้ <span class="dash-tasks-count" v-if="totalTasks">{{ totalTasks }}</span></h2>
-      <span class="dash-tasks-sub">งานที่รอคุณจัดการ/อนุมัติ</span>
+      <h2>✅ {{ dash.t[dash.lang].todayTasksTitle }} <span class="dash-tasks-count" v-if="totalTasks">{{ totalTasks }}</span></h2>
+      <span class="dash-tasks-sub">{{ dash.t[dash.lang].tasksWaitingSub }}</span>
     </div>
     <div v-if="myTasks.length" class="dash-tasks-grid">
       <button v-for="t in myTasks" :key="t.key" class="dash-task-card" :class="'dash-task-' + t.tone" @click="goTask(t.page)">
@@ -56,7 +54,7 @@
         </div>
       </button>
     </div>
-    <div v-else class="dash-tasks-empty">🎉 ไม่มีงานค้าง — วันนี้เคลียร์หมดแล้ว</div>
+    <div v-else class="dash-tasks-empty">{{ dash.t[dash.lang].noTasksMsg }}</div>
   </div>
 
   <!-- Top Stats Grid -->
@@ -73,9 +71,9 @@
       <div class="stat-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </div>
-      <div class="label">ยอดตัดจ่ายเดือนนี้</div>
+      <div class="label">{{ dash.t[dash.lang].monthlyCutSalesLabel }}</div>
       <div class="value">{{ Number(dash.monthlySales || 0).toLocaleString() }}</div>
-      <div class="detail">📏 หลา (จากใบเบิกจริง)</div>
+      <div class="detail">{{ dash.t[dash.lang].yardsFromActualIssueLabel }}</div>
     </div>
     <div class="stat-card stat-card-orders">
       <div class="stat-icon">
@@ -89,9 +87,9 @@
       <div class="stat-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
       </div>
-      <div class="label">สินค้าคงคลัง</div>
+      <div class="label">{{ dash.t[dash.lang].stockInventoryLabel }}</div>
       <div class="value">{{ dash.totalSalesAmount }}</div>
-      <div class="detail">📦 หลา · {{ (dash.dashStats && dash.dashStats.kpi.stockRolls) || 0 }} ม้วน</div>
+      <div class="detail">📦 {{ dash.t[dash.lang].yardsUnit }} · {{ (dash.dashStats && dash.dashStats.kpi.stockRolls) || 0 }} {{ dash.t[dash.lang].rollsUnit }}</div>
     </div>
   </div>
 
@@ -106,12 +104,12 @@
         <!-- ฝั่งซ้าย: กราฟแท่ง เทียบปีต่อปี -->
         <div class="dash-trend-col">
           <div class="dash-trend-col-header">
-            <span class="dash-trend-col-title">เทียบปีต่อปี</span>
+            <span class="dash-trend-col-title">{{ dash.t[dash.lang].yearOverYearLabel }}</span>
             <div class="dash-trend-col-controls">
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === 'currentYear' }" @click="dash.dashTrendRange = 'currentYear'">ปีปัจจุบัน</button>
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === '1y' }" @click="dash.dashTrendRange = '1y'">1 ปี</button>
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === '6m' }" @click="dash.dashTrendRange = '6m'">6 เดือน</button>
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === '3m' }" @click="dash.dashTrendRange = '3m'">3 เดือน</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === 'currentYear' }" @click="dash.dashTrendRange = 'currentYear'">{{ dash.t[dash.lang].currentYearLabel }}</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === '1y' }" @click="dash.dashTrendRange = '1y'">{{ dash.t[dash.lang].oneYearLabel }}</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === '6m' }" @click="dash.dashTrendRange = '6m'">{{ dash.t[dash.lang].sixMonthsLabel }}</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendRange === '3m' }" @click="dash.dashTrendRange = '3m'">{{ dash.t[dash.lang].threeMonthsLabel }}</button>
             </div>
           </div>
           <div class="dash-chart-box dash-barchart-box">
@@ -135,8 +133,8 @@
               </div>
             </div>
             <div class="dash-bar-legend">
-              <span class="dash-legend-item"><i class="dash-legend-dot dash-legend-curr"></i> ปัจจุบัน</span>
-              <span class="dash-legend-item"><i class="dash-legend-dot dash-legend-prev"></i> ปีก่อนหน้า</span>
+              <span class="dash-legend-item"><i class="dash-legend-dot dash-legend-curr"></i> {{ dash.t[dash.lang].currentLabel }}</span>
+              <span class="dash-legend-item"><i class="dash-legend-dot dash-legend-prev"></i> {{ dash.t[dash.lang].previousYearLabel }}</span>
             </div>
           </div>
         </div>
@@ -144,13 +142,13 @@
         <!-- ฝั่งขวา: กราฟเส้น รายเดือน/รายปี (แบบเดิม) -->
         <div class="dash-trend-col dash-trend-col-right">
           <div class="dash-trend-col-header">
-            <span class="dash-trend-col-title">{{ dash.dashTrendViewMode === 'year' ? 'ยอดขายรวมรายปี' : 'ยอดขายรายวัน (7 วันล่าสุด)' }}</span>
+            <span class="dash-trend-col-title">{{ dash.dashTrendViewMode === 'year' ? dash.t[dash.lang].annualSalesTotalLabel : dash.t[dash.lang].dailySalesLast7Label }}</span>
             <div class="dash-trend-col-controls">
               <select v-if="dash.dashTrendViewMode === 'month' && !dash.dashTrendDemo" v-model.number="dash.dashTrendYear" class="dash-year-select">
                 <option v-for="y in dash.dashAvailableYears" :key="y" :value="y">{{ y }}</option>
               </select>
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'month' }" @click="dash.dashTrendViewMode = 'month'">วัน</button>
-              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'year' }" @click="dash.dashTrendViewMode = 'year'">ปี</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'month' }" @click="dash.dashTrendViewMode = 'month'">{{ dash.t[dash.lang].dayWord }}</button>
+              <button class="btn-small" :class="{ 'btn-primary': dash.dashTrendViewMode === 'year' }" @click="dash.dashTrendViewMode = 'year'">{{ dash.t[dash.lang].yearWord }}</button>
             </div>
           </div>
           <div class="dash-chart-box dash-linechart-box">
@@ -184,13 +182,13 @@
               </div>
             </div>
             <div class="dash-bar-legend" v-if="dash.dashTrendChartData2.length">
-              <span class="dash-legend-item"><i class="dash-legend-dot dtl-a"></i> ปัจจุบัน</span>
-              <span class="dash-legend-item"><i class="dash-legend-dot dtl-b"></i> ก่อนหน้า</span>
+              <span class="dash-legend-item"><i class="dash-legend-dot dtl-a"></i> {{ dash.t[dash.lang].currentLabel }}</span>
+              <span class="dash-legend-item"><i class="dash-legend-dot dtl-b"></i> {{ dash.t[dash.lang].previousLabel }}</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="dash-chart-note">แนวโน้มยอดขาย (หลาที่ตัดจ่ายจริง) — {{ dash.dashTrendDemo ? 'ข้อมูลตัวอย่าง (Demo) — จะเปลี่ยนเป็นข้อมูลจริงอัตโนมัติเมื่อมียอดขายตั้งแต่ 3 เดือนขึ้นไป' : 'ข้อมูลจริงจากระบบ' }}</div>
+      <div class="dash-chart-note">{{ dash.t[dash.lang].salesTrendNoteLabel }} {{ dash.dashTrendDemo ? dash.t[dash.lang].demoDataAutoSwitchMsg : dash.t[dash.lang].realSystemDataLabel }}</div>
     </div>
 
     <!-- Donut Chart -->
@@ -211,7 +209,7 @@
                       :class="{ 'is-active': dash.dashVolumeHoverIdx === i }"
                       @mouseenter="dash.dashVolumeHoverIdx = i" @mouseleave="dash.dashVolumeHoverIdx = null" />
               <text x="80" y="74" text-anchor="middle" class="dash-gauge-num">{{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].pct : dash.dashRegularPct }}%</text>
-              <text x="80" y="92" text-anchor="middle" class="dash-gauge-cap">{{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].label : 'ผ้าประจำ' }}</text>
+              <text x="80" y="92" text-anchor="middle" class="dash-gauge-cap">{{ dash.dashVolumeHoverIdx !== null ? dash.dashVolumeSegments[dash.dashVolumeHoverIdx].label : dash.t[dash.lang].regularFabricLabel }}</text>
             </svg>
             <div class="dash-gauge-ends"><span>0%</span><span>100%</span></div>
           </div>
@@ -228,32 +226,31 @@
             </div>
           </div>
         </div>
-        <div class="dash-chart-note">สัดส่วนชนิดผ้าในระบบ (ผ้าประจำ / ผ้าไม่ประจำ / ผ้าดิบ) — นับจากจำนวนชนิดผ้าที่มีจริง</div>
+        <div class="dash-chart-note">{{ dash.t[dash.lang].fabricTypeRatioNoteLabel }}</div>
       </div>
     </div>
   </div>
 
-  <!-- Cards Grid -->
   <div v-if="cards.mini" class="dash-cards-grid dash-cards-grid-compact">
     <div class="mini-stat-card mini-stat-pink">
-      <div class="mini-stat-label">📋 ออร์เดอร์รอดำเนินการ</div>
+      <div class="mini-stat-label">{{ dash.t[dash.lang].pendingOrdersLabel }}</div>
       <div class="mini-stat-value">{{ orderStore.ofOrders.filter(o => o.status !== 'Prepared').length }}</div>
-      <div class="mini-stat-detail">รายการ</div>
+      <div class="mini-stat-detail">{{ dash.t[dash.lang].itemsUnit }}</div>
     </div>
     <div class="mini-stat-card mini-stat-purple">
-      <div class="mini-stat-label">⚡ ออร์เดอร์ด่วน</div>
+      <div class="mini-stat-label">{{ dash.t[dash.lang].urgentOrdersLabel }}</div>
       <div class="mini-stat-value">{{ orderStore.ofOrders.filter(o => o.urgent).length }}</div>
-      <div class="mini-stat-detail">ต้องเร่งจัดส่ง</div>
+      <div class="mini-stat-detail">{{ dash.t[dash.lang].needsUrgentShipLabel }}</div>
     </div>
     <div class="mini-stat-card mini-stat-blue">
-      <div class="mini-stat-label">👥 สมาชิกในระบบ</div>
+      <div class="mini-stat-label">{{ dash.t[dash.lang].systemMembersLabel }}</div>
       <div class="mini-stat-value">{{ dash.members.length }}</div>
-      <div class="mini-stat-detail">บัญชีผู้ใช้งาน</div>
+      <div class="mini-stat-detail">{{ dash.t[dash.lang].userAccountsLabel }}</div>
     </div>
     <div class="mini-stat-card mini-stat-orange">
-      <div class="mini-stat-label">🛍️ ออร์เดอร์ทั้งหมด</div>
+      <div class="mini-stat-label">{{ dash.t[dash.lang].totalOrdersLabel }}</div>
       <div class="mini-stat-value">{{ orderStore.ofOrders.length }}</div>
-      <div class="mini-stat-detail">เดือนนี้</div>
+      <div class="mini-stat-detail">{{ dash.t[dash.lang].thisMonthLabel }}</div>
     </div>
   </div>
 
@@ -286,10 +283,10 @@
       <table>
         <thead>
           <tr>
-            <th>เลขที่ออร์เดอร์</th>
-            <th>ลูกค้า</th>
-            <th>พนักงานขาย</th>
-            <th>จำนวน (หลา)</th>
+            <th>{{ dash.t[dash.lang].orderNoLabel }}</th>
+            <th>{{ dash.t[dash.lang].customerWord }}</th>
+            <th>{{ dash.t[dash.lang].salespersonLabel }}</th>
+            <th>{{ dash.t[dash.lang].qtyYardsLabel }}</th>
             <th>{{ dash.t[dash.lang].status }}</th>
           </tr>
         </thead>
@@ -301,7 +298,7 @@
             <td>{{ Number(o.withdrawn_qty || 0).toFixed(2) }} / {{ Number(o.ordered_qty || 0).toFixed(2) }}</td>
             <td><span class="badge" :class="['Prepared', 'Completed'].includes(o.status) ? 'success' : 'warning'">{{ ['Prepared', 'Completed'].includes(o.status) ? '✓ ' : '⏳ ' }}{{ o.status }}</span></td>
           </tr>
-          <tr v-if="orderRows.length === 0"><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;">ยังไม่มีออร์เดอร์</td></tr>
+          <tr v-if="orderRows.length === 0"><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;">{{ dash.t[dash.lang].noOrdersYetMsg }}</td></tr>
         </tbody>
       </table>
       </div>
@@ -323,30 +320,33 @@ export default {
   data() {
     return {
       customizeOpen: false,
-      cardList: [
-        { key: 'tasks', label: 'งานที่ต้องทำวันนี้' },
-        { key: 'stats', label: 'สถิติภาพรวม (การ์ดบน)' },
-        { key: 'charts', label: 'กราฟแนวโน้ม + สัดส่วน' },
-        { key: 'mini', label: 'การ์ดสรุปย่อ' },
-        { key: 'activities', label: 'กิจกรรมล่าสุด' },
-        { key: 'orders', label: 'สถานะออร์เดอร์' },
-      ],
       cards: this.loadCardPrefs(),
     };
   },
   computed: {
-    // เทียบรายได้เดือนนี้กับเดือนก่อน (คำนวณจริง ไม่ใช่ค่าตายตัว)
+    cardList() {
+      const t = this.dash.t[this.dash.lang];
+      return [
+        { key: 'tasks', label: t.todayTasksTitle },
+        { key: 'stats', label: t.overallStatsLabel },
+        { key: 'charts', label: t.trendChartsLabel },
+        { key: 'mini', label: t.miniSummaryCardsLabel },
+        { key: 'activities', label: t.recentActivities },
+        { key: 'orders', label: t.orderStatus },
+      ];
+    },
     revenueTrend() {
+      const t = this.dash.t[this.dash.lang];
       const k = (this.dash.dashStats && this.dash.dashStats.kpi) || null;
       if (!k) return { text: '—', cls: '' };
       const now = Number(k.invoiceAmount) || 0;
       const prev = Number(k.invoiceAmountPrev) || 0;
-      if (prev === 0 && now === 0) return { text: 'ยังไม่มีรายได้เดือนนี้', cls: '' };
-      if (prev === 0) return { text: 'เดือนก่อนไม่มียอด — เทียบไม่ได้', cls: '' };
+      if (prev === 0 && now === 0) return { text: t.noRevenueThisMonthMsg, cls: '' };
+      if (prev === 0) return { text: t.prevMonthNoDataMsg, cls: '' };
       const pct = ((now - prev) / prev) * 100;
       const up = pct >= 0;
       return {
-        text: `${up ? '▲ เพิ่มขึ้น' : '▼ ลดลง'} ${Math.abs(pct).toFixed(1)}% จากเดือนก่อน`,
+        text: `${up ? t.increasedWord : t.decreasedWord} ${Math.abs(pct).toFixed(1)}% ${t.fromPrevMonthLabel}`,
         cls: up ? 'trend-up' : 'trend-down',
       };
     },
@@ -365,18 +365,19 @@ export default {
         ordered_qty: o.orderedQty, withdrawn_qty: o.withdrawnQty, status: o.status,
       }));
     },
-    // งานที่รอจัดการ — ประกอบจากสถานะออร์เดอร์จริง
     myTasks() {
+      const t = this.dash.t[this.dash.lang];
+      const unit = ' ' + t.itemsUnit;
       const o = this.orderStore.ofOrders || [];
       const tasks = [];
       const waiting = o.filter(x => x.status !== 'Prepared');
-      if (waiting.length) tasks.push({ key: 'prep', icon: '📋', title: 'ออร์เดอร์รอจัดเตรียม', hint: 'กดเพื่อไปจัดเตรียมสินค้า', count: waiting.length, unit: ' รายการ', page: 'order-fulfill', tone: 'blue' });
+      if (waiting.length) tasks.push({ key: 'prep', icon: '📋', title: t.taskPrepOrderTitle, hint: t.taskPrepOrderHint, count: waiting.length, unit, page: 'order-fulfill', tone: 'blue' });
       const urgent = o.filter(x => x.urgent && x.status !== 'Prepared');
-      if (urgent.length) tasks.push({ key: 'urgent', icon: '⚡', title: 'ออร์เดอร์ด่วน', hint: 'ต้องเร่งจัดส่ง', count: urgent.length, unit: ' รายการ', page: 'order-fulfill', tone: 'red' });
+      if (urgent.length) tasks.push({ key: 'urgent', icon: '⚡', title: t.taskUrgentOrderTitle, hint: t.taskUrgentOrderHint, count: urgent.length, unit, page: 'order-fulfill', tone: 'red' });
       const toInvoice = o.filter(x => x.status === 'Prepared' && !x.invoiced);
-      if (toInvoice.length) tasks.push({ key: 'invoice', icon: '🧾', title: 'รอออกใบกำกับภาษี', hint: 'จัดเตรียมเสร็จ รอวางบิล', count: toInvoice.length, unit: ' รายการ', page: 'vat-invoice', tone: 'purple' });
+      if (toInvoice.length) tasks.push({ key: 'invoice', icon: '🧾', title: t.taskWaitInvoiceTitle, hint: t.taskWaitInvoiceHint, count: toInvoice.length, unit, page: 'vat-invoice', tone: 'purple' });
       const toVat = o.filter(x => x.invoiced && !x.vatDone);
-      if (toVat.length) tasks.push({ key: 'vat', icon: '📊', title: 'รอตัดสต็อก VAT', hint: 'วางบิลแล้ว รอตัดสต็อก', count: toVat.length, unit: ' รายการ', page: 'vat-stock-cut', tone: 'orange' });
+      if (toVat.length) tasks.push({ key: 'vat', icon: '📊', title: t.taskWaitVatCutTitle, hint: t.taskWaitVatCutHint, count: toVat.length, unit, page: 'vat-stock-cut', tone: 'orange' });
       return tasks;
     },
     totalTasks() { return this.myTasks.reduce((s, t) => s + t.count, 0); },
