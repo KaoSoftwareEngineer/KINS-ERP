@@ -1,33 +1,33 @@
 <template>
 <div class="bl-page">
   <div class="bl-titlebar">
-    <span>📃 วางบิลลูกค้า</span>
-    <button v-if="!bulkMode" class="bl-bulk-btn" @click="bulkMode = true">📑 Bulk (วางบิลหลายราย)</button>
-    <button v-else class="bl-bulk-btn" @click="bulkMode = false">‹ กลับ</button>
+    <span>📃 {{ dash.t[dash.lang].customerBillingTitle }}</span>
+    <button v-if="!bulkMode" class="bl-bulk-btn" @click="bulkMode = true">📑 {{ dash.t[dash.lang].bulkBillingLabel }}</button>
+    <button v-else class="bl-bulk-btn" @click="bulkMode = false">‹ {{ dash.t[dash.lang].backWord }}</button>
   </div>
 
   <!-- ===== โหมดปกติ ===== -->
   <template v-if="!bulkMode">
     <div class="bl-head">
       <div class="bl-hcol">
-        <div class="bl-field"><label>วันที่</label><input type="date" v-model="form.bill_date" /></div>
-        <div class="bl-field"><label>เลขที่วางบิล</label><input :value="form.br_no" readonly class="bl-ro" /></div>
+        <div class="bl-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.bill_date" /></div>
+        <div class="bl-field"><label>{{ dash.t[dash.lang].billingNoLabel }}</label><input :value="form.br_no" readonly class="bl-ro" /></div>
       </div>
       <div class="bl-hcol">
-        <div class="bl-field"><label>วันครบกำหนด</label><input type="date" v-model="form.due_date" /></div>
-        <div class="bl-field"><label>ลูกค้า</label><input :value="form.customer" readonly class="bl-ro" placeholder="เลือกจากรายชื่อ" /></div>
+        <div class="bl-field"><label>{{ dash.t[dash.lang].dueDateLabel }}</label><input type="date" v-model="form.due_date" /></div>
+        <div class="bl-field"><label>{{ dash.t[dash.lang].customerWord }}</label><input :value="form.customer" readonly class="bl-ro" :placeholder="dash.t[dash.lang].selectFromListPlaceholder" /></div>
       </div>
     </div>
 
     <div class="bl-body">
       <!-- ซ้าย: รายชื่อลูกค้า -->
       <div class="bl-left">
-        <div class="bl-panel-title">รายชื่อลูกค้า</div>
+        <div class="bl-panel-title">{{ dash.t[dash.lang].customerListTitle }}</div>
         <div class="bl-cust-list">
           <div v-for="(c, i) in customers" :key="i" class="bl-cust" :class="{ 'is-sel': form.customer === c }" @click="selectCustomer(c)">
             <span class="bl-cust-no">{{ i + 1 }}</span>{{ c }}
           </div>
-          <div v-if="customers.length === 0" class="bl-empty">ไม่มีรายชื่อลูกค้า</div>
+          <div v-if="customers.length === 0" class="bl-empty">{{ dash.t[dash.lang].noCustomerListMsg }}</div>
         </div>
       </div>
 
@@ -36,16 +36,16 @@
         <div class="bl-doc-block" v-for="blk in blocks" :key="blk.key">
           <div class="bl-doc-head">
             <span class="bl-doc-title">{{ blk.title }}</span>
-            <span class="bl-doc-hint">{{ docs[blk.key].length }} รายการ · คลิกเพื่อเลือก</span>
+            <span class="bl-doc-hint">{{ docs[blk.key].length }} {{ dash.t[dash.lang].itemsCountClickHint }}</span>
           </div>
           <table class="bl-doc-table">
-            <thead><tr><th>ที่</th><th>วันที่</th><th>เลขที่อินวอยส์</th><th class="bl-r">ยอดรวม</th></tr></thead>
+            <thead><tr><th>{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th><th>{{ dash.t[dash.lang].dateLabel }}</th><th>{{ dash.t[dash.lang].invoiceRefNoLabel }}</th><th class="bl-r">{{ dash.t[dash.lang].totalAmountLabel }}</th></tr></thead>
             <tbody>
               <tr v-for="(d, i) in docs[blk.key]" :key="i" :class="{ 'is-picked': isPicked(blk.key, d) }" @click="pickDoc(blk.key, d)">
                 <td class="bl-c">{{ i + 1 }}</td><td>{{ d.doc_date || '-' }}</td><td>{{ d.inv_no }}</td>
                 <td class="bl-r" :class="{ 'bl-neg': blk.key === 'credit' }">{{ blk.key === 'credit' ? '-' : '' }}{{ fmt(d.total) }}</td>
               </tr>
-              <tr v-if="docs[blk.key].length === 0"><td colspan="4" class="bl-doc-empty">{{ form.customer ? 'ไม่มีรายการ' : 'เลือกลูกค้าก่อน' }}</td></tr>
+              <tr v-if="docs[blk.key].length === 0"><td colspan="4" class="bl-doc-empty">{{ form.customer ? dash.t[dash.lang].noItemsWord : dash.t[dash.lang].selectCustomerFirstMsg }}</td></tr>
             </tbody>
           </table>
         </div>
@@ -53,18 +53,18 @@
 
       <!-- ขวา: รายการที่เลือกวางบิล -->
       <div class="bl-right">
-        <div class="bl-panel-title">รายการในใบวางบิล ({{ selected.length }})</div>
+        <div class="bl-panel-title">{{ dash.t[dash.lang].billItemsCountTitle }} ({{ selected.length }})</div>
         <table class="bl-doc-table">
-          <thead><tr><th>ที่</th><th>ประเภท</th><th>เลขที่อินวอยส์</th><th class="bl-r">ยอด</th><th></th></tr></thead>
+          <thead><tr><th>{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th><th>{{ dash.t[dash.lang].typeLabel }}</th><th>{{ dash.t[dash.lang].invoiceRefNoLabel }}</th><th class="bl-r">{{ dash.t[dash.lang].amountLabel }}</th><th></th></tr></thead>
           <tbody>
             <tr v-for="(s, i) in selected" :key="i">
               <td class="bl-c">{{ i + 1 }}</td><td>{{ s.typeLabel }}</td><td>{{ s.inv_no }}</td>
               <td class="bl-r" :class="{ 'bl-neg': s.type === 'credit' }">{{ s.type === 'credit' ? '-' : '' }}{{ fmt(s.total) }}</td>
               <td class="bl-c"><button class="bl-x" @click="unpick(i)">✕</button></td>
             </tr>
-            <tr v-if="selected.length === 0"><td colspan="5" class="bl-doc-empty">คลิกอินวอยส์จากตรงกลางเพื่อเพิ่ม</td></tr>
+            <tr v-if="selected.length === 0"><td colspan="5" class="bl-doc-empty">{{ dash.t[dash.lang].clickInvoiceToAddMsg }}</td></tr>
           </tbody>
-          <tfoot v-if="selected.length"><tr><td colspan="3" class="bl-r bl-bold">ยอดวางบิลสุทธิ</td><td class="bl-r bl-bold">{{ fmt(netTotal) }}</td><td></td></tr></tfoot>
+          <tfoot v-if="selected.length"><tr><td colspan="3" class="bl-r bl-bold">{{ dash.t[dash.lang].netBillTotalLabel }}</td><td class="bl-r bl-bold">{{ fmt(netTotal) }}</td><td></td></tr></tfoot>
         </table>
       </div>
     </div>
@@ -72,8 +72,8 @@
     <div class="bl-footer">
       <span v-if="savedMsg" class="bl-saved">{{ savedMsg }}</span>
       <div class="bl-fbtns">
-        <button class="bl-btn" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-        <button class="bl-btn bl-btn-save" @click="save">💾 บันทึก</button>
+        <button class="bl-btn" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+        <button class="bl-btn bl-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </template>
@@ -81,13 +81,13 @@
   <!-- ===== โหมด Bulk ===== -->
   <template v-else>
     <div class="bl-bulk-filter">
-      <label class="bl-radio"><input type="radio" value="invoice" v-model="bulk.dateType" /> วันที่อินวอยส์</label>
-      <label class="bl-radio"><input type="radio" value="due" v-model="bulk.dateType" /> วันที่ครบกำหนด</label>
-      <label class="bl-radio"><input type="radio" value="month" v-model="bulk.dateType" /> เดือน</label>
+      <label class="bl-radio"><input type="radio" value="invoice" v-model="bulk.dateType" /> {{ dash.t[dash.lang].invoiceDateTypeWord }}</label>
+      <label class="bl-radio"><input type="radio" value="due" v-model="bulk.dateType" /> {{ dash.t[dash.lang].dueDateLabel }}</label>
+      <label class="bl-radio"><input type="radio" value="month" v-model="bulk.dateType" /> {{ dash.t[dash.lang].monthWord }}</label>
       <select v-if="bulk.dateType === 'month'" v-model="bulk.month" class="bl-sel"><option v-for="m in months" :key="m" :value="m">{{ m }}</option></select>
       <template v-else><input type="date" v-model="bulk.from" class="bl-date" /><span>–</span><input type="date" v-model="bulk.to" class="bl-date" /></template>
-      <select v-model="bulk.type" class="bl-sel"><option value="all">ขายส่ง, ขายปลีก</option><option value="wholesale">ขายส่ง</option><option value="retail">ขายปลีก</option></select>
-      <button class="bl-search">🔍 ค้นหา</button>
+      <select v-model="bulk.type" class="bl-sel"><option value="all">{{ dash.t[dash.lang].wholesaleRetailWord }}</option><option value="wholesale">{{ dash.t[dash.lang].wholesaleWord }}</option><option value="retail">{{ dash.t[dash.lang].retailSaleWord }}</option></select>
+      <button class="bl-search">🔍 {{ dash.t[dash.lang].searchWord }}</button>
     </div>
     <div class="bl-bulk-body">
       <div class="bl-bulk-left">
@@ -102,15 +102,15 @@
         <div class="bl-bulk-count">{{ bulk.selected.length }}/{{ customers.length }} Values accepted</div>
         <div class="bl-bulk-accepted">
           <div v-for="(c, i) in bulk.selected" :key="i" class="bl-bulk-acc">{{ c }}</div>
-          <div v-if="bulk.selected.length === 0" class="bl-empty">ยังไม่เลือกลูกค้า</div>
+          <div v-if="bulk.selected.length === 0" class="bl-empty">{{ dash.t[dash.lang].noCustomerSelectedMsg }}</div>
         </div>
       </div>
     </div>
     <div class="bl-footer">
       <span v-if="savedMsg" class="bl-saved">{{ savedMsg }}</span>
       <div class="bl-fbtns">
-        <button class="bl-btn" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 รายงาน</button>
-        <button class="bl-btn bl-btn-save" @click="saveBulk">💾 บันทึก ({{ bulk.selected.length }} ราย)</button>
+        <button class="bl-btn" @click="dash.fbFail('ตัวอย่างรายงาน (ยังไม่เชื่อมระบบพิมพ์รายงานจริง)')">👁 {{ dash.t[dash.lang].reportBtnWord }}</button>
+        <button class="bl-btn bl-btn-save" @click="saveBulk">💾 {{ dash.t[dash.lang].save }} ({{ bulk.selected.length }} {{ dash.t[dash.lang].peopleCountUnit }})</button>
       </div>
     </div>
   </template>
@@ -126,13 +126,16 @@ export default {
       bulkMode: false,
       form: { br_no: '', bill_date: new Date().toISOString().slice(0, 10), due_date: '', customer: '' },
       customers: [], docs: { wholesale: [], retail: [], credit: [] }, selected: [], savedMsg: '',
-      blocks: [{ key: 'wholesale', title: 'ขายส่ง' }, { key: 'retail', title: 'ขายปลีก' }, { key: 'credit', title: 'ใบลดหนี้' }],
       bulk: { dateType: 'month', month: '', from: '', to: '', type: 'all', selected: [] },
       months: [],
     };
   },
   computed: {
     netTotal() { return this.selected.reduce((s, x) => s + (x.type === 'credit' ? -1 : 1) * (Number(x.total) || 0), 0); },
+    blocks() {
+      const t = this.dash.t[this.dash.lang];
+      return [{ key: 'wholesale', title: t.wholesaleWord }, { key: 'retail', title: t.retailSaleWord }, { key: 'credit', title: t.creditNoteWord }];
+    },
   },
   async mounted() {
     await this.loadNextNo(); this.loadCustomers();
@@ -151,25 +154,27 @@ export default {
     isPicked(type, d) { return this.selected.some(s => s.type === type && s.inv_no === d.inv_no); },
     pickDoc(type, d) {
       if (this.isPicked(type, d)) return;
-      const label = { wholesale: 'ขายส่ง', retail: 'ขายปลีก', credit: 'ใบลดหนี้' }[type];
+      const t = this.dash.t[this.dash.lang];
+      const label = { wholesale: t.wholesaleWord, retail: t.retailSaleWord, credit: t.creditNoteWord }[type];
       this.selected.push({ type, typeLabel: label, inv_no: d.inv_no, doc_date: d.doc_date, total: d.total });
     },
     unpick(i) { this.selected.splice(i, 1); },
     async save() {
-      if (!this.form.customer) { this.dash.fbFail('กรุณาเลือกลูกค้า'); return; }
-      if (this.selected.length === 0) { this.dash.fbFail('กรุณาเลือกอินวอยส์อย่างน้อย 1 รายการ'); return; }
+      if (!this.form.customer) { this.dash.fbFail(this.dash.t[this.dash.lang].requireSelectCustomerMsg); return; }
+      if (this.selected.length === 0) { this.dash.fbFail(this.dash.t[this.dash.lang].requireSelectInvoiceMsg); return; }
       this.dash.fbLoading('กำลังบันทึก...');
       try {
         const res = await fetch('/api/customer-billings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify({ ...this.form, total_amount: this.netTotal, items: this.selected }) });
         const d = await res.json();
-        if (d.ok) { this.form.br_no = d.br_no; this.savedMsg = 'วางบิลเรียบร้อยแล้ว (' + d.br_no + ')'; this.dash.fbDone('บันทึกแล้ว'); this.selected = []; this.form.customer = ''; this.docs = { wholesale: [], retail: [], credit: [] }; this.loadNextNo(); }
+        if (d.ok) { this.form.br_no = d.br_no; this.savedMsg = this.dash.t[this.dash.lang].billedSuccessPrefix + ' (' + d.br_no + ')'; this.dash.fbDone('บันทึกแล้ว'); this.selected = []; this.form.customer = ''; this.docs = { wholesale: [], retail: [], credit: [] }; this.loadNextNo(); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
     bulkAll(v) { this.bulk.selected = v ? [...this.customers] : []; },
     async saveBulk() {
-      if (this.bulk.selected.length === 0) { this.dash.fbFail('กรุณาเลือกลูกค้าอย่างน้อย 1 ราย'); return; }
-      this.dash.fbLoading('กำลังวางบิล ' + this.bulk.selected.length + ' ราย...');
+      if (this.bulk.selected.length === 0) { this.dash.fbFail(this.dash.t[this.dash.lang].requireSelectCustomerBulkMsg); return; }
+      const t = this.dash.t[this.dash.lang];
+      this.dash.fbLoading(t.billingInProgressPrefix + ' ' + this.bulk.selected.length + ' ' + t.peopleCountUnit + '...');
       let ok = 0;
       for (const c of this.bulk.selected) {
         try {
@@ -177,7 +182,7 @@ export default {
           const d = await res.json(); if (d.ok) ok++;
         } catch (e) {}
       }
-      this.dash.fbDone('วางบิลแล้ว ' + ok + ' ราย'); this.savedMsg = 'วางบิลแบบ Bulk แล้ว ' + ok + ' ราย'; this.bulk.selected = []; this.loadNextNo();
+      this.dash.fbDone(t.billedDonePrefix + ' ' + ok + ' ' + t.peopleCountUnit); this.savedMsg = t.bulkBilledPrefix + ' ' + ok + ' ' + t.peopleCountUnit; this.bulk.selected = []; this.loadNextNo();
     },
   },
 };
