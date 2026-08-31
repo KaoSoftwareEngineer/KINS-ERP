@@ -3,36 +3,36 @@
   <div class="rp-titlebar">
     <span>💵 {{ title }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่ชำระเงิน</label><input type="date" v-model="filter.payDate" @change="applyFilter" /></div>
-    <div class="rp-f"><label>วันที่เช็ค</label><input type="date" v-model="filter.chequeDate" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].payDateLabel }}</label><input type="date" v-model="filter.payDate" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].chequeDateLabel }}</label><input type="date" v-model="filter.chequeDate" @change="applyFilter" /></div>
     <div class="rp-f"><label>{{ partyLabel }}</label><input v-model="filter.customer" :placeholder="partyLabel" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="ลูกค้า/เลขที่เช็ค" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>ประเภท</label>
-      <select v-model="filter.type" @change="applyFilter"><option value="">ทั้งหมด</option><option>เงินสด</option><option>เช็ค</option><option>โอน</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchPartyChequePlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].typeLabel }}</label>
+      <select v-model="filter.type" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option value="เงินสด">{{ dash.t[dash.lang].cashOptionWord }}</option><option value="เช็ค">{{ dash.t[dash.lang].chequeWord }}</option><option value="โอน">{{ dash.t[dash.lang].transferWord }}</option></select>
     </div>
-    <div class="rp-f"><label>บัญชี</label>
-      <select v-model="filter.account" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="a in accountOptions" :key="a" :value="a">{{ a }}</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].accountLabel }}</label>
+      <select v-model="filter.account" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="a in accountOptions" :key="a" :value="a">{{ a }}</option></select>
     </div>
-    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button><button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button></div>
+    <div class="rp-f-actions"><button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button><button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button></div>
   </div>
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <div class="rp-table-wrap rp-tall">
     <table class="rp-table" style="min-width:1150px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('pay_date')">วันที่ชำระเงิน <span class="rp-sort" :class="{ on: sort.key==='pay_date' }">{{ sortIcon('pay_date') }}</span></th>
-          <th>ประเภท</th><th>{{ partyLabel }}</th><th>วันที่เช็ค</th><th>เลขที่เช็ค</th><th>บัญชี</th>
-          <th class="rp-r">จำนวนเงิน</th><th>สถานะ</th><th>สถานะบัญชี</th><th>รูป</th><th>อนุมัติ</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('pay_date')">{{ dash.t[dash.lang].payDateLabel }} <span class="rp-sort" :class="{ on: sort.key==='pay_date' }">{{ sortIcon('pay_date') }}</span></th>
+          <th>{{ dash.t[dash.lang].typeLabel }}</th><th>{{ partyLabel }}</th><th>{{ dash.t[dash.lang].chequeDateLabel }}</th><th>{{ dash.t[dash.lang].chequeNoLabel }}</th><th>{{ dash.t[dash.lang].accountLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].amountLabel }}</th><th>{{ dash.t[dash.lang].status }}</th><th>{{ dash.t[dash.lang].acctStatusLabel }}</th><th>{{ dash.t[dash.lang].slipLabel }}</th><th>{{ dash.t[dash.lang].approveLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">— ไม่มีข้อมูลรับเงินลูกค้า —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="12" class="rp-empty">{{ dash.t[dash.lang].noPaymentDataMsg }}</td></tr>
         <tr v-for="(r, idx) in filtered" :key="idx">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-c">{{ fmtDate(r.pay_date) }}</td>
@@ -42,14 +42,14 @@
           <td>{{ r.cheque_no || '' }}</td>
           <td>{{ r.account || '' }}</td>
           <td class="rp-r">{{ fmt(r.amount) }}</td>
-          <td><span class="rp-badge ok">สำเร็จ</span></td>
+          <td><span class="rp-badge ok">{{ dash.t[dash.lang].successStatusWord }}</span></td>
           <td><span class="rp-badge" :class="acctClass(r)">{{ acctLabel(r) }}</span></td>
-          <td class="rp-c"><a v-if="r.slipUrl" :href="r.slipUrl" target="_blank" title="ดูสลิป">📎</a><span v-else class="rp-muted">-</span></td>
+          <td class="rp-c"><a v-if="r.slipUrl" :href="r.slipUrl" target="_blank" :title="dash.t[dash.lang].viewSlipWord">📎</a><span v-else class="rp-muted">-</span></td>
           <td class="rp-c"><span class="rp-approve">✔</span></td>
         </tr>
       </tbody>
       <tfoot v-if="filtered.length">
-        <tr><td colspan="7" class="rp-r">รวม</td><td class="rp-r">{{ fmt(sumAmount) }}</td><td colspan="4"></td></tr>
+        <tr><td colspan="7" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(sumAmount) }}</td><td colspan="4"></td></tr>
       </tfoot>
     </table>
   </div>
@@ -63,8 +63,8 @@ export default {
   props: { mode: { type: String, default: 'receive' } }, // receive = รับเงินลูกค้า, pay = จ่ายเงินคู่ค้า
   data() { return { rows: [], filter: { payDate: '', chequeDate: '', customer: '', q: '', type: '', account: '' }, sort: { key: 'pay_date', dir: 'desc' } }; },
   computed: {
-    title() { return this.mode === 'pay' ? 'รายงานจ่ายเงินคู่ค้า' : 'รายงานรับเงินลูกค้า'; },
-    partyLabel() { return this.mode === 'pay' ? 'คู่ค้า' : 'ลูกค้า'; },
+    title() { return this.mode === 'pay' ? this.dash.t[this.dash.lang].payReportPayTitle : this.dash.t[this.dash.lang].payReportReceiveTitle; },
+    partyLabel() { return this.mode === 'pay' ? this.dash.t[this.dash.lang].partnerWord : this.dash.t[this.dash.lang].customerWord; },
     accountOptions() { return [...new Set(this.rows.map(r => r.account).filter(Boolean))]; },
     filtered() {
       let list = this.rows.slice(); const f = this.filter;
@@ -82,7 +82,7 @@ export default {
   watch: { mode() { this.load(); } },
   mounted() { this.load(); },
   methods: {
-    acctLabel(r) { if (this.mode === 'pay') return r.invoiceRef ? 'หักแล้ว' : 'รอหัก'; return r.invoiceRef ? 'หักยอดแล้ว' : 'ยังไม่หัก'; },
+    acctLabel(r) { const t = this.dash.t[this.dash.lang]; if (this.mode === 'pay') return r.invoiceRef ? t.deductedWord : t.pendingDeductWord; return r.invoiceRef ? t.deductedAmountWord : t.notYetDeductedWord; },
     acctClass(r) { return r.invoiceRef ? 'ok' : 'pending'; },
     async load() {
       try {
