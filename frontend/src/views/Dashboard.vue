@@ -1405,6 +1405,13 @@ data() {
             costTotalLabel: 'รวมราคารับ',
             clickRowToViewMsg: 'คลิกแถวด้านบนเพื่อดูรายการสินค้า',
             noItemsInDisburseMsg: 'ไม่มีรายการในใบเบิกนี้',
+            // ---- รายงานรับสินค้า VAT เฉพาะ ----
+            vatReceiveReportTitle: 'รายงานรับสินค้า VAT',
+            searchReceiveVendorPlaceholder: 'เลขที่รับ/คู่ค้า/อ้างอิง',
+            totalQtyLabel: 'จำนวนรวม',
+            noVatReceiptDataMsg: 'ยังไม่มีข้อมูล (จะแสดงเมื่อมีใบรับสินค้า VAT ในระบบ)',
+            clickRowToViewPriceMsg: 'คลิกแถวด้านบนเพื่อดูรายการราคา',
+            noItemsInReceiptMsg: 'ไม่มีรายการในใบรับนี้',
           },
           en: {
             home: 'Home',
@@ -1855,6 +1862,12 @@ data() {
             costTotalLabel: 'Cost Total',
             clickRowToViewMsg: 'Click a row above to view items',
             noItemsInDisburseMsg: 'No items in this disbursement',
+            vatReceiveReportTitle: 'VAT Receive Report',
+            searchReceiveVendorPlaceholder: 'Receipt no./vendor/reference',
+            totalQtyLabel: 'Total Qty',
+            noVatReceiptDataMsg: 'No data yet (will show once VAT receipts occur)',
+            clickRowToViewPriceMsg: 'Click a row above to view prices',
+            noItemsInReceiptMsg: 'No items in this receipt',
           }
         }
       };
