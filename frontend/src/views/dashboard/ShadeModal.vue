@@ -4,14 +4,14 @@
     <div class="fr-modal-header">
       <h3 v-if="dash.frShadeContext === 'irregular'">{{ dash.t[dash.lang].shadesTitle }} - {{ dash.frShadeFabric ? dash.frShadeFabric.name : '-' }}</h3>
       <h3 v-else>{{ dash.t[dash.lang].shadesTitle }} - {{ dash.frShadeFabric ? dash.frShadeFabric.sku : '-' }} - {{ dash.frShadeFabric ? dash.frShadeFabric.name : '-' }}</h3>
-      <button class="fr-modal-close" @click="dash.frCloseShadeModal" title="ปิด">
+      <button class="fr-modal-close" @click="dash.frCloseShadeModal" :title="dash.t[dash.lang].close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
     <div class="fr-modal-body">
       <div class="fr-shade-search">
-        <input type="text" v-model="dash.frShadeSearch" placeholder="คำค้นหา" />
+        <input type="text" v-model="dash.frShadeSearch" :placeholder="dash.t[dash.lang].searchInput" />
         <button class="fr-btn-util" @click="dash.frShadeSearchAction">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           {{ dash.t[dash.lang].searchWord }}
@@ -24,40 +24,40 @@
 
       <!-- ดึงเฉดสีจากกลุ่มผ้า (เฉพาะตอนเปิดจากผ้า ไม่ใช่จากกลุ่มเอง) -->
       <div class="fr-shade-pull" v-if="dash.frShadeContext !== 'regular-group'">
-        <span class="fr-shade-pull-label">📥 ดึงเฉดสีจากกลุ่ม:</span>
+        <span class="fr-shade-pull-label">{{ dash.t[dash.lang].pullShadesFromGroupLabel }}</span>
         <select v-model="dash.frShadeGroupSel" class="fr-shade-pull-select">
-          <option value="">— เลือกกลุ่มผ้า —</option>
-          <option v-for="g in dash.frShadeGroups" :key="g.id" :value="g.id">{{ g.name }} ({{ g.colors || (g.shades ? g.shades.length : 0) }} สี)</option>
+          <option value="">{{ dash.t[dash.lang].selectFabricGroupPlaceholder }}</option>
+          <option v-for="g in dash.frShadeGroups" :key="g.id" :value="g.id">{{ g.name }} ({{ g.colors || (g.shades ? g.shades.length : 0) }} {{ dash.t[dash.lang].colorsUnit }})</option>
         </select>
-        <button class="fr-btn-util fr-btn-search" @click="dash.frPullShadesFromGroup" :disabled="!dash.frShadeGroupSel">ดึงมาใส่</button>
+        <button class="fr-btn-util fr-btn-search" @click="dash.frPullShadesFromGroup" :disabled="!dash.frShadeGroupSel">{{ dash.t[dash.lang].pullInLabel }}</button>
       </div>
 
       <div class="fr-shade-table">
         <div class="fr-shade-row fr-shade-row-head">
-          <span>รหัสสี</span>
-          <span>เฉดสี</span>
-          <span>แร็คซ์</span>
-          <span>รูป</span>
-          <span>ต้นทุนผ้า</span>
-          <span>ค่าย้อม</span>
+          <span>{{ dash.t[dash.lang].colorCodeLabel }}</span>
+          <span>{{ dash.t[dash.lang].shadeLabel }}</span>
+          <span>{{ dash.t[dash.lang].rackWord }}</span>
+          <span>{{ dash.t[dash.lang].imageLabel }}</span>
+          <span>{{ dash.t[dash.lang].fabricCostLabel }}</span>
+          <span>{{ dash.t[dash.lang].dyeCostLabel }}</span>
           <span></span>
         </div>
-        <div v-if="dash.frShadeLoading" class="fr-shade-empty">กำลังโหลดข้อมูล...</div>
-        <div v-else-if="dash.frVisibleShadeRows.length === 0" class="fr-shade-empty">ไม่มีเฉดสี — กด + เพื่อเพิ่มรายการ</div>
+        <div v-if="dash.frShadeLoading" class="fr-shade-empty">{{ dash.t[dash.lang].loadingWord }}</div>
+        <div v-else-if="dash.frVisibleShadeRows.length === 0" class="fr-shade-empty">{{ dash.t[dash.lang].noShadesAddHintMsg }}</div>
         <div class="fr-shade-row" v-for="row in dash.frVisibleShadeRows" :key="row._key">
-          <input type="text" v-model="row.color_code" placeholder="เช่น 18001" />
-          <input type="text" v-model="row.name" placeholder="ชื่อเฉดสี" />
-          <input type="text" v-model="row.rack" placeholder="แร็คซ์" />
-          <label class="fr-shade-img" :title="row.image_name || 'อัปโหลดรูปเฉดสี'">
+          <input type="text" v-model="row.color_code" :placeholder="dash.t[dash.lang].egColorCodePlaceholder" />
+          <input type="text" v-model="row.name" :placeholder="dash.t[dash.lang].shadeNamePlaceholder" />
+          <input type="text" v-model="row.rack" :placeholder="dash.t[dash.lang].rackWord" />
+          <label class="fr-shade-img" :title="row.image_name || dash.t[dash.lang].uploadShadeImageTitle">
             <input type="file" accept="image/*" @change="onPickImage(row, $event)" hidden />
             <span v-if="row.image_name" class="fr-shade-img-name">🖼 {{ row.image_name }}</span>
-            <span v-else class="fr-shade-img-empty">📎 เลือกรูป</span>
+            <span v-else class="fr-shade-img-empty">{{ dash.t[dash.lang].selectImageLabel }}</span>
           </label>
           <input type="number" step="0.01" v-model="row.fabric_cost" placeholder="0.00" />
           <input type="number" step="0.01" v-model="row.dye_cost" placeholder="0.00" />
           <span class="fr-shade-row-actions">
-            <button class="fr-circle-btn add" title="เพิ่มแถวถัดไป" @click="dash.frShadeAddRowAfter(row)">➕</button>
-            <button class="fr-circle-btn remove" title="ลบเฉดสีนี้" @click="dash.frShadeRemoveRow(row)">➖</button>
+            <button class="fr-circle-btn add" :title="dash.t[dash.lang].addNextRowTitle" @click="dash.frShadeAddRowAfter(row)">➕</button>
+            <button class="fr-circle-btn remove" :title="dash.t[dash.lang].removeThisShadeTitle" @click="dash.frShadeRemoveRow(row)">➖</button>
           </span>
         </div>
       </div>
