@@ -1,19 +1,19 @@
 <template>
 <div class="fr-page-compact">
   <div class="header flex-wrap">
-    <div><h1>👥 ข้อมูลพนักงาน</h1></div>
+    <div><h1>👥 {{ dash.t[dash.lang].employeeDataTitle }}</h1></div>
     <div class="header-actions">
-      <span class="emp-note">* พนักงานสมัครผ่านหน้าเว็บไซต์ แล้วกำหนดตำแหน่งที่หน้า "บัญชีผู้ใช้งาน"</span>
+      <span class="emp-note">{{ dash.t[dash.lang].employeeNoteText }}</span>
     </div>
   </div>
 
   <!-- สรุปจำนวนตามตำแหน่ง -->
   <div class="emp-role-chips">
     <button class="emp-chip" :class="{ active: filters.role === '' }" @click="filters.role = ''">
-      ทั้งหมด <b>{{ dash.members.length }}</b>
+      {{ dash.t[dash.lang].allWord }} <b>{{ dash.members.length }}</b>
     </button>
     <button v-for="r in roleCounts" :key="r.name" class="emp-chip" :class="{ active: filters.role === r.name }" @click="filters.role = r.name">
-      {{ r.name || 'ยังไม่กำหนด' }} <b>{{ r.count }}</b>
+      {{ r.name || dash.t[dash.lang].notAssignedWord }} <b>{{ r.count }}</b>
     </button>
   </div>
 
@@ -21,28 +21,28 @@
   <div class="section" style="margin-top: 12px;">
     <div class="fr-filter-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[18px] gap-y-[14px]">
       <div class="fr-field-group">
-        <label>คำค้นหา</label>
-        <input type="text" v-model="filters.search" placeholder="ค้นหาชื่อ / อีเมล / เบอร์" />
+        <label>{{ dash.t[dash.lang].searchInput }}</label>
+        <input type="text" v-model="filters.search" :placeholder="dash.t[dash.lang].searchNameEmailPhonePlaceholder" />
       </div>
       <div class="fr-field-group">
-        <label>ตำแหน่ง / บทบาท</label>
-        <select v-model="filters.role"><option value="">ทั้งหมด</option><option v-for="r in roleOptions" :key="r" :value="r">{{ r || 'ยังไม่กำหนด' }}</option></select>
+        <label>{{ dash.t[dash.lang].roleLabel }}</label>
+        <select v-model="filters.role"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="r in roleOptions" :key="r" :value="r">{{ r || dash.t[dash.lang].notAssignedWord }}</option></select>
       </div>
       <div class="fr-field-group">
-        <label>เพศ</label>
-        <select v-model="filters.gender"><option value="">ทั้งหมด</option><option value="male">ชาย</option><option value="female">หญิง</option></select>
+        <label>{{ dash.t[dash.lang].genderLabel }}</label>
+        <select v-model="filters.gender"><option value="">{{ dash.t[dash.lang].allWord }}</option><option value="male">{{ dash.t[dash.lang].maleWord }}</option><option value="female">{{ dash.t[dash.lang].femaleWord }}</option></select>
       </div>
       <div class="fr-field-group">
         <label>&nbsp;</label>
         <div class="fr-filter-actions">
-          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 ค้นหา</button>
-          <button class="fr-btn-util fr-btn-reset" @click="resetFilters">↺ รีเซ็ต</button>
+          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+          <button class="fr-btn-util fr-btn-reset" @click="resetFilters">↺ {{ dash.t[dash.lang].resetWord }}</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="fr-summary fr-summary-row"><span>พบ {{ filteredItems.length }} คน</span></div>
+  <div class="fr-summary fr-summary-row"><span>{{ dash.t[dash.lang].foundItems }} {{ filteredItems.length }} {{ dash.t[dash.lang].peopleUnit }}</span></div>
 
   <!-- ตาราง -->
   <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
@@ -50,14 +50,14 @@
       <table class="fr-table">
         <thead>
           <tr>
-            <th style="width:44px;">ที่</th>
-            <th>ชื่อ - นามสกุล</th>
-            <th>อีเมล</th>
-            <th>เบอร์มือถือ</th>
-            <th>ตำแหน่ง / บทบาท</th>
-            <th>เพศ</th>
-            <th>อายุ</th>
-            <th>วันที่สมัคร</th>
+            <th style="width:44px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+            <th>{{ dash.t[dash.lang].fullNameLabel }}</th>
+            <th>{{ dash.t[dash.lang].email }}</th>
+            <th>{{ dash.t[dash.lang].mobilePhoneLabel }}</th>
+            <th>{{ dash.t[dash.lang].roleLabel }}</th>
+            <th>{{ dash.t[dash.lang].genderLabel }}</th>
+            <th>{{ dash.t[dash.lang].ageLabel }}</th>
+            <th>{{ dash.t[dash.lang].registeredDate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -66,22 +66,22 @@
             <td class="fr-td-wrap"><strong>{{ u.name || '-' }}</strong></td>
             <td>{{ u.email }}</td>
             <td>{{ u.phone || '-' }}</td>
-            <td><span class="emp-role-badge" :class="{ none: !u.role }">{{ u.role || 'ยังไม่กำหนด' }}</span></td>
-            <td>{{ u.gender === 'male' ? 'ชาย' : u.gender === 'female' ? 'หญิง' : '-' }}</td>
+            <td><span class="emp-role-badge" :class="{ none: !u.role }">{{ u.role || dash.t[dash.lang].notAssignedWord }}</span></td>
+            <td>{{ u.gender === 'male' ? dash.t[dash.lang].maleWord : u.gender === 'female' ? dash.t[dash.lang].femaleWord : '-' }}</td>
             <td>{{ u.age || '-' }}</td>
             <td>{{ u.created_at }}</td>
           </tr>
-          <tr v-if="pagedRows.length === 0"><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8;">ไม่พบข้อมูลพนักงาน</td></tr>
+          <tr v-if="pagedRows.length === 0"><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].noEmployeesFound }}</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <div class="xl-pagination" v-if="filteredItems.length > 0">
-    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="15">15 / หน้า</option><option :value="30">30 / หน้า</option><option :value="50">50 / หน้า</option></select>
-    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">‹ ก่อนหน้า</button>
-    <span>หน้า {{ page }} / {{ totalPages }}</span>
-    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
+    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="15">15 {{ dash.t[dash.lang].perPageWord }}</option><option :value="30">30 {{ dash.t[dash.lang].perPageWord }}</option><option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option></select>
+    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">{{ dash.t[dash.lang].prevPage }}</button>
+    <span>{{ dash.t[dash.lang].pageWord }} {{ page }} / {{ totalPages }}</span>
+    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">{{ dash.t[dash.lang].nextPage }}</button>
   </div>
 </div>
 </template>
