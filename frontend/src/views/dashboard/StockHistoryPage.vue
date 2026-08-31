@@ -2,29 +2,29 @@
 <div class="sh-wrap text-[var(--text)]">
   <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
     <div>
-      <h1 class="text-xl font-bold flex items-center gap-2">📜 ประวัติเคลื่อนไหวสต็อก</h1>
-      <p class="text-xs text-[var(--muted)] mt-0.5">บันทึกทุกการรับเข้า / จัดเก็บ / ย้าย / ตัดหลา — ใครทำ เมื่อไร กี่หลา</p>
+      <h1 class="text-xl font-bold flex items-center gap-2">📜 {{ dash.t[dash.lang].stockHistoryTitle }}</h1>
+      <p class="text-xs text-[var(--muted)] mt-0.5">{{ dash.t[dash.lang].stockHistorySubtitle }}</p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <select v-model="filterType" class="sh-input">
-        <option value="">ทุกประเภท</option>
-        <option value="receive">รับเข้า</option>
-        <option value="move">ย้าย/จัดเก็บ</option>
-        <option value="cut">ตัดหลา</option>
-        <option value="issue">จ่ายออก</option>
-        <option value="adjust">ปรับยอด</option>
-        <option value="return">รับคืน</option>
+        <option value="">{{ dash.t[dash.lang].allTypesLabel }}</option>
+        <option value="receive">{{ dash.t[dash.lang].txnTypeReceive }}</option>
+        <option value="move">{{ dash.t[dash.lang].txnTypeMove }}</option>
+        <option value="cut">{{ dash.t[dash.lang].txnTypeCut }}</option>
+        <option value="issue">{{ dash.t[dash.lang].txnTypeIssue }}</option>
+        <option value="adjust">{{ dash.t[dash.lang].txnTypeAdjust }}</option>
+        <option value="return">{{ dash.t[dash.lang].txnTypeReturn }}</option>
       </select>
       <div class="relative">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]">🔍</span>
-        <input v-model="search" placeholder="ค้นหา QR / รหัสผ้า / ผู้ทำรายการ" class="sh-input pl-9 w-[280px]" />
+        <input v-model="search" :placeholder="dash.t[dash.lang].searchQrSkuUserPlaceholder" class="sh-input pl-9 w-[280px]" />
       </div>
-      <button class="sh-btn" @click="load">↻ รีเฟรช</button>
+      <button class="sh-btn" @click="load">↻ {{ dash.t[dash.lang].refreshWord }}</button>
     </div>
   </div>
 
   <div class="sh-summary mb-2 text-xs text-[var(--muted)]">
-    แสดง {{ filtered.length }} รายการ (จากทั้งหมด {{ transactions.length }})
+    {{ dash.t[dash.lang].showingLabel }} {{ filtered.length }} {{ dash.t[dash.lang].itemsUnit }} ({{ dash.t[dash.lang].outOfTotalLabel }} {{ transactions.length }})
   </div>
 
   <div class="sh-card">
@@ -32,17 +32,17 @@
       <table class="fr-table">
         <thead>
           <tr>
-            <th>วันที่-เวลา</th>
-            <th>ประเภท</th>
-            <th>รหัสม้วน (QR)</th>
-            <th>ผ้า</th>
-            <th>สี</th>
-            <th style="text-align:right">ก่อน</th>
-            <th style="text-align:right">เปลี่ยน</th>
-            <th style="text-align:right">หลัง</th>
-            <th>จาก → ถึง</th>
-            <th>อ้างอิง</th>
-            <th>ผู้ทำรายการ</th>
+            <th>{{ dash.t[dash.lang].dateTimeLabel }}</th>
+            <th>{{ dash.t[dash.lang].typeLabel }}</th>
+            <th>{{ dash.t[dash.lang].rollQrCodeLabel }}</th>
+            <th>{{ dash.t[dash.lang].fabricLabel }}</th>
+            <th>{{ dash.t[dash.lang].colorLabel }}</th>
+            <th style="text-align:right">{{ dash.t[dash.lang].beforeLabel }}</th>
+            <th style="text-align:right">{{ dash.t[dash.lang].changeLabel }}</th>
+            <th style="text-align:right">{{ dash.t[dash.lang].afterLabel }}</th>
+            <th>{{ dash.t[dash.lang].fromToLabel }}</th>
+            <th>{{ dash.t[dash.lang].referenceLabel }}</th>
+            <th>{{ dash.t[dash.lang].doneByLabel }}</th>
           </tr>
         </thead>
         <tbody>
@@ -61,8 +61,8 @@
             <td>{{ t.ref_no || t.ref_type || '-' }}</td>
             <td>{{ t.user_name || '-' }}</td>
           </tr>
-          <tr v-if="loading"><td colspan="11" class="text-center text-[var(--muted)] py-6">กำลังโหลด...</td></tr>
-          <tr v-else-if="filtered.length === 0"><td colspan="11" class="text-center text-[var(--muted)] py-6">ไม่มีรายการ</td></tr>
+          <tr v-if="loading"><td colspan="11" class="text-center text-[var(--muted)] py-6">{{ dash.t[dash.lang].loadingWord }}</td></tr>
+          <tr v-else-if="filtered.length === 0"><td colspan="11" class="text-center text-[var(--muted)] py-6">{{ dash.t[dash.lang].noItemsMsg }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -104,7 +104,8 @@ export default {
       finally { this.loading = false; }
     },
     typeLabel(t) {
-      return { receive: 'รับเข้า', move: 'ย้าย/จัดเก็บ', cut: 'ตัดหลา', issue: 'จ่ายออก', adjust: 'ปรับยอด', return: 'รับคืน' }[t] || t;
+      const d = this.dash.t[this.dash.lang];
+      return { receive: d.txnTypeReceive, move: d.txnTypeMove, cut: d.txnTypeCut, issue: d.txnTypeIssue, adjust: d.txnTypeAdjust, return: d.txnTypeReturn }[t] || t;
     },
     numOrDash(v) { return v == null ? '—' : Number(v).toLocaleString(); },
     fmtDate(s) {
