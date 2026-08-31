@@ -1230,6 +1230,9 @@ data() {
             totalFoldCountLabel: 'จำนวนพับรวม',
             totalYardsLabel: 'จำนวนหลารวม',
             barcodeBtnWord: 'บาร์โค้ด',
+            receiveDyedFabricTitle: 'รับผ้าย้อม',
+            orderNoLabel: 'เลขที่ออร์เดอร์',
+            selectDyeOrderOpt: '— เลือกใบสั่งย้อม —',
           },
           en: {
             home: 'Home',
@@ -1516,6 +1519,9 @@ data() {
             totalFoldCountLabel: 'Total Fold Count',
             totalYardsLabel: 'Total Yards',
             barcodeBtnWord: 'Barcode',
+            receiveDyedFabricTitle: 'Receive Dyed Fabric',
+            orderNoLabel: 'Order No.',
+            selectDyeOrderOpt: '— Select Dye Order —',
           }
         }
       };
