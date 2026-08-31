@@ -3,7 +3,7 @@
   <div class="header flex-wrap">
     <div><h1>{{ meta.icon }} {{ meta.title }}</h1></div>
     <div class="header-actions">
-      <button class="btn-small fr-btn-add" @click="openAdd">+ เพิ่ม {{ meta.title }}</button>
+      <button class="btn-small fr-btn-add" @click="openAdd">+ {{ dash.t[dash.lang].add }} {{ meta.title }}</button>
     </div>
   </div>
 
@@ -11,20 +11,20 @@
   <div class="section" style="margin-top: 12px;">
     <div class="fr-filter-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-[18px] gap-y-[14px]">
       <div class="fr-field-group">
-        <label>คำค้นหา</label>
-        <input type="text" v-model="search" placeholder="ค้นหาชื่อ" @keyup.enter="page = 1" />
+        <label>{{ dash.t[dash.lang].searchInput }}</label>
+        <input type="text" v-model="search" :placeholder="dash.t[dash.lang].searchNamePlaceholder" @keyup.enter="page = 1" />
       </div>
       <div class="fr-field-group">
         <label>&nbsp;</label>
         <div class="fr-filter-actions">
-          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 ค้นหา</button>
-          <button class="fr-btn-util fr-btn-reset" @click="search = ''; page = 1">↺ รีเซ็ต</button>
+          <button class="fr-btn-util fr-btn-search" @click="page = 1">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+          <button class="fr-btn-util fr-btn-reset" @click="search = ''; page = 1">↺ {{ dash.t[dash.lang].resetWord }}</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="fr-summary fr-summary-row"><span>พบ {{ filteredItems.length }} รายการ</span></div>
+  <div class="fr-summary fr-summary-row"><span>{{ dash.t[dash.lang].foundItems }} {{ filteredItems.length }} {{ dash.t[dash.lang].itemsUnit }}</span></div>
 
   <!-- ตาราง -->
   <div class="section fr-table-section" style="margin-top: 8px; padding: 0; overflow: hidden;">
@@ -32,10 +32,10 @@
       <table class="fr-table">
         <thead>
           <tr>
-            <th style="width:60px;">ที่</th>
+            <th style="width:60px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
             <th>{{ meta.title }}</th>
             <th v-if="meta.extra" style="width:200px;">{{ meta.extra.label }}</th>
-            <th style="width:100px;">จัดการ</th>
+            <th style="width:100px;">{{ dash.t[dash.lang].manageWord }}</th>
           </tr>
         </thead>
         <tbody>
@@ -45,30 +45,30 @@
             <td v-if="meta.extra" style="text-align:right;">{{ item[meta.extra.field] != null ? Number(item[meta.extra.field]).toFixed(2) : '' }}</td>
             <td>
               <div class="fr-action-group">
-                <button class="fr-action-btn edit" title="แก้ไข" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-                <button class="fr-action-btn delete" title="ลบ" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                <button class="fr-action-btn edit" :title="dash.t[dash.lang].edit" @click="openEdit(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                <button class="fr-action-btn delete" :title="dash.t[dash.lang].delete" @click="deleteItem(item)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
               </div>
             </td>
           </tr>
-          <tr v-if="loading"><td :colspan="meta.extra ? 4 : 3" style="text-align:center;padding:24px;color:#94a3b8;">กำลังโหลดข้อมูล...</td></tr>
-          <tr v-else-if="pagedRows.length === 0"><td :colspan="meta.extra ? 4 : 3" style="text-align:center;padding:24px;color:#94a3b8;">ไม่พบข้อมูล{{ meta.title }}</td></tr>
+          <tr v-if="loading"><td :colspan="meta.extra ? 4 : 3" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.t[dash.lang].loadingWord }}</td></tr>
+          <tr v-else-if="pagedRows.length === 0"><td :colspan="meta.extra ? 4 : 3" style="text-align:center;padding:24px;color:#94a3b8;">{{ dash.lang === 'th' ? 'ไม่พบข้อมูล' + meta.title : 'No ' + meta.title + ' data found' }}</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <div class="xl-pagination" v-if="filteredItems.length > 0">
-    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="20">20 / หน้า</option><option :value="50">50 / หน้า</option><option :value="100">100 / หน้า</option></select>
-    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">‹ ก่อนหน้า</button>
-    <span>หน้า {{ page }} / {{ totalPages }}</span>
-    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">ถัดไป ›</button>
+    <select v-model.number="pageSize" class="fr-page-size-select"><option :value="20">20 {{ dash.t[dash.lang].perPageWord }}</option><option :value="50">50 {{ dash.t[dash.lang].perPageWord }}</option><option :value="100">100 {{ dash.t[dash.lang].perPageWord }}</option></select>
+    <button class="fr-btn-util" :disabled="page === 1" @click="page -= 1">{{ dash.t[dash.lang].prevPage }}</button>
+    <span>{{ dash.t[dash.lang].pageWord }} {{ page }} / {{ totalPages }}</span>
+    <button class="fr-btn-util" :disabled="page === totalPages" @click="page += 1">{{ dash.t[dash.lang].nextPage }}</button>
   </div>
 
   <!-- โมดัลเพิ่ม/แก้ไข (ERP มาตรฐานกลาง — ช่องเดียว) -->
   <div class="erp-overlay" v-if="showModal" @click.self="showModal = false">
     <div class="erp-modal" style="width: 480px;">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">{{ meta.icon }}</span> {{ editingId ? 'แก้ไข' : 'เพิ่ม' }} {{ meta.title }}</span>
+        <span><span class="erp-head-ic">{{ meta.icon }}</span> {{ editingId ? dash.t[dash.lang].edit : dash.t[dash.lang].add }} {{ meta.title }}</span>
         <button class="erp-x" @click="showModal = false">✕</button>
       </div>
       <div class="erp-modal-body">
@@ -78,8 +78,8 @@
         </div>
       </div>
       <div class="erp-modal-foot">
-        <button class="erp-btn erp-btn-cancel" @click="showModal = false">ยกเลิก</button>
-        <button class="erp-btn erp-btn-save" @click="save">💾 บันทึก</button>
+        <button class="erp-btn erp-btn-cancel" @click="showModal = false">{{ dash.t[dash.lang].cancelWord }}</button>
+        <button class="erp-btn erp-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>
@@ -88,11 +88,11 @@
 
 <script>
 const META = {
-  'fabric-info-structure':   { category: 'structure',   title: 'โครงสร้างผ้า', icon: '🧵' },
-  'fabric-info-composition': { category: 'composition', title: 'ส่วนประกอบ',    icon: '🧬' },
-  'fabric-info-width':       { category: 'width',       title: 'หน้ากว้าง',     icon: '📏', extra: { field: 'min_yards', label: 'หลาส่งขั้นต่ำ' } },
-  'fabric-info-finishing':   { category: 'finishing',   title: 'Finishing',     icon: '✨' },
-  'fabric-info-weight':      { category: 'weight',      title: 'น้ำหนัก',       icon: '⚖️' },
+  'fabric-info-structure':   { category: 'structure',   titleKey: 'structureLabel',   icon: '🧵' },
+  'fabric-info-composition': { category: 'composition', titleKey: 'compositionLabel', icon: '🧬' },
+  'fabric-info-width':       { category: 'width',       titleKey: 'widthLabel',       icon: '📏', extra: { field: 'min_yards', labelKey: 'minYardsLabel' } },
+  'fabric-info-finishing':   { category: 'finishing',   titleFixed: 'Finishing',      icon: '✨' },
+  'fabric-info-weight':      { category: 'weight',      titleKey: 'weightLabel',      icon: '⚖️' },
 };
 
 export default {
@@ -102,7 +102,15 @@ export default {
     return { items: [], loading: false, search: '', page: 1, pageSize: 20, showModal: false, editingId: null, form: { name: '' } };
   },
   computed: {
-    meta() { return META[this.dash.currentPage] || { category: '', title: 'ข้อมูล', icon: '📄' }; },
+    meta() {
+      const t = this.dash.t[this.dash.lang];
+      const m = META[this.dash.currentPage] || { category: '', titleKey: null, icon: '📄' };
+      return {
+        ...m,
+        title: m.titleFixed || (m.titleKey ? t[m.titleKey] : t.genericDataWord),
+        extra: m.extra ? { ...m.extra, label: t[m.extra.labelKey] } : undefined,
+      };
+    },
     filteredItems() {
       const q = (this.search || '').trim().toLowerCase();
       return q ? this.items.filter(i => (i.name || '').toLowerCase().includes(q)) : this.items;

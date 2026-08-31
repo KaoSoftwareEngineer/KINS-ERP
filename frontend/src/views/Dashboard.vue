@@ -1143,6 +1143,10 @@ data() {
             noteLabel: 'หมายเหตุ',
             notePlaceholder: 'ข้อความหมายเหตุ',
             noNotesFound: 'ไม่พบข้อมูลหมายเหตุ',
+            // ---- master data (โครงสร้าง/ส่วนประกอบ/หน้ากว้าง/finishing/น้ำหนัก) ----
+            minYardsLabel: 'หลาส่งขั้นต่ำ',
+            searchNamePlaceholder: 'ค้นหาชื่อ',
+            genericDataWord: 'ข้อมูล',
           },
           en: {
             home: 'Home',
@@ -1347,6 +1351,9 @@ data() {
             noteLabel: 'Note',
             notePlaceholder: 'Note text',
             noNotesFound: 'No note data found',
+            minYardsLabel: 'Min. Shipping Yards',
+            searchNamePlaceholder: 'Search name',
+            genericDataWord: 'Data',
           }
         }
       };
