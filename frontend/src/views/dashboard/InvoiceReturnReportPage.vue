@@ -1,43 +1,43 @@
 <template>
 <div class="rp-page">
   <div class="rp-titlebar">
-    <span>↩️ รายงานรับคืนอินวอยส์</span>
+    <span>↩️ {{ dash.t[dash.lang].invoiceReturnReportTitle }}</span>
     <button class="rp-export-excel" @click="exportExcel">
-      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>ส่งออก Excel
+      <span class="rp-xls-badge"><svg class="xls-ico" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#217346"/><path d="M14 2v6h6" fill="#185c37"/><path d="M9.5 12.5l5 5M14.5 12.5l-5 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>{{ dash.t[dash.lang].exportExcelPlain }}
     </button>
   </div>
 
   <div class="rp-filter">
-    <div class="rp-f"><label>วันที่</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
-    <div class="rp-f"><label>พนักงานส่งของ</label>
-      <select v-model="filter.shipper" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="s in shipperOptions" :key="s" :value="s">{{ s }}</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="filter.date" @change="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].shipperLabel }}</label>
+      <select v-model="filter.shipper" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="s in shipperOptions" :key="s" :value="s">{{ s }}</option></select>
     </div>
-    <div class="rp-f"><label>คำค้นหา</label><input v-model="filter.q" placeholder="เลขที่บิล/พนักงาน" @keyup.enter="applyFilter" /></div>
-    <div class="rp-f"><label>ประเภทการชำระเงิน</label>
-      <select v-model="filter.pay" @change="applyFilter"><option value="">ทั้งหมด</option><option v-for="p in payOptions" :key="p" :value="p">{{ p }}</option></select>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].searchInput }}</label><input v-model="filter.q" :placeholder="dash.t[dash.lang].searchBillShipperPlaceholder" @keyup.enter="applyFilter" /></div>
+    <div class="rp-f"><label>{{ dash.t[dash.lang].paymentTypeLabel }}</label>
+      <select v-model="filter.pay" @change="applyFilter"><option value="">{{ dash.t[dash.lang].allWord }}</option><option v-for="p in payOptions" :key="p" :value="p">{{ p }}</option></select>
     </div>
     <div class="rp-f-actions">
-      <button class="rp-btn-search" @click="applyFilter">🔍 ค้นหา</button>
-      <button class="rp-btn-reset" @click="reset">↺ รีเซ็ต</button>
+      <button class="rp-btn-search" @click="applyFilter">🔍 {{ dash.t[dash.lang].searchWord }}</button>
+      <button class="rp-btn-reset" @click="reset">↺ {{ dash.t[dash.lang].resetWord }}</button>
     </div>
   </div>
 
-  <div class="rp-found">พบ {{ filtered.length.toLocaleString() }} รายการ</div>
+  <div class="rp-found">{{ dash.t[dash.lang].foundItems }} {{ filtered.length.toLocaleString() }} {{ dash.t[dash.lang].itemsUnit }}</div>
 
   <!-- ตารางใบรับคืน -->
   <div class="rp-table-wrap rp-groups">
     <table class="rp-table" style="min-width:900px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th class="rp-sortable" @click="toggleSort('ivr_no')">เลขที่บิล <span class="rp-sort" :class="{ on: sort.key==='ivr_no' }">{{ sortIcon('ivr_no') }}</span></th>
-          <th class="rp-sortable" @click="toggleSort('ret_date')">วันที่ <span class="rp-sort" :class="{ on: sort.key==='ret_date' }">{{ sortIcon('ret_date') }}</span></th>
-          <th>พนักงานส่งของ</th><th>ประเภทการชำระเงิน</th>
-          <th class="rp-r">จำนวนเงิน</th><th class="rp-r">ยอดรวมรวมได้</th><th class="rp-r">ส่วนลดพิเศษ</th><th style="width:60px;"></th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th class="rp-sortable" @click="toggleSort('ivr_no')">{{ dash.t[dash.lang].billNoLabel }} <span class="rp-sort" :class="{ on: sort.key==='ivr_no' }">{{ sortIcon('ivr_no') }}</span></th>
+          <th class="rp-sortable" @click="toggleSort('ret_date')">{{ dash.t[dash.lang].dateLabel }} <span class="rp-sort" :class="{ on: sort.key==='ret_date' }">{{ sortIcon('ret_date') }}</span></th>
+          <th>{{ dash.t[dash.lang].shipperLabel }}</th><th>{{ dash.t[dash.lang].paymentTypeLabel }}</th>
+          <th class="rp-r">{{ dash.t[dash.lang].amountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].receivedTotalLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].specialDiscountLabel }}</th><th style="width:60px;"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!filtered.length"><td colspan="9" class="rp-empty">— ไม่มีข้อมูลรับคืนอินวอยส์ —</td></tr>
+        <tr v-if="!filtered.length"><td colspan="9" class="rp-empty">{{ dash.t[dash.lang].noInvoiceReturnDataMsg }}</td></tr>
         <tr v-for="(row, idx) in filtered" :key="row.id" :class="{ 'is-sel': selRow === row }" @click="selRow = row">
           <td class="rp-c">{{ idx + 1 }}</td>
           <td class="rp-mono">{{ row.ivr_no }}</td>
@@ -47,11 +47,11 @@
           <td class="rp-r">{{ row._amount ? fmt(row._amount) : '-' }}</td>
           <td class="rp-r">{{ row._received ? fmt(row._received) : '-' }}</td>
           <td class="rp-r">{{ row._discount ? fmt(row._discount) : '-' }}</td>
-          <td><button class="rp-ic" title="ดูรายละเอียด" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
+          <td><button class="rp-ic" :title="dash.t[dash.lang].viewDetails" @click.stop="selRow = row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg></button></td>
         </tr>
       </tbody>
       <tfoot v-if="filtered.length">
-        <tr><td colspan="5" class="rp-r">รวม</td><td class="rp-r">{{ fmt(sumAmount) }}</td><td class="rp-r">{{ fmt(sumReceived) }}</td><td class="rp-r">{{ fmt(sumDiscount) }}</td><td></td></tr>
+        <tr><td colspan="5" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(sumAmount) }}</td><td class="rp-r">{{ fmt(sumReceived) }}</td><td class="rp-r">{{ fmt(sumDiscount) }}</td><td></td></tr>
       </tfoot>
     </table>
   </div>
@@ -61,12 +61,12 @@
     <table class="rp-table" style="min-width:800px">
       <thead>
         <tr>
-          <th style="width:40px;">ที่</th>
-          <th>เลขที่อินวอยส์</th><th class="rp-r">จำนวนเงิน</th><th class="rp-r">ยอดรวมรวมได้</th><th class="rp-r">ส่วนลดพิเศษ</th><th class="rp-r">ยอดคงเหลือ</th>
+          <th style="width:40px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
+          <th>{{ dash.t[dash.lang].invoiceRefNoLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].amountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].receivedTotalLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].specialDiscountLabel }}</th><th class="rp-r">{{ dash.t[dash.lang].remainingLabel }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-if="!selItems.length"><td colspan="6" class="rp-empty">— เลือกใบรับคืนด้านบนเพื่อดูรายการ —</td></tr>
+        <tr v-if="!selItems.length"><td colspan="6" class="rp-empty">{{ dash.t[dash.lang].selectReturnAboveMsg }}</td></tr>
         <tr v-for="(it, i) in selItems" :key="i">
           <td class="rp-c">{{ i + 1 }}</td>
           <td class="rp-mono">{{ it.inv_no || it.invoice || it.invoiceNo || '-' }}</td>
@@ -77,7 +77,7 @@
         </tr>
       </tbody>
       <tfoot v-if="selItems.length">
-        <tr><td colspan="2" class="rp-r">รวม</td><td class="rp-r">{{ fmt(selItemsAmount) }}</td><td class="rp-r">{{ fmt(selItemsReceived) }}</td><td colspan="2"></td></tr>
+        <tr><td colspan="2" class="rp-r">{{ dash.t[dash.lang].totalWord }}</td><td class="rp-r">{{ fmt(selItemsAmount) }}</td><td class="rp-r">{{ fmt(selItemsReceived) }}</td><td colspan="2"></td></tr>
       </tfoot>
     </table>
   </div>
