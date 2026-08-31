@@ -1424,6 +1424,13 @@ data() {
             creditWord: 'เครดิต',
             returnNewBtn: 'รับคืนใหม่',
             invoiceReturnSuccessMsg: 'รับคืนอินวอยส์เรียบร้อยแล้ว',
+            // ---- เปิดอินวอยส์ เฉพาะ ----
+            openInvoiceTitle: 'เปิดอินวอยส์',
+            orderRefLabel: 'เลขที่ออร์เดอร์',
+            shipAddressLabel: 'ที่อยู่จัดส่ง',
+            openNewBtn: 'เปิดใหม่',
+            invoiceOpenedMsg: 'เปิดอินวอยส์เรียบร้อยแล้ว',
+            requireCustomerMsg: 'กรุณาระบุลูกค้า',
           },
           en: {
             home: 'Home',
@@ -1890,6 +1897,12 @@ data() {
             creditWord: 'Credit',
             returnNewBtn: 'New Return',
             invoiceReturnSuccessMsg: 'Invoice return completed',
+            openInvoiceTitle: 'Open Invoice',
+            orderRefLabel: 'Order Ref No.',
+            shipAddressLabel: 'Shipping Address',
+            openNewBtn: 'New Invoice',
+            invoiceOpenedMsg: 'Invoice opened successfully',
+            requireCustomerMsg: 'Please specify a customer',
           }
         }
       };

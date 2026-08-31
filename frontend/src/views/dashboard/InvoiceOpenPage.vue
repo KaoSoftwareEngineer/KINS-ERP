@@ -1,34 +1,34 @@
 <template>
 <div class="po-page">
-  <div class="po-titlebar">🧾 เปิดอินวอยส์</div>
+  <div class="po-titlebar">🧾 {{ dash.t[dash.lang].openInvoiceTitle }}</div>
   <div class="po-head">
     <div class="po-head-col">
-      <div class="po-field"><label>วันที่</label><input type="date" v-model="form.inv_date" /></div>
-      <div class="po-field"><label>เลขที่อินวอยส์</label><input :value="form.inv_no" readonly class="po-ro" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].dateLabel }}</label><input type="date" v-model="form.inv_date" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].invoiceNoLabel }}</label><input :value="form.inv_no" readonly class="po-ro" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>ลูกค้า</label><input list="io-cust" v-model="form.customer" placeholder="เลือก/พิมพ์ลูกค้า" /><datalist id="io-cust"><option v-for="c in customers" :key="c" :value="c" /></datalist></div>
-      <div class="po-field"><label>เลขที่ออร์เดอร์</label><input v-model="form.order_ref" placeholder="เลขที่ออร์เดอร์" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].customerWord }}</label><input list="io-cust" v-model="form.customer" :placeholder="dash.t[dash.lang].customerPlaceholder" /><datalist id="io-cust"><option v-for="c in customers" :key="c" :value="c" /></datalist></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].orderRefLabel }}</label><input v-model="form.order_ref" :placeholder="dash.t[dash.lang].orderRefLabel" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>เงื่อนไขบัญชี</label><select v-model="form.account_term"><option>Cash</option><option>เครดิต 30 วัน</option><option>เครดิต 60 วัน</option></select></div>
-      <div class="po-field"><label>พนักงานขาย</label><input v-model="form.salesperson" placeholder="พนักงานขาย" /></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].accountTermsLabel }}</label><select v-model="form.account_term"><option>Cash</option><option>{{ dash.t[dash.lang].credit30Word }}</option><option>{{ dash.t[dash.lang].credit60Word }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].salespersonLabel }}</label><input v-model="form.salesperson" :placeholder="dash.t[dash.lang].salespersonLabel" /></div>
     </div>
     <div class="po-head-col">
-      <div class="po-field"><label>ที่อยู่ในการออกบิล</label><select v-model="form.bill_address"><option value="">— เลือก —</option><option>สำนักงานใหญ่</option><option>สาขา</option></select></div>
-      <div class="po-field"><label>ที่อยู่จัดส่ง</label><select v-model="form.ship_address"><option value="">— เลือก —</option><option>สำนักงานใหญ่</option><option>สาขา</option></select></div>
-      <div class="po-field"><label>พนักงานส่งของ</label><select v-model="form.shipper"><option value="">— เลือก —</option><option v-for="s in shippers" :key="s" :value="s">{{ s }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].billAddressLabel }}</label><select v-model="form.bill_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].headOfficeWord }}</option><option>{{ dash.t[dash.lang].branchWord }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].shipAddressLabel }}</label><select v-model="form.ship_address"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option>{{ dash.t[dash.lang].headOfficeWord }}</option><option>{{ dash.t[dash.lang].branchWord }}</option></select></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].shipperLabel }}</label><select v-model="form.shipper"><option value="">{{ dash.t[dash.lang].selectGenericOpt }}</option><option v-for="s in shippers" :key="s" :value="s">{{ s }}</option></select></div>
     </div>
     <div class="po-head-col po-head-col-wide">
-      <div class="po-field"><label>หมายเหตุ</label><textarea v-model="form.remark" rows="3"></textarea></div>
+      <div class="po-field"><label>{{ dash.t[dash.lang].remarkLabel }}</label><textarea v-model="form.remark" rows="3"></textarea></div>
     </div>
   </div>
   <div class="po-body"></div>
   <div class="po-footer">
     <span v-if="savedMsg" class="po-saved-msg">{{ savedMsg }}</span>
     <div class="po-footer-btns">
-      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 บันทึก</button>
-      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 เปิดใหม่</button>
+      <button v-if="!saved" class="po-btn po-btn-save" @click="save">💾 {{ dash.t[dash.lang].save }}</button>
+      <button v-else class="po-btn po-btn-new" @click="resetForm">🔄 {{ dash.t[dash.lang].openNewBtn }}</button>
     </div>
   </div>
 </div>
@@ -50,13 +50,13 @@ export default {
     async loadCustomers() { try { const r = await fetch('/api/customers', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); this.customers = (d.items || d.customers || []).map(c => c.company_name || c.name).filter(Boolean).slice(0, 300); } catch (e) {} },
     resetForm() { this.form = { inv_no: '', inv_date: new Date().toISOString().slice(0, 10), customer: '', order_ref: '', account_term: 'Cash', salesperson: '', bill_address: '', ship_address: '', shipper: '', remark: '' }; this.saved = false; this.savedMsg = ''; this.loadNextNo(); },
     async save() {
-      if (!this.form.customer) { this.dash.fbFail('กรุณาระบุลูกค้า'); return; }
+      if (!this.form.customer) { this.dash.fbFail(this.dash.t[this.dash.lang].requireCustomerMsg); return; }
       this.dash.fbLoading('กำลังบันทึก...');
       try {
         const res = await fetch('/api/sale-invoices', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token }, body: JSON.stringify({ ...this.form, items: [] }) });
         if (res.status === 401) { this.dash.fbHide(); this.dash.sessionExpired(); return; }
         const d = await res.json();
-        if (d.ok) { this.form.inv_no = d.inv_no; this.saved = true; this.savedMsg = 'เปิดอินวอยส์เรียบร้อยแล้ว'; this.dash.fbDone('บันทึกแล้ว'); }
+        if (d.ok) { this.form.inv_no = d.inv_no; this.saved = true; this.savedMsg = this.dash.t[this.dash.lang].invoiceOpenedMsg; this.dash.fbDone('บันทึกแล้ว'); }
         else { this.dash.fbFail(d.message || 'บันทึกไม่สำเร็จ'); }
       } catch (e) { this.dash.fbFail('บันทึกไม่สำเร็จ — เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'); }
     },
