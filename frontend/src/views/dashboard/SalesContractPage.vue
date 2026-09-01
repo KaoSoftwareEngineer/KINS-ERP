@@ -2,7 +2,7 @@
 <div class="sc-wrap text-[var(--text)]">
   <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
     <div>
-      <h1 class="text-xl font-bold flex items-center gap-2">{{ dash.t[dash.lang].salesContractTitle }}</h1>
+      <h1 class="text-xl font-bold flex items-center gap-2">{{ dash.t[dash.lang].salesContractPageTitle }}</h1>
       <p class="text-xs text-[var(--muted)] mt-0.5">{{ dash.t[dash.lang].salesContractSubtitle }}</p>
     </div>
     <div class="flex items-center gap-2">

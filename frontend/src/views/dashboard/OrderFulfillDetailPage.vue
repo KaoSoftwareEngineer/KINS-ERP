@@ -48,7 +48,7 @@
         <tr>
           <th style="width:36px;">{{ dash.lang === 'th' ? 'ที่' : 'No.' }}</th>
           <th>{{ dash.t[dash.lang].skuLabel }}</th><th>{{ dash.t[dash.lang].colorCodeLabel }}</th><th style="width:70px;">{{ dash.t[dash.lang].widthLabel }}</th>
-          <th style="width:96px;">{{ dash.t[dash.lang].pendingQtyLabel }}</th><th style="width:90px;">{{ dash.t[dash.lang].withdrawnQtyLabel }}</th><th style="width:60px;">{{ dash.t[dash.lang].unitLabel }}</th>
+          <th style="width:96px;">{{ dash.t[dash.lang].pendingIssueQtyLabel }}</th><th style="width:90px;">{{ dash.t[dash.lang].withdrawnQtyLabel }}</th><th style="width:60px;">{{ dash.t[dash.lang].unitLabel }}</th>
           <th style="width:130px;">{{ dash.t[dash.lang].packLabel }}</th>
           <th style="width:80px;">{{ dash.t[dash.lang].finalOrderLabel }}</th><th style="width:150px;">{{ dash.t[dash.lang].barcodeLabel }}</th>
           <th style="width:100px;">{{ dash.t[dash.lang].cutQtyLabel }}</th><th style="width:80px;">{{ dash.t[dash.lang].clearStockLabel }}</th>
