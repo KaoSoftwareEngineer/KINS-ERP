@@ -23,15 +23,27 @@ const PORT = process.env.PORT || 3000;
 // ---- โฟลเดอร์เก็บไฟล์อัปโหลด (สลิปโอนเงิน ฯลฯ) — เสิร์ฟผ่าน /uploads/... ----
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// อนุญาตเฉพาะรูปภาพกับ PDF (ใช้แนบสลิปโอนเงิน/เอกสาร) — และ "ตั้งนามสกุลไฟล์เองจากชนิดไฟล์"
+// ไม่เอานามสกุลจากชื่อไฟล์ที่ผู้ใช้ส่งมา เพราะถ้าปล่อยให้อัปโหลด .php/.html เข้ามาได้
+// แล้วมีเว็บเซิร์ฟเวอร์อื่น (เช่น Apache ของ XAMPP) เสิร์ฟโฟลเดอร์นี้ ไฟล์จะถูกรันจริง
+// = ใครก็ตามที่ล็อกอินได้จะสั่งรันโค้ดบนเครื่องเซิร์ฟเวอร์ได้
+const UPLOAD_TYPES = {
+  'image/jpeg': '.jpg', 'image/png': '.png', 'image/gif': '.gif',
+  'image/webp': '.webp', 'image/heic': '.heic', 'application/pdf': '.pdf',
+};
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, UPLOAD_DIR),
     filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname || '').slice(0, 10);
+      const ext = UPLOAD_TYPES[file.mimetype] || '.bin';
       cb(null, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`);
     },
   }),
-  limits: { fileSize: 8 * 1024 * 1024 },
+  limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+  fileFilter: (req, file, cb) => {
+    if (UPLOAD_TYPES[file.mimetype]) return cb(null, true);
+    cb(new Error('ไฟล์ชนิดนี้อัปโหลดไม่ได้ — รองรับเฉพาะรูปภาพ (jpg/png/gif/webp) และ PDF'));
+  },
 });
 
 // ---- เตรียมตารางทั้งหมดใน MySQL (สร้างอัตโนมัติถ้ายังไม่มี) ----
@@ -90,6 +102,16 @@ const CORS_ORIGINS = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
   : DEV_ORIGINS;
 app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
+
+// ---- security headers พื้นฐาน ----
+//  nosniff = ห้ามเบราว์เซอร์เดาชนิดไฟล์เอง (ไฟล์แนบที่อัปโหลดจะไม่ถูกตีความเป็น HTML/สคริปต์)
+//  X-Frame-Options = กันเว็บอื่นเอาหน้านี้ไปฝังใน iframe แล้วหลอกให้กด (clickjacking)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'same-origin');
+  next();
+});
 
 // ---- เซสชันแบบ httpOnly cookie ----
 //  เก็บ token ไว้ใน cookie ที่ JavaScript ฝั่งหน้าเว็บอ่านไม่ได้ (httpOnly) → สคริปต์แปลกปลอม
@@ -445,9 +467,16 @@ const wrap = (fn) => (req, res) => fn(req, res).catch((err) => {
 });
 
 // ---- อัปโหลดไฟล์ทั่วไป (สลิปโอนเงิน ฯลฯ) — คืน url ให้เก็บลง DB ---
-app.post('/api/uploads', auth, upload.single('file'), (req, res) => {
-  if (!req.file) return res.status(400).json({ ok: false, message: 'ไม่พบไฟล์ที่อัปโหลด' });
-  res.json({ ok: true, url: `/uploads/${req.file.filename}`, filename: req.file.originalname });
+//  ไฟล์ที่ไม่ผ่าน fileFilter/เกินขนาด จะถูกตอบเป็น JSON 400 (ไม่ใช่หน้า error ของ Express)
+app.post('/api/uploads', auth, (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      const tooBig = err.code === 'LIMIT_FILE_SIZE';
+      return res.status(400).json({ ok: false, message: tooBig ? 'ไฟล์ใหญ่เกิน 8 MB' : (err.message || 'อัปโหลดไฟล์ไม่สำเร็จ') });
+    }
+    if (!req.file) return res.status(400).json({ ok: false, message: 'ไม่พบไฟล์ที่อัปโหลด' });
+    res.json({ ok: true, url: `/uploads/${req.file.filename}`, filename: req.file.originalname });
+  });
 });
 
 // ---- สิทธิ์จัดการบัญชีผู้อื่น (ตามตำแหน่ง) ----
