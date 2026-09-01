@@ -333,6 +333,65 @@ async function auth(req, res, next) {
   }
 }
 
+// ============================================================
+//  ตรวจ "สิทธิ์การเข้าถึงเมนู" ฝั่งเซิร์ฟเวอร์ (role → permissions)
+//  ใช้ตรรกะเดียวกับฝั่งหน้าเว็บ (frontend/src/stores/auth.js → myAllowedKeys):
+//    - ไม่มีตำแหน่ง            → ไม่มีสิทธิ์เมนูใดเลย (เข้าได้แค่ที่เปิดสาธารณะ)
+//    - ตำแหน่งมีคำว่า admin/ผู้ดูแล → เต็มสิทธิ์ (คืน null)
+//    - ตำแหน่งอื่น            → อ่านลิสต์ key จากตาราง roles
+//  คืน Set ของ key เมนู หรือ null เมื่อเต็มสิทธิ์
+// ============================================================
+async function getAllowedKeysForUser(userId) {
+  const [[row]] = await mysqlPool.query(
+    'SELECT u.role AS role, r.permissions AS permissions FROM users u LEFT JOIN roles r ON r.name = u.role WHERE u.id = ?',
+    [userId]
+  );
+  const role = row ? (row.role || '') : '';
+  if (!role) return new Set();
+  if (/admin|ผู้ดูแล/i.test(role)) return null;
+  if (!row.permissions) return new Set();
+  try {
+    const keys = JSON.parse(row.permissions);
+    return new Set(Array.isArray(keys) ? keys : []);
+  } catch (e) {
+    return new Set();
+  }
+}
+
+// requirePermission('key') | (['key1','key2']) | (req => 'key')
+//   opts.allowAnyReport = true → ผู้ที่มีสิทธิ์หน้ารายงานใดก็ได้ อ่าน endpoint นี้ได้
+//   (ใช้กับ endpoint ที่หน้ารายงานหลายหน้าดึงข้อมูลดิบชุดเดียวกันไปแสดง)
+function requirePermission(keyOrResolver, opts = {}) {
+  return async (req, res, next) => {
+    try {
+      const allowed = await getAllowedKeysForUser(req.userId);
+      if (allowed === null) return next();
+      const need = typeof keyOrResolver === 'function' ? keyOrResolver(req) : keyOrResolver;
+      const needList = Array.isArray(need) ? need : [need];
+      if (needList.some((k) => k && allowed.has(k))) return next();
+      if (opts.allowAnyReport && [...allowed].some((k) => k.startsWith('report-'))) return next();
+      return res.status(403).json({ ok: false, message: 'คุณไม่มีสิทธิ์เข้าถึงส่วนนี้' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, message: 'ตรวจสอบสิทธิ์ไม่สำเร็จ' });
+    }
+  };
+}
+
+// map ประเภทรายงาน (:type ของ /api/reports/summary/:type) -> key เมนูรายงานแม่ (ใช้กับ requirePermission)
+//   เฉพาะรายงานย่อยที่อยู่ใต้เมนูกลุ่ม (permissionSchema.js ให้สิทธิ์แค่ key แม่ ไม่มี key ย่อยแยก)
+//   ที่เหลือ key ตรงกับ :type อยู่แล้ว (report-po, report-dye-order, report-order, ฯลฯ)
+function reportTypeKey(req) {
+  const type = req.params.type;
+  const map = {
+    'report-sales-ws': 'report-sales', 'report-sales-rt': 'report-sales', 'report-sales-return': 'report-sales',
+    'report-pl-ws': 'report-profit-loss', 'report-pl-rt': 'report-profit-loss', 'report-pl-year': 'report-profit-loss',
+    'report-cust-billing': 'report-customer-account', 'report-cust-receive': 'report-customer-account', 'report-cust-credit': 'report-customer-account',
+    'report-partner-pay': 'report-partner-account', 'report-partner-credit': 'report-partner-account',
+  };
+  return map[type] || type;
+}
+
 // ---- ตัวช่วยจับ error ในทุก route แบบ async ----
 const wrap = (fn) => (req, res) => fn(req, res).catch((err) => {
   console.error(err);
@@ -403,7 +462,7 @@ app.put('/api/me', auth, async (req, res) => {
 // ------------------------------------------------------------
 //  รายชื่อสมาชิกทั้งหมด + จำนวน (สำหรับหน้าแดชบอร์ด)
 // ------------------------------------------------------------
-app.get('/api/users', auth, async (req, res) => {
+app.get('/api/users', auth, requirePermission('users'), async (req, res) => {
   const [users] = await mysqlPool.query(
     'SELECT id, name, email, phone, avatar, role, gender, age, created_at FROM users ORDER BY id DESC'
   );
@@ -538,7 +597,7 @@ app.get('/api/roles', auth, async (req, res) => {
   }
 });
 
-app.put('/api/roles/:name', auth, async (req, res) => {
+app.put('/api/roles/:name', auth, requirePermission('user-permissions'), async (req, res) => {
   const name = (req.params.name || '').trim();
   const keys = Array.isArray(req.body.permissions) ? req.body.permissions : [];
   if (!name) return res.status(400).json({ ok: false, message: 'ต้องระบุชื่อบทบาท' });
@@ -555,7 +614,7 @@ app.put('/api/roles/:name', auth, async (req, res) => {
   }
 });
 
-app.delete('/api/roles/:name', auth, async (req, res) => {
+app.delete('/api/roles/:name', auth, requirePermission('user-permissions'), async (req, res) => {
   try {
     await mysqlPool.query('DELETE FROM roles WHERE name = ?', [req.params.name]);
     res.json({ ok: true, message: 'ลบบทบาทแล้ว' });
@@ -572,7 +631,7 @@ app.get('/api/partners', auth, wrap(async (req, res) => {
   const [items] = await mysqlPool.query('SELECT * FROM partners ORDER BY name ASC');
   res.json({ ok: true, total: items.length, items });
 }));
-app.post('/api/partners', auth, wrap(async (req, res) => {
+app.post('/api/partners', auth, requirePermission('partners'), wrap(async (req, res) => {
   const b = req.body || {};
   if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อบริษัท' });
   const [info] = await mysqlPool.query(
@@ -582,7 +641,7 @@ app.post('/api/partners', auth, wrap(async (req, res) => {
   );
   res.json({ ok: true, message: 'บันทึกคู่ค้าแล้ว', id: info.insertId });
 }));
-app.put('/api/partners/:id', auth, wrap(async (req, res) => {
+app.put('/api/partners/:id', auth, requirePermission('partners'), wrap(async (req, res) => {
   const b = req.body || {};
   if (!(b.name || '').trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อบริษัท' });
   await mysqlPool.query(
@@ -591,7 +650,7 @@ app.put('/api/partners/:id', auth, wrap(async (req, res) => {
   );
   res.json({ ok: true, message: 'บันทึกแล้ว' });
 }));
-app.delete('/api/partners/:id', auth, wrap(async (req, res) => {
+app.delete('/api/partners/:id', auth, requirePermission('partners'), wrap(async (req, res) => {
   const [info] = await mysqlPool.query('DELETE FROM partners WHERE id = ?', [req.params.id]);
   if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบคู่ค้า' });
   res.json({ ok: true, message: 'ลบคู่ค้าแล้ว' });
@@ -604,7 +663,7 @@ app.get('/api/fabric-raw', auth, wrap(async (req, res) => {
   const [items] = await mysqlPool.query('SELECT * FROM fabric_raw ORDER BY id DESC');
   res.json({ ok: true, total: items.length, items });
 }));
-app.post('/api/fabric-raw', auth, wrap(async (req, res) => {
+app.post('/api/fabric-raw', auth, requirePermission('fabric-raw'), wrap(async (req, res) => {
   const b = req.body || {};
   const sku = (b.sku || '').trim();
   if (!sku) return res.status(400).json({ ok: false, message: 'กรุณากรอกรหัสสินค้า' });
@@ -617,7 +676,7 @@ app.post('/api/fabric-raw', auth, wrap(async (req, res) => {
   );
   res.json({ ok: true, message: 'บันทึกผ้าดิบแล้ว', id: info.insertId });
 }));
-app.put('/api/fabric-raw/:id', auth, wrap(async (req, res) => {
+app.put('/api/fabric-raw/:id', auth, requirePermission('fabric-raw'), wrap(async (req, res) => {
   const b = req.body || {};
   const sku = (b.sku || '').trim();
   if (!sku) return res.status(400).json({ ok: false, message: 'กรุณากรอกรหัสสินค้า' });
@@ -627,7 +686,7 @@ app.put('/api/fabric-raw/:id', auth, wrap(async (req, res) => {
   );
   res.json({ ok: true, message: 'บันทึกแล้ว' });
 }));
-app.delete('/api/fabric-raw/:id', auth, wrap(async (req, res) => {
+app.delete('/api/fabric-raw/:id', auth, requirePermission('fabric-raw'), wrap(async (req, res) => {
   const [info] = await mysqlPool.query('DELETE FROM fabric_raw WHERE id = ?', [req.params.id]);
   if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบผ้าดิบ' });
   res.json({ ok: true, message: 'ลบผ้าดิบแล้ว' });
@@ -640,21 +699,21 @@ app.get('/api/note-info', auth, wrap(async (req, res) => {
   const [items] = await mysqlPool.query('SELECT * FROM note_info ORDER BY id DESC');
   res.json({ ok: true, total: items.length, items });
 }));
-app.post('/api/note-info', auth, wrap(async (req, res) => {
+app.post('/api/note-info', auth, requirePermission('note-info'), wrap(async (req, res) => {
   const b = req.body || {};
   const description = (b.description || '').trim();
   if (!description) return res.status(400).json({ ok: false, message: 'กรุณากรอกหมายเหตุ' });
   const [info] = await mysqlPool.query('INSERT INTO note_info (note_type, description, active) VALUES (?, ?, ?)', [b.note_type || '', description, b.active === false ? 0 : 1]);
   res.json({ ok: true, message: 'บันทึกแล้ว', id: info.insertId });
 }));
-app.put('/api/note-info/:id', auth, wrap(async (req, res) => {
+app.put('/api/note-info/:id', auth, requirePermission('note-info'), wrap(async (req, res) => {
   const b = req.body || {};
   const description = (b.description || '').trim();
   if (!description) return res.status(400).json({ ok: false, message: 'กรุณากรอกหมายเหตุ' });
   await mysqlPool.query('UPDATE note_info SET note_type = ?, description = ?, active = ? WHERE id = ?', [b.note_type || '', description, b.active === false ? 0 : 1, req.params.id]);
   res.json({ ok: true, message: 'บันทึกแล้ว' });
 }));
-app.delete('/api/note-info/:id', auth, wrap(async (req, res) => {
+app.delete('/api/note-info/:id', auth, requirePermission('note-info'), wrap(async (req, res) => {
   const [info] = await mysqlPool.query('DELETE FROM note_info WHERE id = ?', [req.params.id]);
   if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบข้อมูล' });
   res.json({ ok: true, message: 'ลบแล้ว' });
@@ -667,7 +726,7 @@ app.get('/api/master-data/:category', auth, wrap(async (req, res) => {
   const [items] = await mysqlPool.query('SELECT * FROM master_data WHERE category = ? ORDER BY name ASC', [req.params.category]);
   res.json({ ok: true, total: items.length, items });
 }));
-app.post('/api/master-data', auth, wrap(async (req, res) => {
+app.post('/api/master-data', auth, requirePermission('fabric-info'), wrap(async (req, res) => {
   const b = req.body || {};
   const category = (b.category || '').trim();
   const name = (b.name || '').trim();
@@ -676,7 +735,7 @@ app.post('/api/master-data', auth, wrap(async (req, res) => {
   const [info] = await mysqlPool.query('INSERT INTO master_data (category, name, min_yards, active) VALUES (?, ?, ?, ?)', [category, name, minYards, b.active === false ? 0 : 1]);
   res.json({ ok: true, message: 'บันทึกแล้ว', id: info.insertId });
 }));
-app.put('/api/master-data/:id', auth, wrap(async (req, res) => {
+app.put('/api/master-data/:id', auth, requirePermission('fabric-info'), wrap(async (req, res) => {
   const b = req.body || {};
   const name = (b.name || '').trim();
   if (!name) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อ' });
@@ -684,7 +743,7 @@ app.put('/api/master-data/:id', auth, wrap(async (req, res) => {
   await mysqlPool.query('UPDATE master_data SET name = ?, min_yards = ?, active = ? WHERE id = ?', [name, minYards, b.active === false ? 0 : 1, req.params.id]);
   res.json({ ok: true, message: 'บันทึกแล้ว' });
 }));
-app.delete('/api/master-data/:id', auth, wrap(async (req, res) => {
+app.delete('/api/master-data/:id', auth, requirePermission('fabric-info'), wrap(async (req, res) => {
   const [info] = await mysqlPool.query('DELETE FROM master_data WHERE id = ?', [req.params.id]);
   if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบข้อมูล' });
   res.json({ ok: true, message: 'ลบแล้ว' });
@@ -734,14 +793,15 @@ async function makePoNo() {
 app.get('/api/purchase-orders/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, po_no: await makePoNo() });
 }));
-app.get('/api/purchase-orders', auth, wrap(async (req, res) => {
+app.get('/api/purchase-orders', auth, requirePermission(['receive-fabric-finished', 'receive-fabric-raw'], { allowAnyReport: true }), wrap(async (req, res) => {
   const type = req.query.type || null;
   const sql = type ? 'SELECT * FROM purchase_orders WHERE po_type = ? ORDER BY id DESC'
                    : 'SELECT * FROM purchase_orders ORDER BY id DESC';
   const [rows] = await mysqlPool.query(sql, type ? [type] : []);
   res.json({ ok: true, total: rows.length, orders: rows });
 }));
-app.post('/api/purchase-orders', auth, wrap(async (req, res) => {
+const PO_TYPE_KEY = { finished: 'po-fabric-finished', raw: 'po-fabric-raw', dye: 'po-dye-order' };
+app.post('/api/purchase-orders', auth, requirePermission((req) => PO_TYPE_KEY[req.body?.po_type] || 'po-fabric-finished'), wrap(async (req, res) => {
   const b = req.body || {};
   const po_no = await makePoNo();
   const [info] = await mysqlPool.query(
@@ -780,11 +840,11 @@ async function makeTmNo() {
 app.get('/api/dye-orders/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, dye_no: await makeTmNo() });
 }));
-app.get('/api/dye-orders', auth, wrap(async (req, res) => {
+app.get('/api/dye-orders', auth, requirePermission('receive-fabric-dyed', { allowAnyReport: true }), wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM dye_orders ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, orders: rows });
 }));
-app.post('/api/dye-orders', auth, wrap(async (req, res) => {
+app.post('/api/dye-orders', auth, requirePermission('po-dye-order'), wrap(async (req, res) => {
   const b = req.body || {};
   const dye_no = await makeTmNo();
   const [info] = await mysqlPool.query(
@@ -881,7 +941,7 @@ app.get('/api/finished-receipts', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM finished_receipts ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, receipts: rows });
 }));
-app.post('/api/finished-receipts', auth, wrap(async (req, res) => {
+app.post('/api/finished-receipts', auth, requirePermission('receive-fabric-finished'), wrap(async (req, res) => {
   const b = req.body || {};
   const in_no = await makeInNo();
   const [info] = await mysqlPool.query(
@@ -917,7 +977,7 @@ app.get('/api/raw-receipts', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM raw_receipts ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, receipts: rows });
 }));
-app.post('/api/raw-receipts', auth, wrap(async (req, res) => {
+app.post('/api/raw-receipts', auth, requirePermission('receive-fabric-raw'), wrap(async (req, res) => {
   const b = req.body || {};
   const in_no = await makeInNo();
   const [info] = await mysqlPool.query(
@@ -952,7 +1012,7 @@ app.get('/api/dyed-receipts', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM dyed_receipts ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, receipts: rows });
 }));
-app.post('/api/dyed-receipts', auth, wrap(async (req, res) => {
+app.post('/api/dyed-receipts', auth, requirePermission('receive-fabric-dyed'), wrap(async (req, res) => {
   const b = req.body || {};
   const in_no = await makeInNo();
   const [info] = await mysqlPool.query(
@@ -994,7 +1054,7 @@ app.get('/api/stock-transfers', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM stock_transfers ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, transfers: rows });
 }));
-app.post('/api/stock-transfers', auth, wrap(async (req, res) => {
+app.post('/api/stock-transfers', auth, requirePermission('move-stock'), wrap(async (req, res) => {
   const b = req.body || {};
   const tr_no = await makeTrNo();
   const [info] = await mysqlPool.query(
@@ -1028,7 +1088,7 @@ app.get('/api/raw-transfers', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM raw_transfers ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, transfers: rows });
 }));
-app.post('/api/raw-transfers', auth, wrap(async (req, res) => {
+app.post('/api/raw-transfers', auth, requirePermission('move-fabric-raw'), wrap(async (req, res) => {
   const b = req.body || {};
   const tg_no = await makeTgNo();
   const [info] = await mysqlPool.query(
@@ -1062,7 +1122,7 @@ app.get('/api/rack-transfers', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM rack_transfers ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, transfers: rows });
 }));
-app.post('/api/rack-transfers', auth, wrap(async (req, res) => {
+app.post('/api/rack-transfers', auth, requirePermission('move-shelf'), wrap(async (req, res) => {
   const b = req.body || {};
   const locCode = (b.location_code || '').toString().trim();
   const scans = Array.isArray(b.items) ? b.items : [];
@@ -1112,7 +1172,7 @@ app.get('/api/vat-receipts', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM vat_receipts ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, receipts: rows });
 }));
-app.post('/api/vat-receipts', auth, wrap(async (req, res) => {
+app.post('/api/vat-receipts', auth, requirePermission('vat-receive'), wrap(async (req, res) => {
   const b = req.body || {};
   const vn_no = await makeVnNo();
   const [info] = await mysqlPool.query(
@@ -1150,7 +1210,7 @@ app.get('/api/vat-stock-cuts', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM vat_stock_cuts ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, cuts: rows });
 }));
-app.post('/api/vat-stock-cuts', auth, wrap(async (req, res) => {
+app.post('/api/vat-stock-cuts', auth, requirePermission(['vat-stock-cut', 'vat-stock-cut-from-invoice']), wrap(async (req, res) => {
   const b = req.body || {};
   const vo_no = await makeVoNo();
   const [info] = await mysqlPool.query(
@@ -1184,11 +1244,11 @@ async function makeVtNo() {
 app.get('/api/vat-invoices/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, vt_no: await makeVtNo() });
 }));
-app.get('/api/vat-invoices', auth, wrap(async (req, res) => {
+app.get('/api/vat-invoices', auth, requirePermission('vat-stock-cut-from-invoice', { allowAnyReport: true }), wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM vat_invoices ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, invoices: rows });
 }));
-app.post('/api/vat-invoices', auth, wrap(async (req, res) => {
+app.post('/api/vat-invoices', auth, requirePermission('vat-invoice'), wrap(async (req, res) => {
   const b = req.body || {};
   const vt_no = await makeVtNo();
   const [info] = await mysqlPool.query(
@@ -1219,7 +1279,7 @@ app.get('/api/vat-product-groups', auth, wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM vat_product_groups ORDER BY sort_order ASC, price_from ASC');
   res.json({ ok: true, total: rows.length, items: rows });
 }));
-app.post('/api/vat-product-groups', auth, wrap(async (req, res) => {
+app.post('/api/vat-product-groups', auth, requirePermission('vat-product-group'), wrap(async (req, res) => {
   const items = Array.isArray(req.body.items) ? req.body.items : [];
   const conn = await mysqlPool.getConnection();
   try {
@@ -1254,7 +1314,7 @@ app.get('/api/fabric-regular-group', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: items.length, items });
 }));
 
-app.post('/api/fabric-regular-group', auth, wrap(async (req, res) => {
+app.post('/api/fabric-regular-group', auth, requirePermission('fabric-regular-group'), wrap(async (req, res) => {
   const b = req.body || {};
   const name = (b.name || '').trim();
   if (!name) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อกลุ่มผ้า' });
@@ -1265,7 +1325,7 @@ app.post('/api/fabric-regular-group', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'บันทึกกลุ่มผ้าแล้ว', id: info.insertId });
 }));
 
-app.put('/api/fabric-regular-group/:id', auth, wrap(async (req, res) => {
+app.put('/api/fabric-regular-group/:id', auth, requirePermission('fabric-regular-group'), wrap(async (req, res) => {
   const b = req.body || {};
   const id = req.params.id;
   // อัปเดตข้อมูลกลุ่ม (ถ้าส่ง name มา)
@@ -1291,7 +1351,7 @@ app.put('/api/fabric-regular-group/:id', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'บันทึกแล้ว' });
 }));
 
-app.delete('/api/fabric-regular-group/:id', auth, wrap(async (req, res) => {
+app.delete('/api/fabric-regular-group/:id', auth, requirePermission('fabric-regular-group'), wrap(async (req, res) => {
   await mysqlPool.query('DELETE FROM fabric_regular_group_shades WHERE group_id = ?', [req.params.id]);
   const [info] = await mysqlPool.query('DELETE FROM fabric_regular_group WHERE id = ?', [req.params.id]);
   if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบกลุ่มผ้า' });
@@ -1303,7 +1363,7 @@ app.get('/api/fabric-regular-group/:id/shades', auth, wrap(async (req, res) => {
   const [shades] = await mysqlPool.query('SELECT * FROM fabric_regular_group_shades WHERE group_id = ? ORDER BY id ASC', [req.params.id]);
   res.json({ ok: true, shades });
 }));
-app.put('/api/fabric-regular-group/:id/shades', auth, wrap(async (req, res) => {
+app.put('/api/fabric-regular-group/:id/shades', auth, requirePermission('fabric-regular-group'), wrap(async (req, res) => {
   const gid = Number(req.params.id);
   const rows = Array.isArray(req.body.shades) ? req.body.shades : [];
   await mysqlPool.query('DELETE FROM fabric_regular_group_shades WHERE group_id = ?', [gid]);
@@ -1331,7 +1391,7 @@ app.get('/api/fabric-irregular-group', auth, wrap(async (req, res) => {
   const items = groups.map(g => ({ ...g, shades: byGroup[g.id] || [], colors: (byGroup[g.id] || []).length }));
   res.json({ ok: true, total: items.length, items });
 }));
-app.post('/api/fabric-irregular-group', auth, wrap(async (req, res) => {
+app.post('/api/fabric-irregular-group', auth, requirePermission('fabric-irregular-group'), wrap(async (req, res) => {
   const b = req.body || {};
   const name = (b.name || '').trim();
   if (!name) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อกลุ่มผ้า' });
@@ -1341,7 +1401,7 @@ app.post('/api/fabric-irregular-group', auth, wrap(async (req, res) => {
   );
   res.json({ ok: true, message: 'บันทึกกลุ่มผ้าแล้ว', id: info.insertId });
 }));
-app.put('/api/fabric-irregular-group/:id', auth, wrap(async (req, res) => {
+app.put('/api/fabric-irregular-group/:id', auth, requirePermission('fabric-irregular-group'), wrap(async (req, res) => {
   const b = req.body || {}; const id = req.params.id;
   if (typeof b.name === 'string') {
     if (!b.name.trim()) return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อกลุ่มผ้า' });
@@ -1359,7 +1419,7 @@ app.put('/api/fabric-irregular-group/:id', auth, wrap(async (req, res) => {
   }
   res.json({ ok: true, message: 'บันทึกแล้ว' });
 }));
-app.delete('/api/fabric-irregular-group/:id', auth, wrap(async (req, res) => {
+app.delete('/api/fabric-irregular-group/:id', auth, requirePermission('fabric-irregular-group'), wrap(async (req, res) => {
   await mysqlPool.query('DELETE FROM fabric_irregular_group_shades WHERE group_id = ?', [req.params.id]);
   const [info] = await mysqlPool.query('DELETE FROM fabric_irregular_group WHERE id = ?', [req.params.id]);
   if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบกลุ่มผ้า' });
@@ -1369,7 +1429,7 @@ app.get('/api/fabric-irregular-group/:id/shades', auth, wrap(async (req, res) =>
   const [shades] = await mysqlPool.query('SELECT * FROM fabric_irregular_group_shades WHERE group_id = ? ORDER BY id ASC', [req.params.id]);
   res.json({ ok: true, shades });
 }));
-app.put('/api/fabric-irregular-group/:id/shades', auth, wrap(async (req, res) => {
+app.put('/api/fabric-irregular-group/:id/shades', auth, requirePermission('fabric-irregular-group'), wrap(async (req, res) => {
   const gid = Number(req.params.id);
   const rows = Array.isArray(req.body.shades) ? req.body.shades : [];
   await mysqlPool.query('DELETE FROM fabric_irregular_group_shades WHERE group_id = ?', [gid]);
@@ -1394,7 +1454,7 @@ app.get('/api/fabrics', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: fabrics.length, fabrics });
 }));
 
-app.post('/api/fabrics', auth, wrap(async (req, res) => {
+app.post('/api/fabrics', auth, requirePermission('fabric-regular'), wrap(async (req, res) => {
   const b = req.body || {};
   const sku = (b.sku || '').trim();
   const type = (b.type || '').trim();
@@ -1434,7 +1494,7 @@ app.post('/api/fabrics', auth, wrap(async (req, res) => {
 }));
 
 // ผ้าประจำ — นำเข้าจาก Excel (upsert ตาม sku)
-app.post('/api/fabrics/import', auth, wrap(async (req, res) => {
+app.post('/api/fabrics/import', auth, requirePermission('fabric-regular'), wrap(async (req, res) => {
   const rows = Array.isArray(req.body.items) ? req.body.items : [];
   if (rows.length === 0) {
     return res.status(400).json({ ok: false, message: 'ไม่พบข้อมูลที่จะนำเข้า' });
@@ -1482,7 +1542,7 @@ app.post('/api/fabrics/import', auth, wrap(async (req, res) => {
 }));
 
 // ผ้าประจำ — แก้ไข
-app.put('/api/fabrics/:id', auth, wrap(async (req, res) => {
+app.put('/api/fabrics/:id', auth, requirePermission('fabric-regular'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [existRows] = await mysqlPool.query('SELECT id FROM fabrics WHERE id = ?', [id]);
   if (existRows.length === 0) {
@@ -1532,7 +1592,7 @@ app.put('/api/fabrics/:id', auth, wrap(async (req, res) => {
 }));
 
 // ผ้าประจำ — ลบ
-app.delete('/api/fabrics/:id', auth, wrap(async (req, res) => {
+app.delete('/api/fabrics/:id', auth, requirePermission('fabric-regular'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [info] = await mysqlPool.query('DELETE FROM fabrics WHERE id = ?', [id]);
   if (info.affectedRows === 0) {
@@ -1549,7 +1609,7 @@ app.get('/api/fabrics/:fabricId/shades', auth, wrap(async (req, res) => {
 }));
 
 // เฉดสีของผ้าประจำ — บันทึกทั้งหมด (แทนที่ของเดิม)
-app.put('/api/fabrics/:fabricId/shades', auth, wrap(async (req, res) => {
+app.put('/api/fabrics/:fabricId/shades', auth, requirePermission('fabric-regular'), wrap(async (req, res) => {
   const fabricId = Number(req.params.fabricId);
   const [fab] = await mysqlPool.query('SELECT id FROM fabrics WHERE id = ?', [fabricId]);
   if (fab.length === 0) {
@@ -1592,7 +1652,7 @@ app.get('/api/fabric-irregular', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: items.length, items });
 }));
 
-app.post('/api/fabric-irregular', auth, wrap(async (req, res) => {
+app.post('/api/fabric-irregular', auth, requirePermission('fabric-irregular'), wrap(async (req, res) => {
   const b = req.body || {};
   const sku = (b.sku || '').trim();
   const type = (b.type || '').trim();
@@ -1630,7 +1690,7 @@ app.post('/api/fabric-irregular', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'เพิ่มผ้าไม่ประจำสำเร็จ', item: rows[0] });
 }));
 
-app.put('/api/fabric-irregular/:id', auth, wrap(async (req, res) => {
+app.put('/api/fabric-irregular/:id', auth, requirePermission('fabric-irregular'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [existRows] = await mysqlPool.query('SELECT id FROM fabric_irregular WHERE id = ?', [id]);
   if (existRows.length === 0) {
@@ -1678,7 +1738,7 @@ app.put('/api/fabric-irregular/:id', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'แก้ไขผ้าไม่ประจำสำเร็จ', item: rows[0] });
 }));
 
-app.delete('/api/fabric-irregular/:id', auth, wrap(async (req, res) => {
+app.delete('/api/fabric-irregular/:id', auth, requirePermission('fabric-irregular'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [info] = await mysqlPool.query('DELETE FROM fabric_irregular WHERE id = ?', [id]);
   if (info.affectedRows === 0) {
@@ -1695,7 +1755,7 @@ app.get('/api/fabric-irregular/:itemId/shades', auth, wrap(async (req, res) => {
 }));
 
 // เฉดสีของผ้าไม่ประจำ — บันทึกทั้งหมด (แทนที่ของเดิม)
-app.put('/api/fabric-irregular/:itemId/shades', auth, wrap(async (req, res) => {
+app.put('/api/fabric-irregular/:itemId/shades', auth, requirePermission('fabric-irregular'), wrap(async (req, res) => {
   const itemId = Number(req.params.itemId);
   const [item] = await mysqlPool.query('SELECT id FROM fabric_irregular WHERE id = ?', [itemId]);
   if (item.length === 0) {
@@ -1738,7 +1798,7 @@ app.get('/api/fabric-master', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: items.length, items });
 }));
 
-app.post('/api/fabric-master/import', auth, wrap(async (req, res) => {
+app.post('/api/fabric-master/import', auth, requirePermission('fabric-regular'), wrap(async (req, res) => {
   const rows = Array.isArray(req.body.items) ? req.body.items : [];
   if (rows.length === 0) {
     return res.status(400).json({ ok: false, message: 'ไม่พบข้อมูลที่จะนำเข้า' });
@@ -1796,7 +1856,7 @@ app.get('/api/customer-master', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: items.length, items });
 }));
 
-app.post('/api/customer-master/import', auth, wrap(async (req, res) => {
+app.post('/api/customer-master/import', auth, requirePermission('customers'), wrap(async (req, res) => {
   const rows = Array.isArray(req.body.items) ? req.body.items : [];
   if (rows.length === 0) {
     return res.status(400).json({ ok: false, message: 'ไม่พบข้อมูลที่จะนำเข้า' });
@@ -1832,7 +1892,7 @@ app.post('/api/customer-master/import', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'นำเข้าข้อมูลสำเร็จ', imported, duplicates });
 }));
 
-app.put('/api/customer-master/:id', auth, wrap(async (req, res) => {
+app.put('/api/customer-master/:id', auth, requirePermission('customers'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [existRows] = await mysqlPool.query('SELECT id FROM customer_master WHERE id = ?', [id]);
   if (existRows.length === 0) {
@@ -1859,7 +1919,7 @@ app.put('/api/customer-master/:id', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'แก้ไขข้อมูลลูกค้าสำเร็จ', item: rows[0] });
 }));
 
-app.delete('/api/customer-master/:id', auth, wrap(async (req, res) => {
+app.delete('/api/customer-master/:id', auth, requirePermission('customers'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [info] = await mysqlPool.query('DELETE FROM customer_master WHERE id = ?', [id]);
   if (info.affectedRows === 0) {
@@ -1897,7 +1957,7 @@ app.get('/api/customers', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: customers.length, customers });
 }));
 
-app.post('/api/customers', auth, wrap(async (req, res) => {
+app.post('/api/customers', auth, requirePermission('customers'), wrap(async (req, res) => {
   const c = pickCustomer(req.body || {});
   if (!c.company_name) {
     return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อบริษัท' });
@@ -1915,7 +1975,7 @@ app.post('/api/customers', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'เพิ่มลูกค้าสำเร็จ', customer: rows[0] });
 }));
 
-app.put('/api/customers/:id', auth, wrap(async (req, res) => {
+app.put('/api/customers/:id', auth, requirePermission('customers'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [existRows] = await mysqlPool.query('SELECT id FROM customers WHERE id = ?', [id]);
   if (existRows.length === 0) return res.status(404).json({ ok: false, message: 'ไม่พบรายการนี้' });
@@ -1936,7 +1996,7 @@ app.put('/api/customers/:id', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'แก้ไขลูกค้าสำเร็จ', customer: rows[0] });
 }));
 
-app.delete('/api/customers/:id', auth, wrap(async (req, res) => {
+app.delete('/api/customers/:id', auth, requirePermission('customers'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [info] = await mysqlPool.query('DELETE FROM customers WHERE id = ?', [id]);
   if (info.affectedRows === 0) return res.status(404).json({ ok: false, message: 'ไม่พบรายการนี้' });
@@ -1944,7 +2004,7 @@ app.delete('/api/customers/:id', auth, wrap(async (req, res) => {
 }));
 
 // ลูกค้า — นำเข้าจำนวนมาก (upsert ตาม code ถ้ามี, ไม่มี code ก็ insert ใหม่)
-app.post('/api/customers/import', auth, wrap(async (req, res) => {
+app.post('/api/customers/import', auth, requirePermission('customers'), wrap(async (req, res) => {
   const rows = Array.isArray(req.body.items) ? req.body.items : [];
   if (rows.length === 0) return res.status(400).json({ ok: false, message: 'ไม่พบข้อมูลที่จะนำเข้า' });
 
@@ -1996,7 +2056,7 @@ app.get('/api/warehouse-locations', auth, wrap(async (req, res) => {
 }));
 
 // สร้างช่องสินค้าใหม่ (+ QR)
-app.post('/api/warehouse-locations', auth, wrap(async (req, res) => {
+app.post('/api/warehouse-locations', auth, requirePermission('zone-rack'), wrap(async (req, res) => {
   const b = req.body || {};
   const code = (b.location_code || '').trim();
   if (!code) return res.status(400).json({ ok: false, message: 'กรุณากรอกรหัสช่อง' });
@@ -2019,7 +2079,7 @@ app.post('/api/warehouse-locations', auth, wrap(async (req, res) => {
 }));
 
 // แก้ไขช่องสินค้า
-app.put('/api/warehouse-locations/:id', auth, wrap(async (req, res) => {
+app.put('/api/warehouse-locations/:id', auth, requirePermission('zone-rack'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [exist] = await mysqlPool.query('SELECT location_id FROM warehouse_locations WHERE location_id = ?', [id]);
   if (exist.length === 0) return res.status(404).json({ ok: false, message: 'ไม่พบช่องนี้' });
@@ -2041,7 +2101,7 @@ app.put('/api/warehouse-locations/:id', auth, wrap(async (req, res) => {
 }));
 
 // ลบช่องสินค้า (ลบได้เฉพาะช่องที่ไม่มีผ้าค้างอยู่)
-app.delete('/api/warehouse-locations/:id', auth, wrap(async (req, res) => {
+app.delete('/api/warehouse-locations/:id', auth, requirePermission('zone-rack'), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [[{ n }]] = await mysqlPool.query(
     "SELECT COUNT(*) AS n FROM fabric_rolls WHERE location_id = ? AND status <> 'depleted'", [id]
@@ -2104,7 +2164,7 @@ app.get('/api/fabric-rolls/lookup', auth, wrap(async (req, res) => {
 }));
 
 // สแกนจัดเก็บ (Putaway) — สแกน QR ช่อง + QR ไม้ผ้า -> อัปเดต location_id
-app.post('/api/fabric-rolls/putaway', auth, wrap(async (req, res) => {
+app.post('/api/fabric-rolls/putaway', auth, requirePermission('move-shelf'), wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
   const locQr = (req.body.location_qr || '').toString().trim();
   if (!rollQr || !locQr) return res.status(400).json({ ok: false, message: 'ต้องสแกนทั้ง QR ช่อง และ QR ไม้ผ้า' });
@@ -2125,7 +2185,7 @@ app.post('/api/fabric-rolls/putaway', auth, wrap(async (req, res) => {
 }));
 
 // สแกนตัดหลา (Deduction) — สแกน QR ไม้ผ้า + จำนวนหลาที่ตัด -> อัปเดต current_yards
-app.post('/api/fabric-rolls/cut', auth, wrap(async (req, res) => {
+app.post('/api/fabric-rolls/cut', auth, requirePermission('order-fulfill'), wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
   const yards = Number(req.body.yards);
   if (!rollQr || !(yards > 0)) return res.status(400).json({ ok: false, message: 'ต้องระบุ QR ไม้ผ้า และจำนวนหลาที่ตัด (> 0)' });
@@ -2148,7 +2208,7 @@ app.post('/api/fabric-rolls/cut', auth, wrap(async (req, res) => {
 }));
 
 // ประวัติเคลื่อนไหวสต็อก (audit trail) — พร้อมข้อมูลผ้า/ช่อง/ผู้ทำรายการ
-app.get('/api/stock-transactions', auth, wrap(async (req, res) => {
+app.get('/api/stock-transactions', auth, requirePermission('stock-history'), wrap(async (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 1000, 5000);
   const [txns] = await mysqlPool.query(`
     SELECT t.txn_id, t.txn_type, t.yards_change, t.yards_before, t.yards_after,
@@ -2231,7 +2291,7 @@ app.get('/api/order-issue/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, gi_no: `${prefix}${String(seq).padStart(4, '0')}` });
 }));
 
-app.post('/api/order-issue', auth, wrap(async (req, res) => {
+app.post('/api/order-issue', auth, requirePermission('order-fulfill'), wrap(async (req, res) => {
   const b = req.body || {};
   const rawLines = Array.isArray(b.lines) ? b.lines : [];
   const lines = rawLines.filter((l) => (l.sku || '').trim() && Number(l.yards) > 0);
@@ -2422,7 +2482,7 @@ app.post('/api/order-issue', auth, wrap(async (req, res) => {
 // ============================================================
 //  สัญญาขาย (Sales Contract)
 // ============================================================
-app.get('/api/sales-contracts', auth, wrap(async (req, res) => {
+app.get('/api/sales-contracts', auth, requirePermission([], { allowAnyReport: true }), wrap(async (req, res) => {
   // แนบยอดจำนวนรวมต่อสัญญา (สำหรับหน้ารายงาน) — คำนวณครั้งเดียวด้วย subquery
   const [contracts] = await mysqlPool.query(
     `SELECT sc.*, (SELECT COALESCE(SUM(i.qty),0) FROM sales_contract_items i WHERE i.sc_id = sc.sc_id) AS total_qty
@@ -2445,7 +2505,7 @@ app.get('/api/sales-contracts/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, sc_no: await nextSalesContractNo(mysqlPool) });
 }));
 
-app.get('/api/sales-contracts/:id', auth, wrap(async (req, res) => {
+app.get('/api/sales-contracts/:id', auth, requirePermission([], { allowAnyReport: true }), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [[contract]] = await mysqlPool.query('SELECT * FROM sales_contracts WHERE sc_id = ?', [id]);
   if (!contract) return res.status(404).json({ ok: false, message: 'ไม่พบสัญญานี้' });
@@ -2453,7 +2513,7 @@ app.get('/api/sales-contracts/:id', auth, wrap(async (req, res) => {
   res.json({ ok: true, contract: { ...contract, items } });
 }));
 
-app.post('/api/sales-contracts', auth, wrap(async (req, res) => {
+app.post('/api/sales-contracts', auth, requirePermission('sales-contract'), wrap(async (req, res) => {
   const b = req.body || {};
   const rawItems = Array.isArray(b.items) ? b.items : [];
   const items = rawItems.filter((it) => (it.sku || it.description || '').toString().trim() && Number(it.qty) > 0);
@@ -2514,12 +2574,12 @@ app.post('/api/sales-contracts', auth, wrap(async (req, res) => {
 //          items: [{ product_id, color_id, lot_no, roll_count, yards_per_roll, location_id }] }
 //  -> สร้าง goods_receipts + goods_receipt_items + fabric_rolls (แยกรายม้วน) + stock_transactions
 // ============================================================
-app.get('/api/goods-receipts', auth, wrap(async (req, res) => {
+app.get('/api/goods-receipts', auth, requirePermission('receive-fabric-finished'), wrap(async (req, res) => {
   const [receipts] = await mysqlPool.query('SELECT * FROM goods_receipts ORDER BY gr_id DESC LIMIT 200');
   res.json({ ok: true, total: receipts.length, receipts });
 }));
 
-app.post('/api/goods-receipts', auth, wrap(async (req, res) => {
+app.post('/api/goods-receipts', auth, requirePermission('receive-fabric-finished'), wrap(async (req, res) => {
   const b = req.body || {};
   const items = Array.isArray(b.items) ? b.items : [];
   const validItems = items.filter((it) => Number(it.product_id) && Number(it.roll_count) > 0 && Number(it.yards_per_roll) > 0);
@@ -2626,7 +2686,7 @@ app.post('/api/goods-receipts', auth, wrap(async (req, res) => {
 // ============================================================
 //  ออร์เดอร์ (orders + order_items)
 // ============================================================
-app.get('/api/orders', auth, wrap(async (req, res) => {
+app.get('/api/orders', auth, requirePermission(['order-receive', 'order-fulfill']), wrap(async (req, res) => {
   const [orders] = await mysqlPool.query('SELECT * FROM orders ORDER BY id DESC');
   const [allItems] = await mysqlPool.query('SELECT * FROM order_items ORDER BY id ASC');
   const byOrder = new Map();
@@ -2638,7 +2698,7 @@ app.get('/api/orders', auth, wrap(async (req, res) => {
   res.json({ ok: true, total: result.length, orders: result });
 }));
 
-app.post('/api/orders', auth, wrap(async (req, res) => {
+app.post('/api/orders', auth, requirePermission('order-receive'), wrap(async (req, res) => {
   const b = req.body || {};
   const customer = (b.customer || '').trim();
   const items = Array.isArray(b.items) ? b.items : [];
@@ -2694,7 +2754,7 @@ app.post('/api/orders', auth, wrap(async (req, res) => {
   res.json({ ok: true, message: 'บันทึกออร์เดอร์สำเร็จ', order: { ...order, items: orderItems } });
 }));
 
-app.put('/api/orders/:id', auth, wrap(async (req, res) => {
+app.put('/api/orders/:id', auth, requirePermission(['order-receive', 'order-fulfill']), wrap(async (req, res) => {
   const id = Number(req.params.id);
   const [existRows] = await mysqlPool.query('SELECT * FROM orders WHERE id = ?', [id]);
   const existing = existRows[0];
@@ -2738,11 +2798,11 @@ async function makeInvNo() {
   return `${prefix}${String(n + 1).padStart(4, '0')}`;
 }
 app.get('/api/sale-invoices/next-no', auth, wrap(async (req, res) => { res.json({ ok: true, inv_no: await makeInvNo() }); }));
-app.get('/api/sale-invoices', auth, wrap(async (req, res) => {
+app.get('/api/sale-invoices', auth, requirePermission([], { allowAnyReport: true }), wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM sale_invoices ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, invoices: rows });
 }));
-app.post('/api/sale-invoices', auth, wrap(async (req, res) => {
+app.post('/api/sale-invoices', auth, requirePermission('invoice-open'), wrap(async (req, res) => {
   const b = req.body || {};
   const inv_no = await makeInvNo();
   const [info] = await mysqlPool.query(
@@ -2760,11 +2820,11 @@ async function makeIvrNo() {
   return `${prefix}-${String(n + 1).padStart(3, '0')}`;
 }
 app.get('/api/invoice-returns/next-no', auth, wrap(async (req, res) => { res.json({ ok: true, ivr_no: await makeIvrNo() }); }));
-app.get('/api/invoice-returns', auth, wrap(async (req, res) => {
+app.get('/api/invoice-returns', auth, requirePermission('invoice-return', { allowAnyReport: true }), wrap(async (req, res) => {
   const [rows] = await mysqlPool.query('SELECT * FROM invoice_returns ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, returns: rows });
 }));
-app.post('/api/invoice-returns', auth, wrap(async (req, res) => {
+app.post('/api/invoice-returns', auth, requirePermission('invoice-return'), wrap(async (req, res) => {
   const b = req.body || {};
   const ivr_no = await makeIvrNo();
   const [info] = await mysqlPool.query(
@@ -2783,7 +2843,7 @@ async function makeBrNo() {
 }
 app.get('/api/customer-billings/next-no', auth, wrap(async (req, res) => { res.json({ ok: true, br_no: await makeBrNo() }); }));
 // ดึงเอกสารค้างวางบิลของลูกค้า แยก ขายส่ง(อินวอยส์ VAT) / ขายปลีก(อินวอยส์ขาย) / ใบลดหนี้
-app.get('/api/customer-billings/documents', auth, wrap(async (req, res) => {
+app.get('/api/customer-billings/documents', auth, requirePermission('billing-customer'), wrap(async (req, res) => {
   const customer = (req.query.customer || '').toString().trim();
   if (!customer) return res.json({ ok: true, wholesale: [], retail: [], credit: [] });
   const [ws] = await mysqlPool.query('SELECT vt_no AS inv_no, invoice_date AS doc_date, net_total AS total FROM vat_invoices WHERE customer = ? ORDER BY id DESC', [customer]);
@@ -2791,7 +2851,7 @@ app.get('/api/customer-billings/documents', auth, wrap(async (req, res) => {
   const [cr] = await mysqlPool.query("SELECT doc_no AS inv_no, doc_date, net_total AS total FROM credit_notes WHERE party = ? AND doc_type = 'customer' ORDER BY id DESC", [customer]);
   res.json({ ok: true, wholesale: ws, retail: rt, credit: cr });
 }));
-app.get('/api/customer-billings', auth, wrap(async (req, res) => {
+app.get('/api/customer-billings', auth, requirePermission('receive-payment-customer', { allowAnyReport: true }), wrap(async (req, res) => {
   const customer = (req.query.customer || '').toString().trim();
   const [rows] = customer
     ? await mysqlPool.query('SELECT * FROM customer_billings WHERE customer = ? ORDER BY id DESC', [customer])
@@ -2800,7 +2860,7 @@ app.get('/api/customer-billings', auth, wrap(async (req, res) => {
 }));
 // ยอดคงเหลือของใบวางบิลใบหนึ่ง (เทียบยอดบิล กับ เงินที่รับแล้วซึ่งอ้างอิงเลขที่ใบวางบิลนี้ใน payments)
 // — ใช้ตอนรับเงิน เพื่อไม่ต้องนั่งเช็ค/หักลบเองว่าโอนมาไม่ครบบิล
-app.get('/api/customer-billings/balance', auth, wrap(async (req, res) => {
+app.get('/api/customer-billings/balance', auth, requirePermission('receive-payment-customer'), wrap(async (req, res) => {
   const brNo = (req.query.br_no || '').toString().trim();
   if (!brNo) return res.status(400).json({ ok: false, message: 'ระบุเลขที่ใบวางบิล' });
   const [[bill]] = await mysqlPool.query('SELECT * FROM customer_billings WHERE br_no = ?', [brNo]);
@@ -2813,7 +2873,7 @@ app.get('/api/customer-billings/balance', auth, wrap(async (req, res) => {
   const total = Number(bill.total_amount) || 0;
   res.json({ ok: true, br_no: brNo, total, received, remaining: total - received });
 }));
-app.post('/api/customer-billings', auth, wrap(async (req, res) => {
+app.post('/api/customer-billings', auth, requirePermission('billing-customer'), wrap(async (req, res) => {
   const b = req.body || {};
   const br_no = await makeBrNo();
   const [info] = await mysqlPool.query(
@@ -2836,14 +2896,14 @@ async function makeCreditNo(type) {
 app.get('/api/credit-notes/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, doc_no: await makeCreditNo(req.query.type) });
 }));
-app.get('/api/credit-notes', auth, wrap(async (req, res) => {
+app.get('/api/credit-notes', auth, requirePermission(['credit-note-customer', 'credit-note-partner'], { allowAnyReport: true }), wrap(async (req, res) => {
   const type = req.query.type;
   const [rows] = type
     ? await mysqlPool.query('SELECT * FROM credit_notes WHERE doc_type = ? ORDER BY id DESC', [type])
     : await mysqlPool.query('SELECT * FROM credit_notes ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, notes: rows });
 }));
-app.post('/api/credit-notes', auth, wrap(async (req, res) => {
+app.post('/api/credit-notes', auth, requirePermission((req) => (req.body?.doc_type === 'partner' ? 'credit-note-partner' : 'credit-note-customer')), wrap(async (req, res) => {
   const b = req.body || {};
   const doc_no = await makeCreditNo(b.doc_type);
   const [info] = await mysqlPool.query(
@@ -2870,7 +2930,7 @@ async function makePaymentNo(type) {
   return `${prefix}-${String(n + 1).padStart(3, '0')}`;
 }
 // ยอดบัญชีลูกค้า/คู่ค้า (สำหรับหน้าหักบัญชี) — ยอดรวม / หักไปแล้ว / คงเหลือ
-app.get('/api/account-balance', auth, wrap(async (req, res) => {
+app.get('/api/account-balance', auth, requirePermission(['deduct-customer-account', 'deduct-partner-account']), wrap(async (req, res) => {
   const type = (req.query.type || 'customer').toString();
   const party = (req.query.party || '').toString().trim();
   let total = 0;
@@ -2889,14 +2949,15 @@ app.get('/api/account-balance', auth, wrap(async (req, res) => {
 app.get('/api/payments/next-no', auth, wrap(async (req, res) => {
   res.json({ ok: true, doc_no: await makePaymentNo(req.query.type) });
 }));
-app.get('/api/payments', auth, wrap(async (req, res) => {
+app.get('/api/payments', auth, requirePermission(['receive-payment-customer', 'pay-partner', 'deduct-customer-account', 'deduct-partner-account'], { allowAnyReport: true }), wrap(async (req, res) => {
   const type = req.query.type;
   const [rows] = type
     ? await mysqlPool.query('SELECT * FROM payments WHERE doc_type = ? ORDER BY id DESC', [type])
     : await mysqlPool.query('SELECT * FROM payments ORDER BY id DESC');
   res.json({ ok: true, total: rows.length, payments: rows });
 }));
-app.post('/api/payments', auth, wrap(async (req, res) => {
+const PAYMENT_TYPE_KEY = { pay: 'pay-partner', receive: 'receive-payment-customer', 'deduct-customer': 'deduct-customer-account', 'deduct-partner': 'deduct-partner-account' };
+app.post('/api/payments', auth, requirePermission((req) => PAYMENT_TYPE_KEY[req.body?.doc_type] || 'receive-payment-customer'), wrap(async (req, res) => {
   const b = req.body || {};
   const doc_no = await makePaymentNo(b.doc_type);
   const [info] = await mysqlPool.query(
@@ -3019,7 +3080,7 @@ app.get('/api/dashboard/stats', auth, wrap(async (req, res) => {
   });
 }));
 
-app.get('/api/reports/stock-inventory', auth, wrap(async (req, res) => {
+app.get('/api/reports/stock-inventory', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const q = (req.query.q || '').toString().trim();
   const sku = (req.query.sku || '').toString().trim();
   const color = (req.query.color || '').toString().trim();
@@ -3102,7 +3163,7 @@ app.get('/api/reports/stock-inventory', auth, wrap(async (req, res) => {
   });
 }));
 // รายละเอียดม้วนของผ้า+สีที่เลือก
-app.get('/api/reports/stock-inventory/rolls', auth, wrap(async (req, res) => {
+app.get('/api/reports/stock-inventory/rolls', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const productId = Number(req.query.product_id) || 0;
   const colorId = req.query.color_id ? Number(req.query.color_id) : null;
   const cond = colorId != null ? 'r.color_id = ?' : 'r.color_id IS NULL';
@@ -3119,7 +3180,7 @@ app.get('/api/reports/stock-inventory/rolls', auth, wrap(async (req, res) => {
 }));
 
 // ---- รายงานจุดสั่งซื้อสินค้า (reorder point) — ทุกเฉดสีในระบบ + สต็อกคงเหลือ ----
-app.get('/api/reports/reorder-point', auth, wrap(async (req, res) => {
+app.get('/api/reports/reorder-point', auth, requirePermission('report-reorder-point'), wrap(async (req, res) => {
   const [rows] = await mysqlPool.query(`
     SELECT f.sku AS sku, f.name AS name, s.id AS shade_id, s.color_code AS color_code, s.name AS shade,
            COALESCE((SELECT SUM(r.current_yards) FROM fabric_rolls r WHERE r.color_id = s.id AND r.status <> 'depleted'), 0) AS yards
@@ -3137,7 +3198,7 @@ app.get('/api/reports/reorder-point', auth, wrap(async (req, res) => {
 //  ตารางไหนยังไม่มีเอกสาร จะได้ตารางว่าง (ไม่ใช่ข้อมูลตัวอย่าง)
 //  คืนรูปแบบ { columns:[...], rows:[[...]] } ให้หน้าเว็บแสดงได้ทันที
 // ============================================================
-app.get('/api/reports/summary/:type', auth, wrap(async (req, res) => {
+app.get('/api/reports/summary/:type', auth, requirePermission(reportTypeKey), wrap(async (req, res) => {
   const type = String(req.params.type || '').trim();
   const baht = (n) => '฿' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
   const num = (n) => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -3355,7 +3416,7 @@ app.get('/api/reports/summary/:type', auth, wrap(async (req, res) => {
 //  ⚠️ แหล่งข้อมูลจริง: ประวัติบาร์โค้ด = stock_transactions (มีจริง). ปรับสต๊อก = txn_type='adjust' (ยังไม่มีระบบบันทึก → ว่างจริง).
 //     แบ่งพับ/แก้ไขราคาขาย = ยังไม่มีตารางประวัติในระบบ → คืนคอลัมน์ถูกต้องแต่ว่าง (พร้อมต่อเมื่อทำระบบ log)
 // ============================================================
-app.get('/api/reports/other/:type', auth, wrap(async (req, res) => {
+app.get('/api/reports/other/:type', auth, requirePermission('report-others'), wrap(async (req, res) => {
   const type = String(req.params.type || '').trim();
   const num = (n) => Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
   const baht = (n) => '฿' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -3428,7 +3489,7 @@ app.get('/api/reports/other/:type', auth, wrap(async (req, res) => {
 // ============================================================
 //  รายงานสินค้าคงคลังตามชั้น (per-roll) — แสดงทุกม้วนพร้อมตำแหน่งเก็บ (คลัง/แร็ค/ล็อต)
 // ============================================================
-app.get('/api/reports/stock-by-shelf', auth, wrap(async (req, res) => {
+app.get('/api/reports/stock-by-shelf', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), sku = s('sku'), color = s('color'), barcode = s('barcode'),
         group = s('group'), width = s('width'), warehouse = s('warehouse'), rack = s('rack');
@@ -3467,7 +3528,7 @@ app.get('/api/reports/stock-by-shelf', auth, wrap(async (req, res) => {
 //   - ที่โรงงาน  = ผ้าดิบใน dye_orders.raw_json (needed) ของใบสั่งย้อมที่ยังไม่รับผ้าย้อมกลับ (dye_no ∉ dyed_receipts.order_ref)
 //  ตารางล่าง (เลือกแถว) = รายการรับในใบรับผ้าดิบของ sku นั้น
 // ============================================================
-app.get('/api/reports/raw-stock', auth, wrap(async (req, res) => {
+app.get('/api/reports/raw-stock', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), sku = s('sku'), width = s('width'), warehouse = s('warehouse');
   const parseJson = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
@@ -3532,7 +3593,7 @@ app.get('/api/reports/raw-stock', auth, wrap(async (req, res) => {
 }));
 
 // รายการรับในใบรับผ้าดิบของ sku ที่เลือก (ตารางล่าง)
-app.get('/api/reports/raw-stock/receipts', auth, wrap(async (req, res) => {
+app.get('/api/reports/raw-stock/receipts', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const sku = (req.query.sku || '').toString().trim();
   if (!sku) return res.json({ ok: true, total: 0, rows: [] });
   const parseJson = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
@@ -3557,7 +3618,7 @@ app.get('/api/reports/raw-stock/receipts', auth, wrap(async (req, res) => {
 //   - คู่ค้า = supplier (ถ้าว่างใช้ factory) · สถานที่จัดส่ง = warehouse (ถ้าว่างใช้ factory)
 //   หมายเหตุ: สถานะชำระเงินยังไม่ได้ผูกกับระบบรับ-จ่ายเงินจริง (แสดง "ยังไม่ชำระ" เป็นค่าเริ่มต้น)
 // ============================================================
-app.get('/api/reports/goods-receipts', auth, wrap(async (req, res) => {
+app.get('/api/reports/goods-receipts', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), sku = s('sku'), receiptType = s('receiptType'), productType = s('productType'),
         party = s('party'), warehouse = s('warehouse');
@@ -3628,7 +3689,7 @@ app.get('/api/reports/goods-receipts', auth, wrap(async (req, res) => {
 //   - ตารางล่าง = ม้วนที่ตัด (fabric_rolls: บาร์โค้ด + จำนวนที่ตัด)
 //   (ถ้าในอนาคตมีใบเบิก goods_issues/txn_type='issue' ก็รวมมาให้ด้วย)
 // ============================================================
-app.get('/api/reports/goods-issues', auth, wrap(async (req, res) => {
+app.get('/api/reports/goods-issues', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), sku = s('sku'), party = s('party');
 
@@ -3677,7 +3738,7 @@ app.get('/api/reports/goods-issues', auth, wrap(async (req, res) => {
 }));
 
 // ม้วนที่ตัดของออเดอร์ที่เลือก (ตารางล่าง)
-app.get('/api/reports/goods-issues/rolls', auth, wrap(async (req, res) => {
+app.get('/api/reports/goods-issues/rolls', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const refNo = (req.query.gi_no || req.query.ref_no || '').toString().trim();
   if (!refNo) return res.json({ ok: true, total: 0, rows: [] });
   const [rows] = await mysqlPool.query(`
@@ -3704,7 +3765,7 @@ app.get('/api/reports/goods-issues/rolls', auth, wrap(async (req, res) => {
 //   - จำนวนรวม = ผลรวม qty (หลา)
 //   - ตารางล่าง = รายการสินค้าที่ย้ายในใบนั้น (ระบบย้ายระดับรายการ ไม่มีบาร์โค้ดรายม้วน)
 // ============================================================
-app.get('/api/reports/stock-transfers', auth, wrap(async (req, res) => {
+app.get('/api/reports/stock-transfers', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), sku = s('sku'), color = s('color'), fromWh = s('fromWh'), toWh = s('toWh');
   const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
@@ -3736,7 +3797,7 @@ app.get('/api/reports/stock-transfers', auth, wrap(async (req, res) => {
 //   - จำนวนล็อต = จำนวนรายการที่ย้าย, จำนวนรวม = SUM qty
 //   - ตารางล่าง = รายการผ้าดิบที่ย้าย (sku/ชื่อ/หน้ากว้าง/ล็อต/จำนวน/หน่วย/จากคลัง)
 // ============================================================
-app.get('/api/reports/raw-transfers', auth, wrap(async (req, res) => {
+app.get('/api/reports/raw-transfers', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), sku = s('sku'), toWh = s('toWh');
   const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
@@ -3766,7 +3827,7 @@ app.get('/api/reports/raw-transfers', auth, wrap(async (req, res) => {
 //   items_json = [{roll_qr}] → join fabric_rolls เอารายละเอียดม้วน + join warehouse_locations เอาคลัง/แร็ค
 //   - พับรวม = จำนวนม้วนที่เก็บ, จำนวนรวม = SUM หลาของม้วน
 // ============================================================
-app.get('/api/reports/rack-transfers', auth, wrap(async (req, res) => {
+app.get('/api/reports/rack-transfers', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), sku = s('sku'), color = s('color'), toWh = s('toWh'), rack = s('rack');
   const parse = (t) => { try { const v = JSON.parse(t || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
@@ -3823,7 +3884,7 @@ app.get('/api/reports/rack-transfers', auth, wrap(async (req, res) => {
 //  รายงานสินค้า VAT คงคลัง — จากใบรับ VAT (vat_receipts) หักด้วยการตัด (vat_stock_cuts)
 //   จัดกลุ่มตาม (ราคารับ, หน่วย): จำนวน = รับ − ตัด, มูลค่ารวม = ราคารับ × จำนวน
 // ============================================================
-app.get('/api/reports/vat-stock', auth, wrap(async (req, res) => {
+app.get('/api/reports/vat-stock', auth, requirePermission('report-vat-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const priceFrom = req.query.priceFrom !== undefined && req.query.priceFrom !== '' ? Number(req.query.priceFrom) : null;
   const priceTo = req.query.priceTo !== undefined && req.query.priceTo !== '' ? Number(req.query.priceTo) : null;
@@ -3869,7 +3930,7 @@ app.get('/api/reports/vat-stock', auth, wrap(async (req, res) => {
 //   จำนวนรวม = Σ qty ของรายการ, ยอดรวม = net_total
 //   ตารางล่าง = รายการราคา (ราคารับ/จำนวน/หน่วย/รวม)
 // ============================================================
-app.get('/api/reports/vat-receipts', auth, wrap(async (req, res) => {
+app.get('/api/reports/vat-receipts', auth, requirePermission('report-vat-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), party = s('party');
   const priceFrom = req.query.priceFrom !== undefined && req.query.priceFrom !== '' ? Number(req.query.priceFrom) : null;
@@ -3903,7 +3964,7 @@ app.get('/api/reports/vat-receipts', auth, wrap(async (req, res) => {
 //   ยอดรวม = total_amount, ยอดรวมตัด VAT = Σ (ราคารับ × จำนวนที่ตัด)
 //   ตารางล่าง = รายละเอียดสินค้า/กลุ่ม/จำนวนขาย/ราคาขาย/จำนวนตัด/ราคารับ/รวมราคารับ
 // ============================================================
-app.get('/api/reports/vat-issues', auth, wrap(async (req, res) => {
+app.get('/api/reports/vat-issues', auth, requirePermission('report-vat-stock'), wrap(async (req, res) => {
   const s = (k) => (req.query[k] || '').toString().trim();
   const q = s('q'), party = s('party'), saleType = s('saleType');
   const priceFrom = req.query.priceFrom !== undefined && req.query.priceFrom !== '' ? Number(req.query.priceFrom) : null;
@@ -3944,7 +4005,7 @@ app.get('/api/reports/vat-issues', auth, wrap(async (req, res) => {
 }));
 
 // ปรับปรุงจำนวนสต็อกของม้วน (จากหน้ารายงาน)
-app.post('/api/fabric-rolls/adjust', auth, wrap(async (req, res) => {
+app.post('/api/fabric-rolls/adjust', auth, requirePermission('report-stock'), wrap(async (req, res) => {
   const rollQr = (req.body.roll_qr || '').toString().trim();
   const newYards = Number(req.body.new_yards);
   if (!rollQr || !(newYards >= 0)) return res.status(400).json({ ok: false, message: 'ต้องระบุบาร์โค้ดและจำนวนใหม่ (>= 0)' });
