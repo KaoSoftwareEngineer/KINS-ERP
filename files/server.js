@@ -74,6 +74,19 @@ async function ensureAdminUser() {
   }
 }
 
+// ---- โหมด "ตั้งระบบครั้งแรก" ----
+//  true = ยังไม่มีบัญชีระดับผู้บริหาร/ผู้ดูแลในระบบเลย → ยอมให้สมัครเองได้เพื่อไม่ให้ล็อกตัวเองออก
+//  false = มีผู้ดูแลแล้ว → ปิดการสมัครสาธารณะ ให้ผู้ดูแลเป็นคนเปิดบัญชีให้แทน
+async function isBootstrapMode() {
+  try {
+    const [rows] = await mysqlPool.query('SELECT role FROM users');
+    if (rows.length === 0) return true;
+    return !rows.some((u) => isManagerRole(u.role));
+  } catch (e) {
+    return false;   // ถามฐานข้อมูลไม่ได้ → ถือว่าปิดไว้ก่อน (ปลอดภัยกว่า)
+  }
+}
+
 // ---- ฟังก์ชันช่วยเข้ารหัสรหัสผ่าน (ใช้ crypto ในตัว ไม่ต้องลงเพิ่ม) ----
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -174,6 +187,17 @@ app.post('/api/register', async (req, res) => {
   }
 
   try {
+    // ---- ปิดการสมัครสาธารณะ ----
+    // เดิมใครก็สมัครบัญชีเองได้ แล้วล็อกอินเข้าอ่านข้อมูลอ้างอิงในระบบได้ (ลูกค้า/คู่ค้า/ผ้า)
+    // ทั้งที่บัญชีที่สมัครเองไม่มีตำแหน่ง = ทำอะไรไม่ได้อยู่แล้ว ต้องให้ผู้ดูแลตั้งให้เสมอ
+    // → อนุญาตเฉพาะตอน "ตั้งระบบครั้งแรก" (ยังไม่มีบัญชีระดับผู้บริหารในระบบเลย)
+    //   หลังจากนั้นให้ผู้ดูแลเป็นคนสร้างบัญชีให้ผ่านหน้า "บัญชีผู้ใช้งาน" (POST /api/users)
+    if (!(await isBootstrapMode())) {
+      return res.status(403).json({
+        ok: false,
+        message: 'ระบบปิดการสมัครด้วยตนเองแล้ว — กรุณาติดต่อผู้ดูแลระบบเพื่อเปิดบัญชีให้',
+      });
+    }
     const [existsRows] = await mysqlPool.query('SELECT id FROM users WHERE email = ?', [email]);
     if (existsRows.length > 0) {
       return res.status(409).json({ ok: false, message: 'อีเมลนี้ถูกใช้สมัครไปแล้ว' });
@@ -357,6 +381,14 @@ app.post('/api/auth/google', async (req, res) => {
     let [rows] = await mysqlPool.query('SELECT * FROM users WHERE email = ?', [email]);
     let user = rows[0];
     if (!user) {
+      // ไม่สร้างบัญชีใหม่จากการล็อกอิน Google อีกต่อไป (เท่ากับเปิดให้ใครก็มีบัญชีในระบบได้)
+      // ยกเว้นตอนตั้งระบบครั้งแรกที่ยังไม่มีผู้ดูแล — ดู isBootstrapMode()
+      if (!(await isBootstrapMode())) {
+        return res.status(403).json({
+          ok: false,
+          message: 'ยังไม่มีบัญชีของอีเมลนี้ในระบบ — กรุณาติดต่อผู้ดูแลระบบเพื่อเปิดบัญชีให้ก่อน',
+        });
+      }
       const [info] = await mysqlPool.query(
         'INSERT INTO users (name, email, phone, avatar, password) VALUES (?, ?, ?, ?, ?)',
         [name, email, '', avatar, 'google:' + crypto.randomBytes(8).toString('hex')]
@@ -582,6 +614,53 @@ app.get('/api/users', auth, requirePermission('users'), async (req, res) => {
   );
   const canManage = await requesterCanManage(req.userId);
   res.json({ ok: true, total: users.length, users, canManage, meId: req.userId });
+});
+
+// ------------------------------------------------------------
+//  สร้างบัญชีผู้ใช้ใหม่ (เฉพาะผู้บริหาร/ผู้ดูแล) — แทนการเปิดให้สมัครเองสาธารณะ
+//  ใช้จากหน้า "บัญชีผู้ใช้งาน" → ปุ่มเพิ่มผู้ใช้
+// ------------------------------------------------------------
+app.post('/api/users', auth, async (req, res) => {
+  const name = (req.body.name || '').trim();
+  const email = (req.body.email || '').trim().toLowerCase();
+  const phone = (req.body.phone || '').trim();
+  const role = (req.body.role || '').trim();
+  const gender = (req.body.gender || '').trim();
+  const age = req.body.age ? Number(req.body.age) : null;
+  const password = req.body.password || '';
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ ok: false, message: 'กรุณากรอกชื่อ อีเมล และรหัสผ่านเริ่มต้น' });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ ok: false, message: 'รูปแบบอีเมลไม่ถูกต้อง' });
+  }
+  if (phone && !/^0[0-9]{8,9}$/.test(phone)) {
+    return res.status(400).json({ ok: false, message: 'รูปแบบเบอร์โทรไม่ถูกต้อง (เช่น 0812345678)' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ ok: false, message: 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร' });
+  }
+  try {
+    if (!(await requesterCanManage(req.userId))) {
+      return res.status(403).json({ ok: false, message: 'ไม่มีสิทธิ์สร้างบัญชีผู้ใช้ (เฉพาะผู้บริหาร)' });
+    }
+    const [dup] = await mysqlPool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (dup.length > 0) {
+      return res.status(409).json({ ok: false, message: 'อีเมลนี้ถูกใช้กับบัญชีอื่นแล้ว' });
+    }
+    const [info] = await mysqlPool.query(
+      'INSERT INTO users (name, email, phone, password, role, gender, age) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, email, phone, hashPassword(password), role, gender, age]
+    );
+    res.json({
+      ok: true, message: 'สร้างบัญชีผู้ใช้แล้ว',
+      user: { id: info.insertId, name, email, phone, role, gender, age },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'สร้างบัญชีไม่สำเร็จ' });
+  }
 });
 
 // ------------------------------------------------------------

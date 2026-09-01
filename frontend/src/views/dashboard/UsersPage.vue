@@ -4,7 +4,7 @@
     <h1>{{ dash.t[dash.lang].membersList }}</h1>
     <div class="header-actions">
       <span v-if="!dash.usCanManage" class="us-perm-note">{{ dash.t[dash.lang].onlyEditOwnAccountMsg }}</span>
-      <button class="btn-small fr-btn-search">{{ dash.t[dash.lang].search }}</button>
+      <button v-if="dash.usCanManage" class="btn-small fr-btn-add" @click="dash.usOpenCreate()">➕ {{ dash.t[dash.lang].addUserLabel }}</button>
     </div>
   </div>
 
@@ -69,7 +69,7 @@
   <div v-if="dash.usModalShow" class="erp-overlay" @click.self="dash.usCloseModal()">
     <div class="erp-modal" style="width: 680px;">
       <div class="erp-modal-head">
-        <span><span class="erp-head-ic">👤</span> {{ dash.t[dash.lang].editUserAccountTitle }}</span>
+        <span><span class="erp-head-ic">👤</span> {{ creatingUser ? dash.t[dash.lang].addUserLabel : dash.t[dash.lang].editUserAccountTitle }}</span>
         <button class="erp-x" @click="dash.usCloseModal()">✕</button>
       </div>
       <div class="erp-modal-body">
@@ -91,12 +91,18 @@
             </label>
             <select v-model="dash.usEditItem.role" :disabled="!dash.usCanManage || editingSelf"><option value="">{{ dash.t[dash.lang].notSetYetPlaceholder }}</option><option v-for="r in dash.roleOptions()" :key="r" :value="r">{{ r }}</option></select>
           </div>
-          <div class="erp-field"><label>{{ dash.t[dash.lang].newPasswordLabel }} <span class="us-hint">{{ dash.t[dash.lang].leaveBlankIfNoChangeHint }}</span></label><input type="password" v-model="dash.usEditItem.password" placeholder="••••••••" /></div>
+          <div class="erp-field">
+            <label>
+              {{ creatingUser ? dash.t[dash.lang].initialPasswordLabel : dash.t[dash.lang].newPasswordLabel }}
+              <span class="us-hint">{{ creatingUser ? dash.t[dash.lang].passwordMinHint : dash.t[dash.lang].leaveBlankIfNoChangeHint }}</span>
+            </label>
+            <input type="password" v-model="dash.usEditItem.password" placeholder="••••••••" />
+          </div>
         </div>
       </div>
       <div class="erp-modal-foot">
         <button class="erp-btn erp-btn-cancel" @click="dash.usCloseModal()">{{ dash.t[dash.lang].cancelWord }}</button>
-        <button class="erp-btn erp-btn-save" @click="dash.usSaveUser()">💾 {{ dash.t[dash.lang].save }}</button>
+        <button class="erp-btn erp-btn-save" @click="dash.usSaveUser()">{{ creatingUser ? '➕ ' + dash.t[dash.lang].addUserLabel : '💾 ' + dash.t[dash.lang].save }}</button>
       </div>
     </div>
   </div>
@@ -111,6 +117,10 @@ export default {
     editingSelf() {
       const u = this.dash.usEditItem;
       return u && this.dash.currentUser && String(u.id) === String(this.dash.currentUser.id);
+    },
+    // โมดัลตัวเดียวใช้ทั้งสร้างและแก้ไข — ไม่มี id = กำลังสร้างบัญชีใหม่
+    creatingUser() {
+      return !this.dash.usEditItem || !this.dash.usEditItem.id;
     },
   },
   methods: {

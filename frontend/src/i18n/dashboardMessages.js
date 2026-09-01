@@ -933,6 +933,8 @@ export const messages = {
     permissionSecuritySectionTitle: 'สิทธิ์ / ความปลอดภัย',
     execOnlyChangeHint: '(เฉพาะผู้บริหารเปลี่ยนได้)',
     newPasswordLabel: 'รหัสผ่านใหม่',
+    addUserLabel: 'เพิ่มผู้ใช้',
+    initialPasswordLabel: 'รหัสผ่านเริ่มต้น',
     // ---- เปลี่ยนรหัสผ่านตัวเอง (หน้าตั้งค่า → ความปลอดภัย) ----
     currentPasswordLabel: 'รหัสผ่านปัจจุบัน',
     confirmNewPasswordLabel: 'ยืนยันรหัสผ่านใหม่',
@@ -1884,6 +1886,8 @@ export const messages = {
     permissionSecuritySectionTitle: 'Permissions / Security',
     execOnlyChangeHint: '(Only executives can change this)',
     newPasswordLabel: 'New Password',
+    addUserLabel: 'Add User',
+    initialPasswordLabel: 'Initial Password',
     // ---- Change own password (Settings → Security) ----
     currentPasswordLabel: 'Current Password',
     confirmNewPasswordLabel: 'Confirm New Password',

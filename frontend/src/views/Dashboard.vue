@@ -2510,14 +2510,22 @@ data() {
         this.usEditItem = { id: user.id, name: user.name || '', email: user.email || '', phone: user.phone || '', role: user.role || '', gender: user.gender || '', age: user.age || '', password: '' };
         this.usModalShow = true;
       },
+      // เปิดฟอร์มเปล่าเพื่อ "สร้างบัญชีใหม่" (ใช้โมดัลเดียวกับแก้ไข — id = null คือโหมดสร้าง)
+      // ระบบปิดการสมัครเองสาธารณะแล้ว บัญชีใหม่ต้องให้ผู้ดูแลเปิดให้ทางนี้เท่านั้น
+      usOpenCreate() {
+        this.usEditItem = { id: null, name: '', email: '', phone: '', role: '', gender: '', age: '', password: '' };
+        this.usModalShow = true;
+      },
       usCloseModal() { this.usModalShow = false; },
       async usSaveUser() {
         const u = this.usEditItem;
         if (!u.name.trim() || !u.email.trim()) { this.fbFail('กรุณากรอกชื่อและอีเมล'); return; }
-        this.fbLoading('กำลังบันทึก...');
+        const creating = !u.id;
+        if (creating && (u.password || '').length < 6) { this.fbFail('ตั้งรหัสผ่านเริ่มต้นอย่างน้อย 6 ตัวอักษร'); return; }
+        this.fbLoading(creating ? 'กำลังสร้างบัญชี...' : 'กำลังบันทึก...');
         try {
-          const res = await fetch(API + `/api/users/${u.id}`, {
-            method: 'PUT',
+          const res = await fetch(API + (creating ? '/api/users' : `/api/users/${u.id}`), {
+            method: creating ? 'POST' : 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.token },
             body: JSON.stringify({ name: u.name.trim(), email: u.email.trim(), phone: u.phone.trim(), role: u.role, gender: u.gender, age: u.age || null, password: u.password || '' }),
           });
@@ -2525,12 +2533,12 @@ data() {
           const data = await res.json();
           if (data.ok) {
             // ถ้าแก้ข้อมูลของ "ตัวเอง" → อัปเดตโปรไฟล์ (ชื่อ/เบอร์/ตำแหน่ง/เพศ/อายุ) ทันที
-            if (this.currentUser && String(u.id) === String(this.currentUser.id)) {
+            if (!creating && this.currentUser && String(u.id) === String(this.currentUser.id)) {
               this.currentUser = { ...this.currentUser, name: u.name.trim(), email: u.email.trim(), phone: u.phone.trim(), role: u.role, gender: u.gender, age: u.age };
             }
             this.usModalShow = false;
             await this.loadMembers();
-            this.fbDone('บันทึกแล้ว');
+            this.fbDone(creating ? 'สร้างบัญชีผู้ใช้แล้ว' : 'บันทึกแล้ว');
           } else {
             this.fbFail(data.message || 'บันทึกไม่สำเร็จ');
           }
