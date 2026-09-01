@@ -152,7 +152,7 @@ data() {
       };
     },
     mounted() {
-      // ล้าง token เก่าที่อาจหมดอายุ (เช่นหลัง backend รีสตาร์ต) — กันเด้งวนตอนเข้า dashboard
+      // ล้าง token เก่าที่ค้างอยู่ใน localStorage จากเวอร์ชันก่อนหน้า (ตอนนี้ใช้ httpOnly cookie แล้ว)
       localStorage.removeItem('token');
       // ถ้าถูกเด้งกลับมาเพราะเซสชันหมดอายุ ให้แจ้งเตือน
       try {
@@ -208,7 +208,7 @@ data() {
           });
           const data = await res.json();
           if (data.ok) {
-            localStorage.setItem('token', data.token);
+            // เซสชันจริง = httpOnly cookie จากเซิร์ฟเวอร์ (ไม่เก็บ token ใน localStorage)
             localStorage.setItem('currentUser', JSON.stringify(data.user));
             sessionStorage.setItem('welcomeToast', (data.user && data.user.name) || 'ผู้ใช้งาน');
             this.regMsg = { type: 'success', text: '✅ เข้าสู่ระบบด้วย Google สำเร็จ' };
@@ -297,8 +297,8 @@ data() {
           if (data.ok) {
             this.token = data.token;
             this.currentUser = data.user;
-            // บันทึก token และ user ลง localStorage
-            localStorage.setItem('token', this.token);
+            // เซสชันจริงอยู่ใน httpOnly cookie ที่เซิร์ฟเวอร์ตั้งให้แล้ว (กัน XSS ขโมย token)
+            // เก็บลง localStorage เฉพาะข้อมูลผู้ใช้สำหรับแสดงผล — ไม่เก็บ token อีกต่อไป
             localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
             // แจ้ง Dashboard ให้เด้ง toast ต้อนรับหลังเข้าสู่ระบบ
             sessionStorage.setItem('welcomeToast', (this.currentUser && this.currentUser.name) || 'ผู้ใช้งาน');

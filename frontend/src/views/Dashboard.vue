@@ -3420,22 +3420,26 @@ data() {
         return [home];
       },
     },
-    mounted() {
+    async mounted() {
       // สร้างหน้ารายงานย่อย (mock) จากเมนู nested ที่ยังไม่มีใน reportPages
       this.reportMenu.forEach(g => {
         if (g.children) g.children.forEach(c => {
           if (!this.reportPages[c.key]) this.reportPages[c.key] = { title: c.label.th, columns: ['รายการ', 'รายละเอียด', 'จำนวน', 'มูลค่า', 'สถานะ'], rows: [] };
         });
       });
-      // โหลด token/user/สิทธิ์ ล่าสุดจาก localStorage เข้า store (กันค้างหลัง re-login)
+      // โหลด user/สิทธิ์ ล่าสุดจาก localStorage เข้า store (กันค้างหลัง re-login)
       this.auth.hydrate();
       document.documentElement.setAttribute('data-theme', this.theme);
-      // เช็ค token - ถ้าไม่มีให้ redirect ไปที่ login
+      // ตรวจเซสชัน: token อยู่ในหน่วยความจำเท่านั้น (หายเมื่อรีเฟรช) — เซสชันจริงคือ httpOnly cookie
+      // ถ้าไม่มี token ในหน่วยความจำ ให้ถามเซิร์ฟเวอร์ว่า cookie ยังใช้ได้ไหมก่อนตัดสินใจเด้งออก
       if (!this.token) {
-        setTimeout(() => {
-          this.$router.push('/login');
-        }, 500);
-        return;
+        const alive = await this.auth.restoreSession();
+        if (!alive) {
+          setTimeout(() => {
+            this.$router.push('/login');
+          }, 500);
+          return;
+        }
       }
       // เด้ง toast ต้อนรับถ้าเพิ่งเข้าสู่ระบบสำเร็จ (ตั้งค่าจากหน้า Login)
       try {

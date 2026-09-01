@@ -77,8 +77,49 @@ function verifyPassword(password, stored) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-// CORS: ค่าเริ่มต้นเปิดทุก origin (dev); ตั้ง CORS_ORIGIN ใน .env (คั่นด้วย ,) เพื่อจำกัดโดเมนตอน go-live
-app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()) : true }));
+// ---- CORS ----
+// ค่าเริ่มต้น = เฉพาะ origin ของเครื่องตัวเอง (dev) ไม่เปิดให้ทุกโดเมนอีกต่อไป
+// ตอน go-live ให้ตั้ง CORS_ORIGIN ใน .env (คั่นด้วย ,) เช่น CORS_ORIGIN=https://erp.example.com
+// หมายเหตุ: หน้าเว็บ (Vite dev / build ที่เสิร์ฟคู่กัน) เรียก /api แบบ same-origin ผ่าน proxy อยู่แล้ว
+//          CORS จึงมีผลเฉพาะกับ client ที่เรียกข้ามโดเมนจริงๆ
+const DEV_ORIGINS = [
+  'http://localhost:5173', 'http://127.0.0.1:5173',
+  'http://localhost:3000', 'http://127.0.0.1:3000',
+];
+const CORS_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
+  : DEV_ORIGINS;
+app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
+
+// ---- เซสชันแบบ httpOnly cookie ----
+//  เก็บ token ไว้ใน cookie ที่ JavaScript ฝั่งหน้าเว็บอ่านไม่ได้ (httpOnly) → สคริปต์แปลกปลอม
+//  (XSS) ขโมย token ไปสวมรอยไม่ได้เหมือนตอนเก็บใน localStorage
+//  SameSite=Lax = เบราว์เซอร์ไม่แนบ cookie ให้คำขอข้ามเว็บแบบ POST → กัน CSRF ในทางปฏิบัติ
+//  ตั้ง COOKIE_SECURE=1 ใน .env เมื่อขึ้น https จริง (cookie จะส่งเฉพาะบน https)
+const SESSION_DAYS = 30;
+const COOKIE_NAME = 'kins_token';
+function setSessionCookie(res, token) {
+  const parts = [
+    `${COOKIE_NAME}=${token}`,
+    'HttpOnly',
+    'Path=/',
+    'SameSite=Lax',
+    `Max-Age=${SESSION_DAYS * 24 * 60 * 60}`,
+  ];
+  if (process.env.COOKIE_SECURE === '1') parts.push('Secure');
+  res.append('Set-Cookie', parts.join('; '));
+}
+function clearSessionCookie(res) {
+  res.append('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`);
+}
+function readSessionCookie(req) {
+  const raw = req.headers.cookie || '';
+  for (const part of raw.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k === COOKIE_NAME) return decodeURIComponent(v.join('='));
+  }
+  return '';
+}
 app.use(express.json({ limit: '3mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -172,6 +213,7 @@ app.post('/api/login', async (req, res) => {
     const token = crypto.randomBytes(24).toString('hex');
     await mysqlPool.query('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))', [token, user.id]);
     mysqlPool.query('DELETE FROM sessions WHERE expires_at < NOW()').catch(() => {}); // ล้าง session หมดอายุ (fire-and-forget)
+    setSessionCookie(res, token);   // เซสชันหลัก = httpOnly cookie (token ใน response เก็บไว้ใช้ในหน่วยความจำเท่านั้น)
 
     return res.json({
       ok: true,
@@ -306,6 +348,7 @@ app.post('/api/auth/google', async (req, res) => {
 
     const token = crypto.randomBytes(24).toString('hex');
     await mysqlPool.query('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))', [token, user.id]);
+    setSessionCookie(res, token);
     return res.json({
       ok: true,
       message: 'เข้าสู่ระบบด้วย Google สำเร็จ',
@@ -318,10 +361,13 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-// ---- ตรวจ token จาก header Authorization: Bearer <token> ----
+// ---- ตรวจ token ของเซสชัน ----
+//  ลำดับ: httpOnly cookie (ช่องทางหลัก) → header Authorization: Bearer → ?token= (ลิงก์รูป/QR)
+//  ยังรับ header อยู่เพื่อความเข้ากันได้ (client เก่า/สคริปต์ภายใน) — หน้าเว็บใช้ cookie เป็นหลักแล้ว
 async function auth(req, res, next) {
   const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : (req.query.token || '');
+  const headerToken = header.startsWith('Bearer ') ? header.slice(7) : '';
+  const token = readSessionCookie(req) || headerToken || (req.query.token || '');
   try {
     const [rows] = await mysqlPool.query('SELECT user_id FROM sessions WHERE token = ? AND (expires_at IS NULL OR expires_at > NOW())', [token]);
     if (rows.length === 0) return res.status(401).json({ ok: false, message: 'กรุณาเข้าสู่ระบบ' });
@@ -2783,8 +2829,9 @@ app.put('/api/orders/:id', auth, requirePermission(['order-receive', 'order-fulf
 // ------------------------------------------------------------
 app.post('/api/logout', auth, async (req, res) => {
   const header = req.headers.authorization || '';
-  const token = header.slice(7);
-  await mysqlPool.query('DELETE FROM sessions WHERE token = ?', [token]);
+  const token = readSessionCookie(req) || (header.startsWith('Bearer ') ? header.slice(7) : '');
+  if (token) await mysqlPool.query('DELETE FROM sessions WHERE token = ?', [token]);
+  clearSessionCookie(res);
   res.json({ ok: true });
 });
 

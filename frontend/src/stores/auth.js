@@ -9,8 +9,12 @@ import router from '../router/index.js';
 const API = '';
 
 export const useAuthStore = defineStore('auth', {
+  // ⚠️ token ไม่เก็บลง localStorage อีกต่อไป (2026-09-01) — เซสชันจริงอยู่ใน httpOnly cookie
+  //    ที่ JavaScript อ่านไม่ได้ (กัน XSS ขโมย token ไปสวมรอย) ตัวแปร token ด้านล่างเก็บไว้ใน
+  //    หน่วยความจำเฉยๆ เพื่อความเข้ากันได้กับโค้ดเดิมที่ยังแนบ header Authorization
+  //    → รีเฟรชหน้าแล้ว token หายเป็นเรื่องปกติ เซสชันยังอยู่เพราะ cookie (ดู restoreSession)
   state: () => ({
-    token: localStorage.getItem('token') || null,
+    token: null,
     currentUser: JSON.parse(localStorage.getItem('currentUser') || '{}'),
     rolePerms: JSON.parse(localStorage.getItem('rolePerms') || '{}'), // ชื่อบทบาท -> [keys]
   }),
@@ -33,15 +37,26 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    // โหลดค่าจาก localStorage ใหม่ (เรียกหลัง login เพราะ store สร้างก่อน login)
+    // โหลดค่าที่ยัง cache ไว้ (ผู้ใช้/สิทธิ์) — token ไม่ได้อยู่ใน localStorage แล้ว
     hydrate() {
-      this.token = localStorage.getItem('token') || null;
       this.currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       this.rolePerms = JSON.parse(localStorage.getItem('rolePerms') || '{}');
     },
     setToken(t) {
-      this.token = t;
-      if (t) localStorage.setItem('token', t); else localStorage.removeItem('token');
+      this.token = t || null;   // อยู่ในหน่วยความจำเท่านั้น (เซสชันจริง = httpOnly cookie)
+    },
+    // ตรวจว่ายังมีเซสชันอยู่ไหม (ใช้ cookie) — เรียกตอนเปิด/รีเฟรชหน้า Dashboard
+    // คืน true ถ้าเซสชันยังใช้ได้ (พร้อมอัปเดตข้อมูลผู้ใช้ล่าสุด)
+    async restoreSession() {
+      try {
+        const res = await fetch(API + '/api/me', { credentials: 'same-origin' });
+        if (!res.ok) return false;
+        const data = await res.json();
+        if (data.ok && data.user) { this.setCurrentUser(data.user); return true; }
+        return false;
+      } catch (e) {
+        return false;
+      }
     },
     setCurrentUser(u) {
       this.currentUser = u;
