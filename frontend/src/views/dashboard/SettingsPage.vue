@@ -74,7 +74,34 @@
           <div class="set-row-title">{{ dash.t[dash.lang].passwordLabel }}</div>
           <div class="set-row-desc">{{ dash.t[dash.lang].accountNormal }}</div>
         </div>
-        <button class="btn-small">{{ dash.t[dash.lang].changePassword }}</button>
+        <button class="btn-small" @click="togglePwForm">
+          {{ pwOpen ? dash.t[dash.lang].cancelWord : dash.t[dash.lang].changePassword }}
+        </button>
+      </div>
+
+      <!-- ฟอร์มเปลี่ยนรหัสผ่าน (เปิดเมื่อกดปุ่ม) -->
+      <div v-if="pwOpen" class="set-pw-form">
+        <div class="set-form-grid">
+          <div class="fr-field-group">
+            <label>{{ dash.t[dash.lang].currentPasswordLabel }}</label>
+            <input type="password" v-model="pw.current" autocomplete="current-password" />
+          </div>
+          <div class="fr-field-group">
+            <label>{{ dash.t[dash.lang].newPasswordLabel }}</label>
+            <input type="password" v-model="pw.next" autocomplete="new-password" :placeholder="dash.t[dash.lang].passwordMinHint" />
+          </div>
+          <div class="fr-field-group">
+            <label>{{ dash.t[dash.lang].confirmNewPasswordLabel }}</label>
+            <input type="password" v-model="pw.confirm" autocomplete="new-password" @keyup.enter="submitPassword" />
+          </div>
+        </div>
+        <div v-if="pwMsg.text" class="set-pw-msg" :class="pwMsg.type">{{ pwMsg.text }}</div>
+        <div class="set-edit-actions">
+          <button class="btn-small btn-primary" :disabled="pwSaving" @click="submitPassword">
+            {{ pwSaving ? dash.t[dash.lang].savingWord : '🔒 ' + dash.t[dash.lang].changePassword }}
+          </button>
+          <button class="btn-small" @click="togglePwForm">{{ dash.t[dash.lang].cancelWord }}</button>
+        </div>
       </div>
     </div>
 
@@ -174,9 +201,53 @@ export default {
     return { customer: useCustomerStore() };
   },
   data() {
-    return { dragXl: false, dragCm: false, emailNotif: true };
+    return {
+      dragXl: false, dragCm: false, emailNotif: true,
+      pwOpen: false, pwSaving: false,
+      pw: { current: '', next: '', confirm: '' },
+      pwMsg: { type: '', text: '' },
+    };
   },
   methods: {
+    // ---- เปลี่ยนรหัสผ่านของตัวเอง ----
+    togglePwForm() {
+      this.pwOpen = !this.pwOpen;
+      this.pw = { current: '', next: '', confirm: '' };
+      this.pwMsg = { type: '', text: '' };
+    },
+    async submitPassword() {
+      const tt = this.dash.t[this.dash.lang];
+      if (!this.pw.current || !this.pw.next) {
+        this.pwMsg = { type: 'error', text: tt.fillAllPasswordFields }; return;
+      }
+      if (this.pw.next.length < 6) {
+        this.pwMsg = { type: 'error', text: tt.passwordMinHint }; return;
+      }
+      if (this.pw.next !== this.pw.confirm) {
+        this.pwMsg = { type: 'error', text: tt.passwordMismatch }; return;
+      }
+      this.pwSaving = true;
+      this.pwMsg = { type: '', text: '' };
+      try {
+        const res = await fetch('/api/me/password', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + this.dash.token },
+          body: JSON.stringify({ currentPassword: this.pw.current, newPassword: this.pw.next }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (data.ok) {
+          this.pwOpen = false;
+          this.pw = { current: '', next: '', confirm: '' };
+          this.dash.ui.toast(tt.passwordChangedMsg, 'success');
+        } else {
+          this.pwMsg = { type: 'error', text: data.message || tt.passwordChangeFailed };
+        }
+      } catch (e) {
+        this.pwMsg = { type: 'error', text: tt.connectionError };
+      } finally {
+        this.pwSaving = false;
+      }
+    },
     onDropXl(e) {
       this.dragXl = false;
       const f = e.dataTransfer && e.dataTransfer.files[0];
@@ -256,6 +327,11 @@ export default {
 .set-upload-btn:hover { border-color: #2F65F6; color: #2F65F6; background: rgba(47,101,246,.06); }
 .set-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 560px; }
 .set-edit-actions { display: flex; gap: 10px; margin-top: 18px; }
+
+/* ---- ฟอร์มเปลี่ยนรหัสผ่าน (ในการ์ดความปลอดภัย) ---- */
+.set-pw-form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--field-border); }
+.set-pw-msg { margin-top: 12px; font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 560px; }
+.set-pw-msg.error { color: var(--danger, #dc2626); background: rgba(220, 38, 38, 0.08); }
 
 /* ---- แถวความปลอดภัย / แจ้งเตือน ---- */
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }

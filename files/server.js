@@ -506,6 +506,45 @@ app.put('/api/me', auth, async (req, res) => {
 });
 
 // ------------------------------------------------------------
+//  เปลี่ยนรหัสผ่านของตัวเอง (หน้าตั้งค่า → ความปลอดภัย)
+//  ต้องกรอกรหัสผ่านปัจจุบันถูกต้องด้วย — กันคนที่ยืมเครื่อง/ขโมยเซสชันไปเปลี่ยนรหัสยึดบัญชี
+//  เปลี่ยนสำเร็จแล้วเตะเซสชันอื่นๆ ของบัญชีนี้ออกทั้งหมด (เหลือเฉพาะเครื่องที่กำลังใช้อยู่)
+// ------------------------------------------------------------
+app.put('/api/me/password', auth, async (req, res) => {
+  const currentPassword = req.body.currentPassword || '';
+  const newPassword = req.body.newPassword || '';
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ ok: false, message: 'กรุณากรอกรหัสผ่านปัจจุบันและรหัสผ่านใหม่' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ ok: false, message: 'รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร' });
+  }
+  if (newPassword === currentPassword) {
+    return res.status(400).json({ ok: false, message: 'รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสผ่านเดิม' });
+  }
+  try {
+    const [[user]] = await mysqlPool.query('SELECT password FROM users WHERE id = ?', [req.userId]);
+    if (!user) return res.status(404).json({ ok: false, message: 'ไม่พบบัญชีผู้ใช้' });
+    // บัญชีที่สมัครผ่าน Google ไม่มีรหัสผ่านให้เปลี่ยน (เก็บเป็น marker "google:...")
+    if (String(user.password).startsWith('google:')) {
+      return res.status(400).json({ ok: false, message: 'บัญชีนี้เข้าสู่ระบบด้วย Google จึงไม่มีรหัสผ่านให้เปลี่ยน' });
+    }
+    if (!verifyPassword(currentPassword, user.password)) {
+      return res.status(401).json({ ok: false, message: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' });
+    }
+    await mysqlPool.query('UPDATE users SET password = ? WHERE id = ?', [hashPassword(newPassword), req.userId]);
+    // ออกจากระบบทุกเครื่องที่เหลือ (กันกรณีมีคนอื่นค้างเซสชันไว้อยู่)
+    const header = req.headers.authorization || '';
+    const keepToken = readSessionCookie(req) || (header.startsWith('Bearer ') ? header.slice(7) : '');
+    await mysqlPool.query('DELETE FROM sessions WHERE user_id = ? AND token <> ?', [req.userId, keepToken]);
+    res.json({ ok: true, message: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, message: 'เปลี่ยนรหัสผ่านไม่สำเร็จ' });
+  }
+});
+
+// ------------------------------------------------------------
 //  รายชื่อสมาชิกทั้งหมด + จำนวน (สำหรับหน้าแดชบอร์ด)
 // ------------------------------------------------------------
 app.get('/api/users', auth, requirePermission('users'), async (req, res) => {

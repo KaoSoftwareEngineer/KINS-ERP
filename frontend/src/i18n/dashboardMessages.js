@@ -933,6 +933,14 @@ export const messages = {
     permissionSecuritySectionTitle: 'สิทธิ์ / ความปลอดภัย',
     execOnlyChangeHint: '(เฉพาะผู้บริหารเปลี่ยนได้)',
     newPasswordLabel: 'รหัสผ่านใหม่',
+    // ---- เปลี่ยนรหัสผ่านตัวเอง (หน้าตั้งค่า → ความปลอดภัย) ----
+    currentPasswordLabel: 'รหัสผ่านปัจจุบัน',
+    confirmNewPasswordLabel: 'ยืนยันรหัสผ่านใหม่',
+    passwordMinHint: 'อย่างน้อย 6 ตัวอักษร',
+    fillAllPasswordFields: 'กรุณากรอกรหัสผ่านปัจจุบันและรหัสผ่านใหม่',
+    passwordMismatch: 'รหัสผ่านใหม่กับช่องยืนยันไม่ตรงกัน',
+    passwordChangedMsg: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว — อุปกรณ์อื่นที่ค้างอยู่จะถูกให้เข้าสู่ระบบใหม่',
+    passwordChangeFailed: 'เปลี่ยนรหัสผ่านไม่สำเร็จ',
     leaveBlankIfNoChangeHint: '(เว้นว่างถ้าไม่เปลี่ยน)',
     // หัวข้อ "ในหน้า" สัญญาขาย (มีอีโมจินำหน้า) — คนละตัวกับ salesContractTitle ที่ใช้ในเมนู/breadcrumb
     // (เดิมตั้งชื่อคีย์ซ้ำกัน ตัวนี้เลยไปทับของเมนู ทำให้เมนูมีไอคอน SVG + อีโมจิซ้อนกัน)
@@ -1876,6 +1884,14 @@ export const messages = {
     permissionSecuritySectionTitle: 'Permissions / Security',
     execOnlyChangeHint: '(Only executives can change this)',
     newPasswordLabel: 'New Password',
+    // ---- Change own password (Settings → Security) ----
+    currentPasswordLabel: 'Current Password',
+    confirmNewPasswordLabel: 'Confirm New Password',
+    passwordMinHint: 'At least 6 characters',
+    fillAllPasswordFields: 'Please enter your current and new password',
+    passwordMismatch: 'New password and confirmation do not match',
+    passwordChangedMsg: 'Password changed — other signed-in devices will need to log in again',
+    passwordChangeFailed: 'Could not change password',
     leaveBlankIfNoChangeHint: '(Leave blank if unchanged)',
     // หัวข้อ "ในหน้า" (ดูหมายเหตุฝั่งภาษาไทย)
     salesContractPageTitle: '📝 Sales Contract',
