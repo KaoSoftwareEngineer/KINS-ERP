@@ -90,7 +90,7 @@ export default {
       try { const res = await fetch('/api/credit-notes/next-no?type=' + this.partyType, { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); if (d.ok) this.form.doc_no = d.doc_no; } catch (e) {}
     },
     async loadParties() {
-      const url = this.partyType === 'partner' ? '/api/partners' : '/api/customers';
+      const url = this.partyType === 'partner' ? '/api/partners/lookup' : '/api/customers/lookup';
       try { const res = await fetch(url, { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.partyOptions = (d.items || d.customers || []).map(x => x.company_name || x.name).filter(Boolean).slice(0, 300); } catch (e) {}
     },
     resetForm() {

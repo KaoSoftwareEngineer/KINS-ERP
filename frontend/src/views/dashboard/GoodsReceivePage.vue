@@ -187,14 +187,14 @@ export default {
       return [...new Set(this.locations.map(l => l.zone).filter(Boolean))].map(z => 'คลัง ' + z);
     },
     supplierOptions() {
-      return (this.customer.cuItems || []).map(c => c.company_name).filter(Boolean).slice(0, 200);
+      return (this.customer.cuNameOptions || []).map(c => c.company_name).filter(Boolean).slice(0, 200);
     },
   },
   mounted() {
     this.loadProducts();
     this.loadLocations();
-    if (!this.customer.cuItems || this.customer.cuItems.length === 0) {
-      this.customer.cuLoadItems();
+    if (!this.customer.cuNameOptions || this.customer.cuNameOptions.length === 0) {
+      this.customer.cuLoadNames();
     }
     this.addRow();
   },

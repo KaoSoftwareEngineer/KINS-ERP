@@ -146,7 +146,7 @@ export default {
   methods: {
     fmt(v) { return (Number(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     async loadNextNo() { try { const r = await fetch('/api/customer-billings/next-no', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); if (d.ok) this.form.br_no = d.br_no; } catch (e) {} },
-    async loadCustomers() { try { const r = await fetch('/api/customers', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); this.customers = (d.items || d.customers || []).map(c => c.company_name || c.name).filter(Boolean).slice(0, 300); } catch (e) {} },
+    async loadCustomers() { try { const r = await fetch('/api/customers/lookup', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); this.customers = (d.items || d.customers || []).map(c => c.company_name || c.name).filter(Boolean).slice(0, 300); } catch (e) {} },
     async selectCustomer(c) {
       this.form.customer = c; this.selected = [];
       try { const r = await fetch('/api/customer-billings/documents?customer=' + encodeURIComponent(c), { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); if (d.ok) this.docs = { wholesale: d.wholesale || [], retail: d.retail || [], credit: d.credit || [] }; } catch (e) {}

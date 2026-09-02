@@ -826,7 +826,12 @@ app.delete('/api/roles/:name', auth, requirePermission('user-permissions'), asyn
 // ============================================================
 //  คู่ค้า / ผู้ขาย (partners)
 // ============================================================
-app.get('/api/partners', auth, wrap(async (req, res) => {
+// เฉพาะชื่อ (ไม่มีข้อมูลอ่อนไหว) — ให้หน้าอื่นนอกโดเมนคู่ค้าใช้เป็น dropdown ได้โดยไม่ต้องมีสิทธิ์ 'partners'
+app.get('/api/partners/lookup', auth, wrap(async (req, res) => {
+  const [items] = await mysqlPool.query('SELECT id, name FROM partners ORDER BY name ASC');
+  res.json({ ok: true, items });
+}));
+app.get('/api/partners', auth, requirePermission('partners'), wrap(async (req, res) => {
   const [items] = await mysqlPool.query('SELECT * FROM partners ORDER BY name ASC');
   res.json({ ok: true, total: items.length, items });
 }));
@@ -2151,7 +2156,13 @@ function pickCustomer(b) {
   };
 }
 
-app.get('/api/customers', auth, wrap(async (req, res) => {
+// เฉพาะชื่อ/รหัส (ไม่มี tax_id/credit_limit/ที่อยู่ ฯลฯ) — ให้หน้าอื่นนอกโดเมนลูกค้าใช้เป็น dropdown ได้โดยไม่ต้องมีสิทธิ์ 'customers'
+app.get('/api/customers/lookup', auth, wrap(async (req, res) => {
+  const [customers] = await mysqlPool.query('SELECT id, company_name, code FROM customers ORDER BY company_name ASC');
+  res.json({ ok: true, customers });
+}));
+
+app.get('/api/customers', auth, requirePermission('customers'), wrap(async (req, res) => {
   const [customers] = await mysqlPool.query('SELECT * FROM customers ORDER BY id DESC');
   res.json({ ok: true, total: customers.length, customers });
 }));

@@ -103,7 +103,7 @@ export default {
       try { const res = await fetch('/api/vat-receipts/next-no', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); if (d.ok) this.form.vn_no = d.vn_no; } catch (e) {}
     },
     async loadRefs() {
-      try { const r = await fetch('/api/partners', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); if (d.ok && d.items && d.items.length) this.vendorOptions = d.items.map(p => p.name); } catch (e) {}
+      try { const r = await fetch('/api/partners/lookup', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); if (d.ok && d.items && d.items.length) this.vendorOptions = d.items.map(p => p.name); } catch (e) {}
     },
     resetForm() {
       this.form = { vn_no: '', receipt_date: new Date().toISOString().slice(0, 10), vendor: '', ref_no: '', remark: '' };

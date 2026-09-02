@@ -264,7 +264,7 @@ export default {
         this.fabrics = d.fabrics || [];
       } catch (e) {}
       try {
-        const r2 = await fetch('/api/partners', { headers: { Authorization: 'Bearer ' + this.dash.token } });
+        const r2 = await fetch('/api/partners/lookup', { headers: { Authorization: 'Bearer ' + this.dash.token } });
         const d2 = await r2.json();
         if (d2.ok && d2.items && d2.items.length) this.vendorOptions = d2.items.map(p => p.name);
       } catch (e) {}

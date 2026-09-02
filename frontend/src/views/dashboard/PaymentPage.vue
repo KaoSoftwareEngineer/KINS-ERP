@@ -177,7 +177,7 @@ export default {
       } catch (e) {}
     },
     async loadParties() {
-      const url = this.mode === 'pay' ? '/api/partners' : '/api/customers';
+      const url = this.mode === 'pay' ? '/api/partners/lookup' : '/api/customers/lookup';
       try { const res = await fetch(url, { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.partyOptions = (d.items || d.customers || []).map(x => x.company_name || x.name).filter(Boolean).slice(0, 300); } catch (e) {}
     },
     // โหลดประวัติล่าสุด + ยอดคงเหลือของทุกบิลที่ถูกอ้างอิง (สำหรับตัดสินสถานะ ครบ/บางส่วน ในตาราง)

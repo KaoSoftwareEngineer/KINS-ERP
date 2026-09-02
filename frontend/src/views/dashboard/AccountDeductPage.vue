@@ -67,7 +67,7 @@ export default {
     fmt(v) { return (Number(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     reset() { this.form = { party: '', ws_from: '', ws_to: '', rt_from: '', rt_to: '' }; this.balance = { total: 0, deducted: 0, remaining: 0 }; this.deductAmount = null; this.deductNote = ''; this.savedMsg = ''; },
     async loadParties() {
-      const url = this.partyType === 'partner' ? '/api/partners' : '/api/customers';
+      const url = this.partyType === 'partner' ? '/api/partners/lookup' : '/api/customers/lookup';
       try { const res = await fetch(url, { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.partyOptions = (d.items || d.customers || []).map(x => x.company_name || x.name).filter(Boolean).slice(0, 300); } catch (e) {}
     },
     async search() {

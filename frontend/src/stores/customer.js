@@ -14,6 +14,9 @@ export const useCustomerStore = defineStore('customer', {
     // ---- ลูกค้า (customers) ----
     cuItems: [],
     cuLoading: false,
+    // ตัวเลือกชื่อลูกค้าแบบย่อ (ไม่มีข้อมูลอ่อนไหว) — ใช้เป็น dropdown ในหน้านอกโดเมนลูกค้า
+    // ที่ไม่มีสิทธิ์ 'customers' เช่น สัญญาขาย/รับผ้าสำเร็จ (แยกจาก cuItems ซึ่งต้องมีสิทธิ์ 'customers')
+    cuNameOptions: [],
     cuFilters: { search: '', group: '', province: '', zone: '', accountTerms: '', cashTerms: '', salesperson: '' },
     cuPage: 1,
     cuPageSize: 50,
@@ -130,6 +133,20 @@ export const useCustomerStore = defineStore('customer', {
         this.cuItems = [];
       } finally {
         this.cuLoading = false;
+      }
+    },
+    // เวอร์ชันย่อ (id/code/ชื่อบริษัทเท่านั้น) — ไม่ต้องมีสิทธิ์ 'customers' ให้หน้านอกโดเมนลูกค้าเรียกใช้ได้
+    async cuLoadNames() {
+      const auth = useAuthStore();
+      try {
+        const res = await fetch(API + '/api/customers/lookup', { headers: { Authorization: 'Bearer ' + auth.token } });
+        if (res.status === 401) { auth.sessionExpired(); return; }
+        const data = await res.json();
+        this.cuNameOptions = (data.customers || []).map(row => ({
+          id: row.id, code: row.code || '', company_name: row.company_name || '',
+        }));
+      } catch (e) {
+        this.cuNameOptions = [];
       }
     },
     cuSearch() { this.cuPage = 1; },

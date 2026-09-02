@@ -121,7 +121,7 @@ export default {
     };
   },
   computed: {
-    customerOptions() { return (this.customer.cuItems || []).map(c => c.company_name).filter(Boolean).slice(0, 200); },
+    customerOptions() { return (this.customer.cuNameOptions || []).map(c => c.company_name).filter(Boolean).slice(0, 200); },
     subtotal() { return this.items.reduce((s, r) => s + this.rowAmount(r), 0); },
     discountAmount() {
       if (this.form.discount_type === 'baht') return Number(this.form.discount_value) || 0;
@@ -137,7 +137,7 @@ export default {
   mounted() {
     this.loadProducts();
     this.loadNextNo();
-    if (!this.customer.cuItems || this.customer.cuItems.length === 0) this.customer.cuLoadItems();
+    if (!this.customer.cuNameOptions || this.customer.cuNameOptions.length === 0) this.customer.cuLoadNames();
     this.addRow();
   },
   methods: {

@@ -103,7 +103,7 @@ export const useOrderStore = defineStore('order', {
         const [rReg, rIrr, rCus] = await Promise.all([
           fetch(API + '/api/fabrics', { headers: { Authorization: 'Bearer ' + auth.token } }),
           fetch(API + '/api/fabric-irregular', { headers: { Authorization: 'Bearer ' + auth.token } }),
-          fetch(API + '/api/customers', { headers: { Authorization: 'Bearer ' + auth.token } }),
+          fetch(API + '/api/customers/lookup', { headers: { Authorization: 'Bearer ' + auth.token } }),
         ]);
         if (rReg.status === 401 || rIrr.status === 401 || rCus.status === 401) { auth.sessionExpired(); return; }
         const dReg = await rReg.json();

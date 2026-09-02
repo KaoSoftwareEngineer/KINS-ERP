@@ -139,7 +139,7 @@ export default {
     async loadFabrics() {
       // หน้า PO ซื้อผ้าดิบ → ดึงจากตารางผ้าดิบ (/api/fabric-raw) ไม่ใช่ผ้าสำเร็จ
       try { const res = await fetch('/api/fabric-raw', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); this.fabrics = d.items || []; } catch (e) {}
-      try { const r2 = await fetch('/api/partners', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d2 = await r2.json(); if (d2.ok && d2.items.length) this.vendorOptions = d2.items.map(p => p.name); } catch (e) {}
+      try { const r2 = await fetch('/api/partners/lookup', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d2 = await r2.json(); if (d2.ok && d2.items.length) this.vendorOptions = d2.items.map(p => p.name); } catch (e) {}
     },
     async lookupSku(row) {
       if (!row.sku) return;

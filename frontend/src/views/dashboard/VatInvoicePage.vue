@@ -125,7 +125,7 @@ export default {
       try { const res = await fetch('/api/vat-invoices/next-no', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await res.json(); if (d.ok) this.form.vt_no = d.vt_no; } catch (e) {}
     },
     async loadRefs() {
-      try { const r = await fetch('/api/customers', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); this.customerOptions = (d.items || d.customers || []).map(c => c.company_name || c.name).filter(Boolean).slice(0, 300); } catch (e) {}
+      try { const r = await fetch('/api/customers/lookup', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); this.customerOptions = (d.items || d.customers || []).map(c => c.company_name || c.name).filter(Boolean).slice(0, 300); } catch (e) {}
       try { const r2 = await fetch('/api/vat-product-groups', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d2 = await r2.json(); this.vatGroups = d2.items || []; } catch (e) {}
       try {
         const r3 = await fetch('/api/vat-receipts', { headers: { Authorization: 'Bearer ' + this.dash.token } });

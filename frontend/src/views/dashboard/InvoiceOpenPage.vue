@@ -47,7 +47,7 @@ export default {
   async mounted() { await this.loadNextNo(); this.loadCustomers(); },
   methods: {
     async loadNextNo() { try { const r = await fetch('/api/sale-invoices/next-no', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); if (d.ok) this.form.inv_no = d.inv_no; } catch (e) {} },
-    async loadCustomers() { try { const r = await fetch('/api/customers', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); this.customers = (d.items || d.customers || []).map(c => c.company_name || c.name).filter(Boolean).slice(0, 300); } catch (e) {} },
+    async loadCustomers() { try { const r = await fetch('/api/customers/lookup', { headers: { Authorization: 'Bearer ' + this.dash.token } }); const d = await r.json(); this.customers = (d.items || d.customers || []).map(c => c.company_name || c.name).filter(Boolean).slice(0, 300); } catch (e) {} },
     resetForm() { this.form = { inv_no: '', inv_date: new Date().toISOString().slice(0, 10), customer: '', order_ref: '', account_term: 'Cash', salesperson: '', bill_address: '', ship_address: '', shipper: '', remark: '' }; this.saved = false; this.savedMsg = ''; this.loadNextNo(); },
     async save() {
       if (!this.form.customer) { this.dash.fbFail(this.dash.t[this.dash.lang].requireCustomerMsg); return; }
