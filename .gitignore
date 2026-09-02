@@ -5,6 +5,7 @@ node_modules/
 # logs
 *.log
 files/*.log
+files/logs/
 
 # SQLite เก่า (เลิกใช้แล้ว ย้ายเข้า MySQL หมดแล้ว)
 *.db
