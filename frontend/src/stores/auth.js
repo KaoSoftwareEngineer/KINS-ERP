@@ -25,10 +25,10 @@ export const useAuthStore = defineStore('auth', {
       const role = (state.currentUser && state.currentUser.role) || '';
       // ไม่มีบทบาท = จำกัด (เห็นแค่แดชบอร์ด/ตั้งค่า) — ไม่ให้สิทธิ์เต็มโดยปริยาย
       if (!role) return new Set();
-      // เฉพาะ "ผู้ดูแลระบบ (Admin)" เท่านั้นที่เต็มสิทธิ์แบบตายตัว
+      // เฉพาะ "ผู้ดูแลระบบ (Admin)" เท่านั้นที่เต็มสิทธิ์แบบตายตัว (เทียบตรงเป๊ะ ห้าม substring
+      // เพราะบทบาทใหม่ที่ตั้งชื่อมีคำว่า admin/ผู้ดูแลปนอยู่ เช่น "ผู้ดูแลคลังสินค้า" จะไม่ควรได้เต็มสิทธิ์ไปด้วย)
       // บทบาทอื่น (รวม CEO/ผู้บริหาร) ต้องตั้งสิทธิ์เองในหน้า "สิทธิ์การเข้าใช้งาน"
-      const r = role.toLowerCase();
-      if (r.includes('admin') || r.includes('ผู้ดูแล')) return null;
+      if (role.trim() === 'ผู้ดูแลระบบ (Admin)') return null;
       const keys = state.rolePerms[role];
       // ยังไม่ได้ตั้งสิทธิ์บทบาทนี้ = จำกัด (ไม่ใช่เต็มสิทธิ์) / ตั้งเป็น [] = ไม่มีสิทธิ์เมนูใดเลย
       if (!keys) return new Set();

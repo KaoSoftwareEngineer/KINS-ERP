@@ -140,8 +140,8 @@ export default {
       return members
         .map(u => {
           const role = u.role || '';
-          const r = role.toLowerCase();
-          const isAdmin = r.includes('admin') || r.includes('ผู้ดูแล');
+          // เทียบตรงเป๊ะเหมือน stores/auth.js — ห้าม substring กันบทบาทชื่อคล้าย admin หลอกว่าเป็นเต็มสิทธิ์
+          const isAdmin = role.trim() === 'ผู้ดูแลระบบ (Admin)';
           let full = false, restricted = false, menus = [];
           if (isAdmin) {
             full = true;

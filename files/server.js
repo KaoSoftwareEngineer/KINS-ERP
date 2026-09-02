@@ -20,6 +20,12 @@ const { pool: mysqlPool, initTables } = require('./db-mysql');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ---- ชื่อบทบาทผู้ดูแลระบบตัวจริง (เต็มสิทธิ์ตายตัว) ----
+// ต้องเทียบ "ตรงเป๊ะ" เท่านั้น ห้ามเช็คแบบ substring/regex (เช่น .includes('admin'))
+// เพราะถ้าใครตั้งชื่อบทบาทใหม่ที่บังเอิญมีคำว่า admin/ผู้ดูแลปนอยู่ (เช่น "ผู้ดูแลคลังสินค้า")
+// จะถูกมองว่าเป็นบทบาทเต็มสิทธิ์ไปด้วยทันที ทั้งที่ตั้งใจให้จำกัดสิทธิ์
+const ADMIN_ROLE_NAME = 'ผู้ดูแลระบบ (Admin)';
+
 // ---- โฟลเดอร์เก็บไฟล์อัปโหลด (สลิปโอนเงิน ฯลฯ) — เสิร์ฟผ่าน /uploads/... ----
 const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -448,7 +454,7 @@ async function getAllowedKeysForUser(userId) {
   );
   const role = row ? (row.role || '') : '';
   if (!role) return new Set();
-  if (/admin|ผู้ดูแล/i.test(role)) return null;
+  if (role.trim() === ADMIN_ROLE_NAME) return null;
   if (!row.permissions) return new Set();
   try {
     const keys = JSON.parse(row.permissions);
